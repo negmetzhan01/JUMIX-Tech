@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>ТОО — Учёт</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6c63ff">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ТОО Учёт">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<style>
+:root{--bg:#0f1117;--card:#1a1d27;--card2:#21253a;--accent:#6c63ff;--green:#22d3a0;--red:#f05c6e;--yellow:#f5a623;--blue:#38bdf8;--text:#e2e8f0;--muted:#8892a4;--border:#2d3348}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;min-height:100vh;overscroll-behavior-y:contain}
+/* TOPBAR */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);display:flex;align-items:stretch;position:sticky;top:0;z-index:100;min-height:48px}
+.brand{font-weight:700;font-size:15px;color:var(--accent);padding:0 16px;display:flex;align-items:center;flex-shrink:0;border-right:1px solid var(--border)}
+.tabs{display:flex;overflow-x:auto;flex:1}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{background:none;border:none;border-bottom:3px solid transparent;color:var(--muted);padding:0 13px;font-size:12px;cursor:pointer;white-space:nowrap;font-family:inherit;font-weight:500;transition:.15s}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.top-right{display:flex;align-items:center;gap:6px;padding:0 12px;flex-shrink:0;border-left:1px solid var(--border)}
+.icon-btn{background:var(--card2);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:11px;white-space:nowrap;font-family:inherit}
+.icon-btn:hover{color:var(--text)}
+/* PERIOD BAR */
+.period-bar{background:var(--card2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.pnav{display:flex;align-items:center;gap:8px}
+.pnav-btn{background:var(--card);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1}
+.plabel-main{font-size:15px;font-weight:700;min-width:220px;text-align:center}
+.plabel-sub{font-size:11px;color:var(--muted);text-align:center}
+.pbadge{margin-left:auto;border-radius:20px;padding:3px 12px;font-size:11px;font-weight:600}
+.pbadge.info{background:rgba(108,99,255,.15);border:1px solid rgba(108,99,255,.3);color:#a89dff}
+.pbadge.warn{background:rgba(245,166,35,.12);border:1px solid rgba(245,166,35,.35);color:var(--yellow)}
+/* CONTENT */
+.tab-pane{display:none;padding:16px;max-width:1600px;margin:0 auto}
+.tab-pane.active{display:block}
+/* PAGE HEADER */
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:8px}
+.ph h2{font-size:16px;font-weight:700}
+/* BUTTONS */
+.btn{border:none;border-radius:7px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#5a52e0}
+.btn-danger{background:rgba(240,92,110,.15);color:var(--red);border:1px solid rgba(240,92,110,.3)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid var(--border)}
+.btn-sm{padding:5px 10px;font-size:11px}
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.c-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.c-card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.c-card-title{font-weight:700;font-size:14px}
+.c-card-sub{font-size:11px;color:var(--muted);margin-top:2px}
+.c-card-body{padding:12px 16px}
+.c-card-foot{border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:8px}
+.tag{display:inline-block;border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700}
+/* KPI ROW */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:700px){.kpi-row{grid-template-columns:1fr 1fr}}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.kpi.bl::before{background:var(--blue)}.kpi.gn::before{background:var(--green)}
+.kpi.rd::before{background:var(--red)}.kpi.yw::before{background:var(--yellow)}
+.kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.kv{font-size:20px;font-weight:700}
+.kv.bl{color:var(--blue)}.kv.gn{color:var(--green)}.kv.rd{color:var(--red)}.kv.yw{color:var(--yellow)}
+.ks{font-size:11px;color:var(--muted);margin-top:3px}
+/* TABLES */
+.tbl-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:auto;-webkit-overflow-scrolling:touch}
+.tbl-wrap table{width:100%;border-collapse:collapse;min-width:100%}
+.tbl-wrap th{background:var(--card2);padding:9px 12px;font-size:11px;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap}
+.tbl-wrap td{padding:9px 12px;border-bottom:1px solid #1e2235;font-size:13px;vertical-align:middle}
+.tbl-wrap tr:last-child td{border:none}
+.tbl-wrap tr:hover td{background:#1e2235}
+.tr{text-align:right}.num{font-variant-numeric:tabular-nums}
+/* FORM */
+.form-section{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.form-section h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.fg{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+.fi{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 11px;font-size:13px;font-family:inherit;width:100%}
+.fi:focus{outline:none;border-color:var(--accent)}
+.frow{display:grid;gap:10px}
+.frow-2{grid-template-columns:1fr 1fr}
+.frow-3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:500px){.frow-2,.frow-3{grid-template-columns:1fr}}
+/* SHIFT GRID */
+.sg-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px}
+.sg-wrap::-webkit-scrollbar{height:4px}
+.sg-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.sg{border-collapse:collapse;width:max-content;min-width:100%}
+.sg thead th{background:var(--card2);padding:5px 3px;font-size:10px;color:var(--muted);text-align:center;border-bottom:1px solid var(--border);white-space:nowrap;font-weight:600}
+.sg thead .sc{min-width:130px;text-align:left;padding-left:10px;position:sticky;left:0;background:var(--card2);z-index:20;border-right:1px solid var(--border)}
+.sg thead .mg{font-size:11px;font-weight:700;color:var(--text)}
+.sg thead .dh{min-width:36px;width:36px}
+.sg thead .we{color:var(--yellow)}
+.sg thead .tod{color:var(--accent);background:#1d2038!important}
+.sg td{border-bottom:1px solid var(--border)}
+.sg .rc{background:var(--card);position:sticky;left:0;z-index:5;padding:9px 10px;min-width:130px;border-right:1px solid var(--border)}
+.rc-name{font-weight:600;font-size:12px}
+.rc-op{font-size:11px;color:var(--muted)}
+.dc{width:36px;min-width:36px;height:44px;text-align:center;cursor:pointer;user-select:none;border-left:1px solid #1e2235;position:relative}
+.dc:hover{background:rgba(108,99,255,.1)}
+.dc.we-bg{background:rgba(245,166,35,.03)}
+.dc.today-bg{background:rgba(108,99,255,.07)}
+.dc.mborder{border-left:2px solid #3a4070}
+.dc .ci{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.shb{width:28px;height:20px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;line-height:1}
+.shb.day{background:rgba(34,211,160,.18);color:var(--green);border:1px solid rgba(34,211,160,.4)}
+.shb.night{background:rgba(56,189,248,.18);color:var(--blue);border:1px solid rgba(56,189,248,.4)}
+.shb.over{background:rgba(108,99,255,.22);color:#c4baff;border:1px solid rgba(108,99,255,.5)}
+.nd{width:4px;height:4px;border-radius:50%;background:var(--yellow)}
+.sg .tot-row td{background:var(--card2);font-weight:700;font-size:12px;border-top:2px solid var(--border)}
+/* VAT TABLE */
+.vat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:14px}
+.vat-box h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.vat-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e2235;font-size:13px}
+.vat-row:last-child{border:none;font-weight:700;font-size:15px;padding-top:10px}
+.vat-row .vv{font-weight:600}
+.vv.bl{color:var(--blue)}.vv.gn{color:var(--green)}.vv.yw{color:var(--yellow)}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px}
+.mo.hidden{display:none}
+.mo-box{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:22px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.mo-box.wide{max-width:620px}
+.mo-title{font-size:16px;font-weight:700;margin-bottom:4px}
+.mo-sub{font-size:12px;color:var(--muted);margin-bottom:18px}
+.mo-acts{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+/* SHIFT MODAL OPTS */
+.shift-opts{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px}
+.sopt{background:var(--card2);border:2px solid var(--border);color:var(--muted);border-radius:8px;padding:10px 4px;cursor:pointer;text-align:center;font-size:11px;font-weight:600;font-family:inherit;transition:.15s;line-height:1.3}
+.sopt.sel{border-color:var(--accent);color:var(--text);background:rgba(108,99,255,.15)}
+/* MISC */
+.divider{height:1px;background:var(--border);margin:14px 0}
+.sec-title{font-size:15px;font-weight:700;margin-bottom:12px}
+.empty{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+.del-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:3px 6px;font-size:13px}
+.del-btn:hover{color:var(--red)}
+.edit-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:3px 6px;font-size:13px}
+.edit-btn:hover{color:var(--accent)}
+.badge-type{border-radius:4px;padding:2px 7px;font-size:10px;font-weight:700}
+/* WORKER TYPE COLORS */
+.t-crane_op{background:rgba(108,99,255,.2);color:#a89dff}
+.t-shift{background:rgba(56,189,248,.2);color:var(--blue)}
+.t-ip{background:rgba(245,166,35,.2);color:var(--yellow)}
+.t-partner{background:rgba(34,211,160,.2);color:var(--green)}
+.t-office{background:rgba(136,146,164,.2);color:var(--muted)}
+.t-maint{background:rgba(240,92,110,.2);color:var(--red)}
+/* INCOME TYPE COLORS */
+.it-monthly{background:rgba(34,211,160,.15);color:var(--green)}
+.it-nightly{background:rgba(56,189,248,.15);color:var(--blue)}
+.it-section{background:rgba(108,99,255,.15);color:#a89dff}
+.it-other{background:rgba(136,146,164,.15);color:var(--muted)}
+/* EXPENSE CAT COLORS */
+.ec-salary{background:rgba(34,211,160,.15);color:var(--green)}
+.ec-rental{background:rgba(56,189,248,.15);color:var(--blue)}
+.ec-maintenance{background:rgba(245,166,35,.15);color:var(--yellow)}
+.ec-repair{background:rgba(240,92,110,.15);color:var(--red)}
+.ec-transport,.ec-install,.ec-taxes,.ec-other{background:rgba(136,146,164,.15);color:var(--muted)}
+/* SETTINGS */
+.set-group{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px}
+.set-group h3{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #1e2235}
+.set-row:last-child{border:none}
+.set-label{font-size:13px}
+.set-val{background:var(--card2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:6px 10px;font-size:13px;font-family:inherit;width:110px;text-align:right}
+.set-val:focus{outline:none;border-color:var(--accent)}
+/* ═══ MOBILE ═══ */
+@media(max-width:600px){
+  /* Topbar */
+  .topbar{min-height:44px}
+  .brand{padding:0 10px;font-size:12px;letter-spacing:-.3px}
+  .tab-btn{padding:0 9px;font-size:11px;min-height:44px;font-weight:600;touch-action:manipulation}
+  .top-right{padding:0 5px;gap:3px;border-left:none}
+  .icon-btn{padding:5px 7px;font-size:10px;min-height:36px;touch-action:manipulation}
+  /* Period bar */
+  .period-bar{padding:6px 10px;gap:8px;flex-wrap:wrap}
+  .plabel-main{font-size:12px;min-width:0}
+  .plabel-sub{font-size:10px}
+  .pnav-btn{padding:8px 14px;min-height:36px;font-size:15px;touch-action:manipulation}
+  .pbadge{font-size:10px;padding:3px 8px;margin-left:0}
+  /* Layout */
+  .tab-pane{padding:10px}
+  .ph{margin-bottom:10px;flex-wrap:wrap;gap:6px}
+  .ph h2{font-size:14px}
+  .ph .btn{font-size:12px;padding:8px 12px}
+  .cards-grid{grid-template-columns:1fr}
+  .kpi-row{grid-template-columns:1fr 1fr;gap:8px}
+  .kpi{padding:10px}
+  .kl{font-size:9px}
+  .kv{font-size:15px}
+  .ks{font-size:10px}
+  /* Tables */
+  .tbl-wrap table{min-width:560px}
+  /* Filter bar: horizontal scroll */
+  .filter-bar{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+  .filter-bar::-webkit-scrollbar{display:none}
+  .filter-bar label{display:none}
+  .filter-bar .fi{min-width:100px}
+  /* Forms: 16px prevents iOS auto-zoom on focus */
+  .fi,.fi:focus{font-size:16px}
+  select.fi{font-size:16px}
+  .frow-2,.frow-3{grid-template-columns:1fr}
+  /* Buttons: 44px min touch target */
+  .btn{min-height:44px;font-size:14px;touch-action:manipulation}
+  .btn-sm{min-height:36px;font-size:12px;touch-action:manipulation}
+  .del-btn,.edit-btn{min-width:36px;min-height:36px;font-size:15px;padding:4px 8px}
+  .sopt{padding:12px 3px;font-size:11px;touch-action:manipulation}
+  /* Modals: bottom sheet on mobile */
+  .mo{padding:0;align-items:flex-end}
+  .mo-box,.mo-box.wide{border-radius:18px 18px 0 0;max-width:100%;max-height:90vh;padding:20px 14px 28px}
+  .mo-title{font-size:15px;margin-bottom:2px}
+  .mo-sub{margin-bottom:12px}
+  .mo-acts{flex-direction:row-reverse;margin-top:12px}
+  /* Shift grid */
+  .sg .rc{min-width:90px;padding:7px 7px}
+  .sg thead .sc{min-width:90px}
+  .rc-name{font-size:11px}
+  .rc-op{font-size:10px}
+  .dc{width:30px;min-width:30px;height:40px}
+  .shb{width:20px;height:17px;font-size:8px;border-radius:3px}
+  .sg thead th{font-size:9px;padding:4px 1px}
+  .sg thead .dh{min-width:30px;width:30px}
+  /* Settings */
+  .set-row{flex-wrap:wrap;gap:6px}
+  .set-val{width:80px}
+  /* Summary */
+  #sumBreakdown>div{grid-template-columns:1fr!important}
+  .sec-title{font-size:13px}
+  .divider{margin:10px 0}
+  .vat-box{padding:12px}
+  .vat-row{font-size:12px}
+  .wdet-row{font-size:12px}
+  /* VAT totals box */
+  .vat-row:last-child{font-size:14px}
+  /* Cards */
+  .c-card-head{padding:12px 12px}
+  .c-card-body{padding:10px 12px}
+  .c-card-foot{padding:8px 12px}
+  /* Workers table: hide overtime column to save space */
+  #workersTbl td:nth-child(4),#workersTbl th:nth-child(4){display:none}
+}
+/* Wider mobile (tablets, landscape phones) */
+@media(min-width:601px)and(max-width:900px){
+  .frow-3{grid-template-columns:1fr 1fr}
+  .cards-grid{grid-template-columns:1fr 1fr}
+  .mo-box.wide{max-width:90vw}
+}
+/* Safe area insets for iPhone X+ notch and home bar */
+@supports(padding:max(0px)){
+  .topbar{padding-top:env(safe-area-inset-top,0px)}
+  body{padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+}
+/* All touch screens: no hover delays */
+@media(hover:none){
+  .tab-btn,.btn,.icon-btn,.pnav-btn,.del-btn,.edit-btn,.sopt,.dc,.c-card-foot .btn{touch-action:manipulation}
+  .tabs,.sg-wrap,.tbl-wrap,.filter-bar{-webkit-overflow-scrolling:touch}
+}
+/* ═══ END MOBILE ═══ */
+/* WORKER DETAIL */
+.wdet-section{margin-bottom:14px}
+.wdet-section h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px}
+.wdet-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #1e2235;font-size:13px;align-items:center}
+.wdet-row:last-child{border:none}
+.wdet-row.total{font-weight:700;font-size:14px;padding-top:10px;border-top:2px solid var(--border)}
+.rb-pos{color:var(--green);font-weight:600}.rb-neg{color:var(--red);font-weight:600}
+/* RECURRING */
+.rec{display:inline-block;border-radius:3px;padding:1px 5px;font-size:9px;font-weight:700;background:rgba(34,211,160,.18);color:var(--green);border:1px solid rgba(34,211,160,.3);margin-left:4px;vertical-align:middle}
+/* FILTER BAR */
+.filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.filter-bar .fi{width:auto;padding:6px 10px}
+.filter-bar label{font-size:11px;color:var(--muted)}
+/* ALL-EQUIP GRID separator rows */
+.sg .eq-sep td{background:rgba(108,99,255,.06);height:3px;padding:0}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="brand">ТОО</div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('smeny',this)">📅 Смены</button>
+    <button class="tab-btn" onclick="showTab('workers',this)">👥 Работники</button>
+    <button class="tab-btn" onclick="showTab('equip',this)">🏗 Техника</button>
+    <button class="tab-btn" onclick="showTab('objects',this)">🏢 Объекты</button>
+    <button class="tab-btn" onclick="showTab('partners',this)">🤝 Партнеры</button>
+    <button class="tab-btn" onclick="showTab('income',this)">💵 Доходы</button>
+    <button class="tab-btn" onclick="showTab('expenses',this)">💸 Расходы</button>
+    <button class="tab-btn" onclick="showTab('summary',this)">📊 Итоги</button>
+    <button class="tab-btn" onclick="showTab('settings',this)">⚙ Настройки</button>
+  </div>
+  <div class="top-right">
+    <button class="icon-btn" onclick="exportData()">⬇ Экспорт</button>
+    <button class="icon-btn" onclick="document.getElementById('impFile').click()">⬆ Импорт</button>
+    <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(event)">
+  </div>
+</div>
+
+<!-- PERIOD BAR -->
+<div class="period-bar">
+  <div class="pnav">
+    <button class="pnav-btn" onclick="chPeriod(-1)">◀</button>
+    <div style="text-align:center">
+      <div class="plabel-main" id="plMain"></div>
+      <div class="plabel-sub" id="plSub"></div>
+    </div>
+    <button class="pnav-btn" onclick="chPeriod(1)">▶</button>
+  </div>
+  <div class="pbadge info" id="pbadge"></div>
+  <div id="recurringBar" style="display:none">
+    <button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button>
+  </div>
+</div>
+
+<!-- MOBILE FIRST-VISIT HINT -->
+<div id="mobileHint" style="display:none;background:rgba(108,99,255,.12);border-bottom:1px solid rgba(108,99,255,.25);padding:8px 16px;font-size:12px;color:#a89dff;align-items:center;justify-content:space-between;gap:8px">
+  <span>📱 Добавьте на главный экран для удобного доступа → <b>Настройки</b></span>
+  <button onclick="this.parentElement.style.display='none';localStorage.setItem('too_hint_dismissed','1')" style="background:none;border:none;color:#a89dff;font-size:16px;cursor:pointer;padding:0 4px;line-height:1">✕</button>
+</div>
+
+<!-- ═══════════ СМЕНЫ ═══════════ -->
+<div id="pane-smeny" class="tab-pane active">
+  <div class="ph"><h2>Табель смен</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span style="font-size:12px;color:var(--muted)">Кран:</span>
+      <select class="fi" style="width:auto;padding:5px 10px" id="shiftEquipSel" onchange="renderShifts()">
+        <option value="all">Вся техника</option>
+      </select>
+    </div>
+  </div>
+  <div class="sg-wrap"><table class="sg" id="shiftGrid"></table></div>
+  <div style="display:flex;gap:16px;margin:10px 0 16px;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--muted)">Нажмите на ячейку для отметки •</span>
+    <span><span class="shb day" style="display:inline-flex">Д</span> День</span>
+    <span><span class="shb night" style="display:inline-flex">Н</span> Ночь</span>
+    <span><span class="shb over" style="display:inline-flex">П</span> Переработка</span>
+  </div>
+  <div id="shiftSummary"></div>
+</div>
+
+<!-- ═══════════ РАБОТНИКИ ═══════════ -->
+<div id="pane-workers" class="tab-pane">
+  <div class="ph"><h2>Работники</h2><button class="btn btn-primary" onclick="openWorkerModal()">+ Добавить</button></div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Имя</th><th>Тип</th><th>Техника</th><th class="tr">ЗП/мес</th><th class="tr">За ночи</th><th class="tr">Подмены</th><th class="tr">Итого нач.</th><th class="tr">Выплачено</th><th class="tr" style="color:var(--red)">Остаток</th><th></th></tr></thead>
+    <tbody id="workersTbl"></tbody>
+  </table></div>
+</div>
+
+<!-- ═══════════ ТЕХНИКА ═══════════ -->
+<div id="pane-equip" class="tab-pane">
+  <div class="ph"><h2>Техника</h2><button class="btn btn-primary" onclick="openEquipModal()">+ Добавить</button></div>
+  <div class="cards-grid" id="equipCards"></div>
+</div>
+
+<!-- ═══════════ ОБЪЕКТЫ ═══════════ -->
+<div id="pane-objects" class="tab-pane">
+  <div class="ph"><h2>Объекты</h2><button class="btn btn-primary" onclick="openObjModal()">+ Добавить</button></div>
+  <div class="cards-grid" id="objCards"></div>
+</div>
+
+<!-- ═══════════ ПАРТНЕРЫ ═══════════ -->
+<div id="pane-partners" class="tab-pane">
+  <div class="ph"><h2>Партнеры / ИП</h2><button class="btn btn-primary" onclick="openPartnerModal()">+ Добавить</button></div>
+  <div class="cards-grid" id="partnerCards"></div>
+</div>
+
+<!-- ═══════════ ДОХОДЫ ═══════════ -->
+<div id="pane-income" class="tab-pane">
+  <div class="ph"><h2>Доходы</h2><button class="btn btn-primary" onclick="openIncomeModal()">+ Добавить услугу</button></div>
+  <div id="incomeAuto"></div>
+  <div class="divider"></div>
+  <div class="ph" style="margin-bottom:8px"><div class="sec-title" style="margin:0">Дополнительные услуги</div></div>
+  <div class="filter-bar">
+    <label>Техника:</label><select class="fi" id="inFilterEquip" onchange="renderIncome()"><option value="">Вся</option></select>
+    <label>Тип:</label><select class="fi" id="inFilterType" onchange="renderIncome()"><option value="">Все типы</option></select>
+    <label>Объект:</label><select class="fi" id="inFilterObj" onchange="renderIncome()"><option value="">Все</option></select>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Дата</th><th>Техника</th><th>Объект</th><th>Услуга</th><th>Кол-во</th><th class="tr">Цена</th><th class="tr">Сумма б/НДС</th><th class="tr">НДС 16%</th><th class="tr">Итого с НДС</th><th></th></tr></thead>
+    <tbody id="incomeManualTbl"></tbody>
+  </table></div>
+  <div id="incomeTotals"></div>
+</div>
+
+<!-- ═══════════ РАСХОДЫ ═══════════ -->
+<div id="pane-expenses" class="tab-pane">
+  <div class="ph"><h2>Расходы</h2><button class="btn btn-primary" onclick="openExpenseModal()">+ Добавить</button></div>
+  <div class="filter-bar">
+    <label>Категория:</label><select class="fi" id="expFilterCat" onchange="renderExpenses()"><option value="">Все</option></select>
+    <label>Техника:</label><select class="fi" id="expFilterEquip" onchange="renderExpenses()"><option value="">Вся</option></select>
+    <label>Работник:</label><select class="fi" id="expFilterWorker" onchange="renderExpenses()"><option value="">Все</option></select>
+    <label>Партнер:</label><select class="fi" id="expFilterPartner" onchange="renderExpenses()"><option value="">Все</option></select>
+    <label>Объект:</label><select class="fi" id="expFilterObj" onchange="renderExpenses()"><option value="">Все</option></select>
+  </div>
+  <div class="tbl-wrap"><table>
+    <thead><tr><th>Дата</th><th>Категория</th><th>Техника</th><th>Кому</th><th>Описание</th><th class="tr">Сумма</th><th></th></tr></thead>
+    <tbody id="expensesTbl"></tbody>
+  </table></div>
+  <div style="text-align:right;padding:12px 16px;font-weight:700">
+    Итого расходов: <span id="expTotal" style="color:var(--red)">0 ₸</span>
+  </div>
+</div>
+
+<!-- ═══════════ ИТОГИ ═══════════ -->
+<div id="pane-summary" class="tab-pane">
+  <div class="ph"><h2>Итоги периода</h2>
+    <a href="dashboard.html" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none">↗ Дашборд</a>
+  </div>
+  <div class="kpi-row" id="sumKpi"></div>
+  <div id="sumEquip" style="margin-bottom:14px"></div>
+  <div id="sumBreakdown"></div>
+</div>
+
+<!-- ═══════════ НАСТРОЙКИ ═══════════ -->
+<div id="pane-settings" class="tab-pane">
+  <div class="ph"><h2>Настройки</h2></div>
+  <div class="set-group">
+    <h3>Период закрытия табеля</h3>
+    <div class="set-row"><span class="set-label">День начала периода (число месяца)</span>
+      <input class="set-val" type="number" min="1" max="28" id="sPeriodStart" onchange="saveSetting('periodStartDay',this.value)"></div>
+    <div class="set-row"><span class="set-label">День окончания периода</span>
+      <input class="set-val" type="number" min="1" max="28" id="sPeriodEnd" onchange="saveSetting('periodEndDay',this.value)"></div>
+    <div class="set-row"><span class="set-label" style="color:var(--muted);font-size:12px">Пример: начало 21 → конец 20 = период с 21 мая по 20 июня</span><span></span></div>
+  </div>
+  <div class="set-group">
+    <h3>Налоги</h3>
+    <div class="set-row"><span class="set-label">Ставка НДС (%)</span>
+      <input class="set-val" type="number" id="sVat" onchange="saveSetting('vatRate',this.value)"></div>
+  </div>
+  <div class="set-group">
+    <h3>Реквизиты</h3>
+    <div class="set-row"><span class="set-label">Название компании</span>
+      <input class="set-val" type="text" id="sCompany" style="width:200px;text-align:left" onchange="saveSetting('companyName',this.value)"></div>
+  </div>
+  <div class="set-group">
+    <h3>📱 Установить на телефон</h3>
+    <div id="mobileInstallInfo" style="margin-bottom:12px"></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-secondary" onclick="exportData()" style="display:flex;align-items:center;justify-content:center;gap:6px">💾 Сохранить данные (JSON)</button>
+      <button class="btn btn-secondary" id="shareFileBtn" style="display:none;align-items:center;justify-content:center;gap:6px" onclick="shareAppFile()">📤 Отправить файл приложения</button>
+    </div>
+    <div style="margin-top:12px;font-size:11px;color:var(--muted);line-height:1.6">
+      Данные хранятся в памяти браузера на вашем устройстве. Делайте регулярный экспорт JSON для резервной копии.
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODALS ══════════════ -->
+
+<!-- WORKER MODAL -->
+<div class="mo hidden" id="moWorker" onclick="closeMoCheck('moWorker',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moWorkerTitle">Работник</div>
+    <div class="mo-sub">Заполните данные</div>
+    <input type="hidden" id="wId">
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">ФИО</label><input class="fi" id="wName" placeholder="Иванов Айбек"></div>
+      <div class="fg"><label class="fl">Тип</label>
+        <select class="fi" id="wType">
+          <option value="crane_op">Крановщик</option><option value="shift">Сменный</option>
+          <option value="ip">ИП</option><option value="partner">Партнер</option>
+          <option value="office">Офис</option><option value="maint">Обслуживание</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">ЗП/месяц ₸</label><input class="fi" type="number" id="wSalMonth" placeholder="0"></div>
+      <div class="fg"><label class="fl">Ставка/ночь ₸</label><input class="fi" type="number" id="wSalNight" placeholder="0"></div>
+      <div class="fg"><label class="fl">Ставка/день ₸</label><input class="fi" type="number" id="wSalDay" placeholder="0"></div>
+    </div>
+    <div class="fg"><label class="fl">Привязать к технике</label>
+      <select class="fi" id="wEquipId"><option value="">— Не привязан —</option></select></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moWorker')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveWorker()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- EQUIPMENT MODAL -->
+<div class="mo hidden" id="moEquip" onclick="closeMoCheck('moEquip',event)">
+  <div class="mo-box wide">
+    <div class="mo-title" id="moEquipTitle">Техника</div>
+    <div class="mo-sub">Договорные тарифы и расходы</div>
+    <input type="hidden" id="eqId">
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Название</label><input class="fi" id="eqName" placeholder="Liebherr"></div>
+      <div class="fg"><label class="fl">Серийный номер</label><input class="fi" id="eqSerial" placeholder="F3523581"></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Основной оператор</label>
+        <select class="fi" id="eqWorker"><option value="">— Не назначен —</option></select></div>
+      <div class="fg"><label class="fl">Объект</label>
+        <select class="fi" id="eqObject"><option value="">— Не назначен —</option></select></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Аренда у партнера</label>
+        <select class="fi" id="eqRentalPartner"><option value="">— —</option></select></div>
+      <div class="fg"><label class="fl">Стоимость аренды/мес ₸</label><input class="fi" type="number" id="eqRentalCost" placeholder="2500000"></div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы дохода (без НДС)</div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Месяц ₸</label><input class="fi" type="number" id="eqRMonth" placeholder="3000000"></div>
+      <div class="fg"><label class="fl">Ночь/мес ₸</label><input class="fi" type="number" id="eqRNight" placeholder="1300000"></div>
+      <div class="fg"><label class="fl">День ₸</label><input class="fi" type="number" id="eqRDay" placeholder="0"></div>
+    </div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Секция ₸</label><input class="fi" type="number" id="eqRSection" placeholder="134000"></div>
+      <div class="fg"><label class="fl">Крепление ₸</label><input class="fi" type="number" id="eqRWall" placeholder="250000"></div>
+      <div class="fg"><label class="fl">Анкеры ₸</label><input class="fi" type="number" id="eqRAnchor" placeholder="1200000"></div>
+    </div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Перевозка ₸</label><input class="fi" type="number" id="eqRTransport" placeholder="45000"></div>
+      <div class="fg"><label class="fl">Монтаж ₸</label><input class="fi" type="number" id="eqRInstall" placeholder="1125000"></div>
+      <div class="fg"><label class="fl">Демонтаж ₸</label><input class="fi" type="number" id="eqRDismantle" placeholder="0"></div>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moEquip')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveEquip()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- OBJECT MODAL -->
+<div class="mo hidden" id="moObj" onclick="closeMoCheck('moObj',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moObjTitle">Объект</div>
+    <input type="hidden" id="obId">
+    <div class="fg"><label class="fl">Название объекта</label><input class="fi" id="obName" placeholder="ЖК Туран"></div>
+    <div class="fg"><label class="fl">Заказчик / Застройщик</label><input class="fi" id="obClient" placeholder="Туран Голд"></div>
+    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="obNote" placeholder="Адрес, контакт..."></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moObj')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveObj()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- PARTNER MODAL -->
+<div class="mo hidden" id="moPartner" onclick="closeMoCheck('moPartner',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moPartnerTitle">Партнер / ИП</div>
+    <input type="hidden" id="ptId">
+    <div class="fg"><label class="fl">Название / ФИО</label><input class="fi" id="ptName" placeholder="ИП Негметжан"></div>
+    <div class="fg"><label class="fl">Тип</label>
+      <select class="fi" id="ptType">
+        <option value="rental">Аренда техники</option><option value="service">Услуги / обслуживание</option>
+        <option value="transport">Перевозка</option><option value="other">Другое</option>
+      </select></div>
+    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="ptNote" placeholder="Контакт, условия..."></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moPartner')">Отмена</button>
+      <button class="btn btn-primary" onclick="savePartner()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- SHIFT MODAL -->
+<div class="mo hidden" id="moShift" onclick="closeMoCheck('moShift',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moShiftTitle">Смена</div>
+    <div class="mo-sub" id="moShiftSub"></div>
+    <input type="hidden" id="shEquipId"><input type="hidden" id="shDateKey">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Тип смены</div>
+    <div class="shift-opts">
+      <button class="sopt" id="sopt0" onclick="selSOpt(0)">✕<br>Нет</button>
+      <button class="sopt" id="sopt1" onclick="selSOpt(1)">Д<br>День</button>
+      <button class="sopt" id="sopt2" onclick="selSOpt(2)">Н<br>Ночь</button>
+      <button class="sopt" id="sopt3" onclick="selSOpt(3)">Д+Н<br>Оба</button>
+      <button class="sopt" id="sopt4" onclick="selSOpt(4)">П<br>Перераб.</button>
+    </div>
+    <div class="fg"><label class="fl">Кто вышел на смену</label>
+      <select class="fi" id="shWorker"></select></div>
+    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="shNote" placeholder="подмена, ИП, детали..."></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moShift')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveShift()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- INCOME ITEM MODAL -->
+<div class="mo hidden" id="moIncome" onclick="closeMoCheck('moIncome',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moIncomeTitle">Дополнительная услуга</div>
+    <input type="hidden" id="inId">
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Дата</label><input class="fi" type="date" id="inDate"></div>
+      <div class="fg"><label class="fl">Техника</label>
+        <select class="fi" id="inEquip"></select></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Объект</label>
+        <select class="fi" id="inObject"><option value="">— —</option></select></div>
+      <div class="fg"><label class="fl">Тип услуги</label>
+        <select class="fi" id="inType" onchange="autoFillIncomePrice()"></select></div>
+    </div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Количество</label><input class="fi" type="number" id="inQty" value="1" oninput="calcIncomeTotal()"></div>
+      <div class="fg"><label class="fl">Цена без НДС ₸</label><input class="fi" type="number" id="inPrice" placeholder="0" oninput="calcIncomeTotal()"></div>
+      <div class="fg"><label class="fl">Сумма без НДС ₸</label><input class="fi" type="number" id="inTotal" placeholder="0" readonly style="background:#161921"></div>
+    </div>
+    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="inNote" placeholder="..."></div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;font-size:13px">
+      <input type="checkbox" id="inRecurring" style="width:16px;height:16px;accent-color:var(--green)">
+      <span>Постоянная статья <span style="color:var(--muted);font-size:11px">(переносить на следующий период)</span></span>
+    </label>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moIncome')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveIncomeItem()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPENSE MODAL -->
+<div class="mo hidden" id="moExpense" onclick="closeMoCheck('moExpense',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moExpenseTitle">Расход</div>
+    <input type="hidden" id="exId">
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Дата</label><input class="fi" type="date" id="exDate"></div>
+      <div class="fg"><label class="fl">Сумма ₸</label><input class="fi" type="number" id="exAmount" placeholder="0"></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Категория</label>
+        <select class="fi" id="exCat">
+          <option value="salary">Зарплата работникам</option>
+          <option value="rental">Аренда техники</option>
+          <option value="maintenance">Обслуживание техники</option>
+          <option value="transport">Перевозка</option>
+          <option value="install">Монтаж / демонтаж</option>
+          <option value="repair">Ремонт</option>
+          <option value="taxes">Налоги</option>
+          <option value="other">Прочие расходы</option>
+        </select></div>
+      <div class="fg"><label class="fl">Техника</label>
+        <select class="fi" id="exEquip"><option value="">— —</option></select></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Работник</label>
+        <select class="fi" id="exWorker"><option value="">— —</option></select></div>
+      <div class="fg"><label class="fl">Партнер / ИП</label>
+        <select class="fi" id="exPartner"><option value="">— —</option></select></div>
+    </div>
+    <div class="fg"><label class="fl">Объект</label>
+      <select class="fi" id="exObject"><option value="">— —</option></select></div>
+    <div class="fg"><label class="fl">Описание</label><input class="fi" id="exNote" placeholder="Детали..."></div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;font-size:13px">
+      <input type="checkbox" id="exRecurring" style="width:16px;height:16px;accent-color:var(--green)">
+      <span>Постоянная статья <span style="color:var(--muted);font-size:11px">(переносить на следующий период)</span></span>
+    </label>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moExpense')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveExpense()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="mo hidden" id="moPay" onclick="closeMoCheck('moPay',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moPayTitle">Выплата</div>
+    <div class="mo-sub" id="moPaySub"></div>
+    <input type="hidden" id="pyWorkerId">
+    <div class="fg"><label class="fl">Дата</label><input class="fi" type="date" id="pyDate"></div>
+    <div class="fg"><label class="fl">Сумма ₸</label><input class="fi" type="number" id="pyAmount" placeholder="0"></div>
+    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="pyNote" placeholder="аванс, расчёт..."></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moPay')">Отмена</button>
+      <button class="btn btn-primary" onclick="savePayment()">Добавить</button>
+    </div>
+  </div>
+</div>
+
+<!-- WORKER DETAIL MODAL -->
+<div class="mo hidden" id="moWorkerDetail" onclick="closeMoCheck('moWorkerDetail',event)">
+  <div class="mo-box wide">
+    <div class="mo-title" id="wdTitle"></div>
+    <div class="mo-sub" id="wdSub"></div>
+    <div id="wdContent"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moWorkerDetail')">Закрыть</button>
+      <button class="btn btn-primary" id="wdPayBtn" onclick="">+ Выплата</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════
+const MRU=['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const MGEN=['','Января','Февраля','Марта','Апреля','Мая','Июня','Июля','Августа','Сентября','Октября','Ноября','Декабря'];
+const MSHO=['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const DOW=['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+
+const WORKER_TYPES={crane_op:'Крановщик',shift:'Сменный',ip:'ИП',partner:'Партнер',office:'Офис',maint:'Обслуживание'};
+const EXP_CATS={salary:'Зарплата',rental:'Аренда техники',maintenance:'Обслуживание',transport:'Перевозка',install:'Монтаж/Демонтаж',repair:'Ремонт',taxes:'Налоги',other:'Прочее'};
+const INC_TYPES={monthly:'Месяц',nightly:'Ночь',section:'Секция',wall:'Крепление к зданию',anchor:'Анкеры',transport:'Перевозка',install:'Монтаж',dismantle:'Демонтаж',other:'Доп. услуга'};
+const PARTNER_TYPES={rental:'Аренда техники',service:'Услуги',transport:'Перевозка',other:'Другое'};
+const SHIFT_VALS={0:'none',1:'day',2:'night',3:'daynight',4:'over'};
+
+// ═══════════════════════════════════════════════
+// STORE
+// ═══════════════════════════════════════════════
+const CFG_KEY='too_v2_config';
+let cfg={};  // {settings, workers, equipment, objects, partners}
+let pd={};   // period data: {shifts, incomeItems, expenses, payments}
+let curYear=2026, curEM=6; // current period end month/year
+
+function loadCfg(){
+  const r=localStorage.getItem(CFG_KEY);
+  cfg=r?JSON.parse(r):{};
+  cfg.settings=cfg.settings||{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'};
+  cfg.workers=cfg.workers||[];
+  cfg.equipment=cfg.equipment||[];
+  cfg.objects=cfg.objects||[];
+  cfg.partners=cfg.partners||[];
+}
+function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}
+
+function pdKey(){return`too_v2_period_${curYear}_${pad(curEM)}`;}
+function loadPd(){
+  const r=localStorage.getItem(pdKey());
+  pd=r?JSON.parse(r):{};
+  pd.shifts=pd.shifts||{};
+  pd.incomeItems=pd.incomeItems||[];
+  pd.expenses=pd.expenses||[];
+  pd.payments=pd.payments||{};
+}
+function savePd(){localStorage.setItem(pdKey(),JSON.stringify(pd));}
+
+function saveSetting(key,val){
+  cfg.settings[key]=isNaN(Number(val))?val:Number(val);
+  saveCfg();
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════
+// PERIOD HELPERS
+// ═══════════════════════════════════════════════
+function getPeriodDates(year,em){
+  const sd=cfg.settings.periodStartDay||21;
+  const ed=cfg.settings.periodEndDay||20;
+  const pm=em===1?12:em-1, py=em===1?year-1:year;
+  const dprev=new Date(py,pm,0).getDate();
+  const dates=[];
+  for(let d=sd;d<=dprev;d++) dates.push({y:py,m:pm,d});
+  for(let d=1;d<=ed;d++) dates.push({y:year,m:em,d});
+  return dates;
+}
+
+function periodLabel(year,em){
+  const sd=cfg.settings.periodStartDay||21;
+  const ed=cfg.settings.periodEndDay||20;
+  const pm=em===1?12:em-1, py=em===1?year-1:year;
+  return{
+    main:`${sd} ${MGEN[pm]} — ${ed} ${MGEN[em]} ${year}`,
+    sub:`Закрытие табеля: ${ed} ${MRU[em]} ${year}`,
+    short:MRU[em]+' '+year
+  };
+}
+
+function chPeriod(d){
+  const prevEM=curEM,prevYear=curYear;
+  curEM+=d;
+  if(curEM>12){curEM=1;curYear++;}
+  if(curEM<1){curEM=12;curYear--;}
+  loadPd();
+  // If navigating forward into an empty period, offer to copy recurring items
+  if(d>0){
+    const isEmpty=!pd.expenses.length&&!pd.incomeItems.length;
+    if(isEmpty){
+      const prevKey=`too_v2_period_${prevYear}_${pad(prevEM)}`;
+      const prevRaw=localStorage.getItem(prevKey);
+      if(prevRaw){
+        const prev=JSON.parse(prevRaw);
+        const recExp=(prev.expenses||[]).filter(e=>e.recurring);
+        const recInc=(prev.incomeItems||[]).filter(i=>i.recurring);
+        if(recExp.length+recInc.length>0){
+          document.getElementById('recurringBar').style.display='';
+          document.getElementById('recurringBar').dataset.from=prevKey;
+        }
+      }
+    }
+  }
+  checkRecurringBar();
+  renderAll();
+}
+
+function checkRecurringBar(){
+  const hasRecurring=(pd.expenses||[]).some(e=>e.recurring)||(pd.incomeItems||[]).some(i=>i.recurring);
+  // Show copy button if current period is empty and previous has recurring
+  const isEmpty=!pd.expenses.length&&!pd.incomeItems.length;
+  if(!isEmpty)document.getElementById('recurringBar').style.display='none';
+}
+
+function copyRecurringFromPrev(){
+  // Find previous period key
+  let pm=curEM-1,py=curYear;
+  if(pm<1){pm=12;py--;}
+  const prevKey=`too_v2_period_${py}_${pad(pm)}`;
+  const prevRaw=localStorage.getItem(prevKey);
+  if(!prevRaw){alert('Нет данных за предыдущий период');return;}
+  const prev=JSON.parse(prevRaw);
+  const recExp=(prev.expenses||[]).filter(e=>e.recurring);
+  const recInc=(prev.incomeItems||[]).filter(i=>i.recurring);
+  if(!recExp.length&&!recInc.length){alert('В прошлом периоде нет постоянных статей (☑ Постоянная статья)');return;}
+  if(!confirm(`Перенести ${recExp.length} расходов + ${recInc.length} доходов из предыдущего периода?`))return;
+  const periodStart=getPeriodDates(curYear,curEM)[0];
+  const startDate=dk(periodStart);
+  if(!pd.expenses)pd.expenses=[];
+  if(!pd.incomeItems)pd.incomeItems=[];
+  for(const e of recExp)pd.expenses.push({...e,id:uuid(),date:startDate});
+  for(const i of recInc)pd.incomeItems.push({...i,id:uuid(),date:startDate});
+  pd.expenses.sort((a,b)=>a.date.localeCompare(b.date));
+  pd.incomeItems.sort((a,b)=>a.date.localeCompare(b.date));
+  savePd();
+  document.getElementById('recurringBar').style.display='none';
+  renderAll();
+  alert(`Перенесено: ${recExp.length} расходов, ${recInc.length} доходов. Проверьте даты и суммы.`);
+}
+
+// ═══════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════
+function uuid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function pad(n){return String(n).padStart(2,'0');}
+function dk(o){return`${o.y}-${pad(o.m)}-${pad(o.d)}`;}
+function fmt(n){return Math.round(n||0).toLocaleString('ru-RU');}
+function fmtM(n){const s=n<0?'−':'',a=Math.abs(n||0);return a>=1e6?s+(a/1e6).toFixed(1)+' млн ₸':s+fmt(a)+' ₸';}
+function todayISO(){return new Date().toISOString().split('T')[0];}
+function fmtDate(iso){if(!iso)return'—';const[,m,d]=iso.split('-');return`${+d} ${MSHO[+m]}`;}
+
+function eqName(id){const e=cfg.equipment.find(x=>x.id===id);return e?e.name:id||'—';}
+function wName(id){const w=cfg.workers.find(x=>x.id===id);return w?w.name:id||'—';}
+function oName(id){const o=cfg.objects.find(x=>x.id===id);return o?o.name:id||'—';}
+function pName(id){const p=cfg.partners.find(x=>x.id===id);return p?p.name:id||'—';}
+
+// ═══════════════════════════════════════════════
+// TAB NAV
+// ═══════════════════════════════════════════════
+let activeTab='smeny';
+function showTab(name,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  activeTab=name;
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════
+function openMo(id){document.getElementById(id).classList.remove('hidden');}
+function closeMo(id){document.getElementById(id).classList.add('hidden');}
+function closeMoCheck(id,e){if(e.target===document.getElementById(id))closeMo(id);}
+
+// ═══════════════════════════════════════════════
+// RENDER CONTROLLER
+// ═══════════════════════════════════════════════
+function renderAll(){
+  renderPeriodBar();
+  if(activeTab==='smeny')     renderShifts();
+  if(activeTab==='workers')   renderWorkers();
+  if(activeTab==='equip')     renderEquip();
+  if(activeTab==='objects')   renderObjects();
+  if(activeTab==='partners')  renderPartners();
+  if(activeTab==='income')    renderIncome();
+  if(activeTab==='expenses')  renderExpenses();
+  if(activeTab==='summary')   renderSummary();
+  if(activeTab==='settings')  renderSettings();
+}
+
+function renderPeriodBar(){
+  const pl=periodLabel(curYear,curEM);
+  document.getElementById('plMain').textContent=pl.main;
+  document.getElementById('plSub').textContent=pl.sub;
+  const ed=cfg.settings.periodEndDay||20;
+  const close=new Date(curYear,curEM-1,ed);
+  const diff=Math.ceil((close-new Date())/86400000);
+  const b=document.getElementById('pbadge');
+  if(diff>=0&&diff<=5){b.className='pbadge warn';b.textContent=`⚠ Закрытие через ${diff} дн.`;}
+  else{b.className='pbadge info';b.textContent=pl.short;}
+}
+
+// ═══════════════════════════════════════════════
+// SHIFTS TAB
+// ═══════════════════════════════════════════════
+let shiftOptVal=0;
+
+function renderShifts(){
+  const sel=document.getElementById('shiftEquipSel');
+  const prev=sel.value;
+  sel.innerHTML='<option value="all">Вся техника</option>'+cfg.equipment.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
+  if(prev&&(prev==='all'||cfg.equipment.find(e=>e.id===prev)))sel.value=prev;
+  if(sel.value==='all'){
+    if(!cfg.equipment.length){document.getElementById('shiftGrid').innerHTML='<tr><td class="empty" colspan="2">Добавьте технику в разделе «Техника»</td></tr>';document.getElementById('shiftSummary').innerHTML='';return;}
+    _drawShiftGridAll();
+    _drawShiftSummaryAll();
+  } else {
+    const equip=cfg.equipment.find(e=>e.id===sel.value);
+    if(!equip)return;
+    _drawShiftGrid(equip);
+    _drawShiftSummary(equip);
+  }
+}
+
+function _drawShiftGridAll(){
+  const dates=getPeriodDates(curYear,curEM);
+  const today=new Date();
+  const todayKey=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  const groups=[];let gi=0;
+  while(gi<dates.length){const gm=dates[gi].m;let c=0;while(gi+c<dates.length&&dates[gi+c].m===gm)c++;groups.push({m:gm,y:dates[gi].y,c});gi+=c;}
+  let h='<thead>';
+  h+='<tr><th class="sc" rowspan="3">Техника / Оператор</th>';
+  for(const g of groups)h+=`<th colspan="${g.c}" class="mg">${MRU[g.m].toUpperCase()} ${g.y}</th>`;
+  h+='<th rowspan="3" style="min-width:44px;background:var(--card2);font-size:10px">Ночей</th></tr>';
+  h+='<tr>';
+  for(const dt of dates){const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6;const tod=dk(dt)===todayKey;const bdr=dt.d===(cfg.settings.periodStartDay||21)&&dt.m!==dates[0].m;h+=`<th class="dh${we?' we':''}${tod?' tod':''}${bdr?' mborder':''}">${dt.d}</th>`;}
+  h+='</tr><tr>';
+  for(const dt of dates){const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6;h+=`<th class="dh${we?' we':''}" style="font-size:9px;color:#3d4460">${DOW[dow]}</th>`;}
+  h+='</tr></thead><tbody>';
+  for(const equip of cfg.equipment){
+    const cs=pd.shifts[equip.id]||{};
+    const op=cfg.workers.find(w=>w.id===equip.primaryWorkerId);
+    let nightCount=0;
+    h+=`<tr><td class="rc"><div class="rc-name">${equip.name}</div><div class="rc-op">${op?op.name:'—'}</div></td>`;
+    for(const dt of dates){
+      const key=dk(dt);const cell=cs[key]||{type:0};const t=cell.type||0;
+      const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6,tod=key===todayKey,bdr=dt.d===1&&dt.m!==dates[0].m;
+      if(t===2||t===3)nightCount++;
+      let inner='';
+      if(t===1)inner='<div class="shb day">Д</div>';
+      else if(t===2)inner='<div class="shb night">Н</div>';
+      else if(t===3)inner='<div class="shb day" style="font-size:8px">Д</div><div class="shb night" style="font-size:8px">Н</div>';
+      else if(t===4)inner='<div class="shb over">П</div>';
+      const hasNote=cell.note&&cell.note.length>0;
+      h+=`<td class="dc${we?' we-bg':''}${tod?' today-bg':''}${bdr?' mborder':''}" onclick="openShiftModal('${equip.id}','${key}')"><div class="ci">${inner}${hasNote?'<div class="nd"></div>':''}</div></td>`;
+    }
+    h+=`<td style="text-align:center;font-weight:700;color:var(--blue);background:var(--card2)">${nightCount}</td></tr>`;
+  }
+  h+='</tbody>';
+  document.getElementById('shiftGrid').innerHTML=h;
+}
+
+function _drawShiftSummaryAll(){
+  const dates=getPeriodDates(curYear,curEM);const n=dates.length;
+  let html='<div style="display:flex;gap:10px;flex-wrap:wrap">';
+  let totalNights=0;
+  for(const e of cfg.equipment){
+    const cs=pd.shifts[e.id]||{};let nights=0;
+    for(const k in cs){const t=cs[k].type||0;if(t===2||t===3)nights++;}
+    totalNights+=nights;
+    const r=e.rates||{};
+    const nightInc=Math.round(nights*(r.nightly||0)/n);
+    html+=`<div class="kpi bl" style="flex:1;min-width:140px"><div class="kl">${e.name}</div><div class="kv bl" style="font-size:16px">${nights} ночей</div><div class="ks">+${fmt(nightInc)} ₸</div></div>`;
+  }
+  html+=`<div class="kpi gn" style="flex:1;min-width:140px"><div class="kl">Итого ночей</div><div class="kv gn" style="font-size:16px">${totalNights}</div><div class="ks">все краны · ${n} дней</div></div>`;
+  html+='</div>';
+  document.getElementById('shiftSummary').innerHTML=html;
+}
+
+function _drawShiftGrid(equip){
+  const dates=getPeriodDates(curYear,curEM);
+  const today=new Date();
+  const todayKey=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+  const cs=pd.shifts[equip.id]||{};
+
+  // Build month groups
+  const groups=[];let gi=0;
+  while(gi<dates.length){const gm=dates[gi].m;let c=0;while(gi+c<dates.length&&dates[gi+c].m===gm)c++;groups.push({m:gm,y:dates[gi].y,c});gi+=c;}
+
+  let h='<thead>';
+  // month row
+  h+='<tr><th class="sc" rowspan="3">Оператор</th>';
+  for(const g of groups)h+=`<th colspan="${g.c}" class="mg" style="background:var(--card2)">${MRU[g.m].toUpperCase()} ${g.y}</th>`;
+  h+='<th rowspan="3" style="min-width:44px;background:var(--card2);font-size:10px">Ночей</th></tr>';
+  // day numbers
+  h+='<tr>';
+  for(const dt of dates){const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6;const tod=dk(dt)===todayKey;const bdr=dt.d===(cfg.settings.periodStartDay||21)&&dt.m!==dates[0].m;h+=`<th class="dh${we?' we':''}${tod?' tod':''}${bdr?' mborder':''}">${dt.d}</th>`;}
+  h+='</tr>';
+  // dow row
+  h+='<tr>';
+  for(const dt of dates){const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6;h+=`<th class="dh${we?' we':''}" style="font-size:9px;color:#3d4460">${DOW[dow]}</th>`;}
+  h+='</tr></thead><tbody><tr>';
+
+  // single equipment row
+  const op=cfg.workers.find(w=>w.id===equip.primaryWorkerId);
+  h+=`<td class="rc"><div class="rc-name">${equip.name}</div><div class="rc-op">${op?op.name:'—'}</div></td>`;
+
+  let nightCount=0,dayCount=0,overCount=0;
+  for(const dt of dates){
+    const key=dk(dt);
+    const cell=cs[key]||{type:0};
+    const t=cell.type||0;
+    const dow=new Date(dt.y,dt.m-1,dt.d).getDay();
+    const we=dow===0||dow===6,tod=key===todayKey,bdr=dt.d===1&&dt.m!==dates[0].m;
+    if(t===1||t===3){dayCount++;}
+    if(t===2||t===3){nightCount++;}
+    if(t===4){overCount++;}
+    let inner='';
+    if(t===1)inner='<div class="shb day">Д</div>';
+    else if(t===2)inner='<div class="shb night">Н</div>';
+    else if(t===3)inner='<div class="shb day">Д</div><div class="shb night">Н</div>';
+    else if(t===4)inner='<div class="shb over">П</div>';
+    const hasNote=cell.note&&cell.note.length>0;
+    h+=`<td class="dc${we?' we-bg':''}${tod?' today-bg':''}${bdr?' mborder':''}" onclick="openShiftModal('${equip.id}','${key}')"><div class="ci">${inner}${hasNote?'<div class="nd"></div>':''}</div></td>`;
+  }
+  h+=`<td style="text-align:center;font-weight:700;color:var(--blue);background:var(--card2)">${nightCount}</td>`;
+  h+='</tr></tbody>';
+  document.getElementById('shiftGrid').innerHTML=h;
+}
+
+function _drawShiftSummary(equip){
+  const dates=getPeriodDates(curYear,curEM);
+  const n=dates.length;
+  const cs=pd.shifts[equip.id]||{};
+  let nights=0,days=0;
+  for(const k in cs){const t=cs[k].type||0;if(t===1||t===3)days++;if(t===2||t===3)nights++;}
+  const nightRate=(equip.rates||{}).nightly||0;
+  const monthRate=(equip.rates||{}).monthly||0;
+  const nightInc=nights*(nightRate/n);
+  const html=`<div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div class="kpi bl" style="flex:1;min-width:160px"><div class="kl">Ночных смен</div><div class="kv bl">${nights}</div><div class="ks">из ${n} дней периода</div></div>
+    <div class="kpi gn" style="flex:1;min-width:160px"><div class="kl">Ночной доход</div><div class="kv gn">${fmt(Math.round(nightInc))} ₸</div><div class="ks">${nights} × ${fmt(Math.round(nightRate/n))} ₸/ночь</div></div>
+    <div class="kpi bl" style="flex:1;min-width:160px"><div class="kl">Базовый доход (день)</div><div class="kv bl">${fmt(monthRate)} ₸</div><div class="ks">договор/месяц</div></div>
+  </div>`;
+  document.getElementById('shiftSummary').innerHTML=html;
+}
+
+function openShiftModal(equipId,dateKey){
+  const equip=cfg.equipment.find(e=>e.id===equipId);
+  const cell=(pd.shifts[equipId]||{})[dateKey]||{type:0,workerId:'',note:''};
+  document.getElementById('shEquipId').value=equipId;
+  document.getElementById('shDateKey').value=dateKey;
+  const [y,m,d]=dateKey.split('-');
+  document.getElementById('moShiftTitle').textContent=`${equip.name} — ${+d} ${MGEN[+m]} ${y}`;
+  document.getElementById('moShiftSub').textContent=`Оператор: ${equip.primaryWorkerId?wName(equip.primaryWorkerId):'не назначен'}`;
+  document.getElementById('shNote').value=cell.note||'';
+  // populate worker select
+  const ws=document.getElementById('shWorker');
+  ws.innerHTML='<option value="">Основной оператор</option>'+
+    cfg.workers.map(w=>`<option value="${w.id}"${cell.workerId===w.id?' selected':''}>${w.name} (${WORKER_TYPES[w.type]||w.type})</option>`).join('')+
+    cfg.partners.map(p=>`<option value="p_${p.id}"${cell.workerId==='p_'+p.id?' selected':''}>${p.name}</option>`).join('');
+  selSOpt(cell.type||0);
+  openMo('moShift');
+}
+
+function selSOpt(v){
+  shiftOptVal=v;
+  for(let i=0;i<=4;i++)document.getElementById('sopt'+i).classList.toggle('sel',i===v);
+}
+
+function saveShift(){
+  const equipId=document.getElementById('shEquipId').value;
+  const key=document.getElementById('shDateKey').value;
+  const note=document.getElementById('shNote').value.trim();
+  const workerId=document.getElementById('shWorker').value;
+  if(!pd.shifts[equipId])pd.shifts[equipId]={};
+  if(shiftOptVal===0&&!note&&!workerId){delete pd.shifts[equipId][key];}
+  else{pd.shifts[equipId][key]={type:shiftOptVal,workerId,note};}
+  savePd();
+  closeMo('moShift');
+  renderShifts();
+}
+
+// ═══════════════════════════════════════════════
+// WORKERS TAB
+// ═══════════════════════════════════════════════
+function calcWorkerEarnings(w){
+  let nightCount=0,overCount=0,subNightCount=0,subDayCount=0;
+  for(const equip of cfg.equipment){
+    const cs=pd.shifts[equip.id]||{};
+    const isMain=equip.primaryWorkerId===w.id;
+    for(const[key,cell] of Object.entries(cs)){
+      const t=cell.type||0;if(!t)continue;
+      const noAssign=!cell.workerId;
+      const directAssign=cell.workerId===w.id;
+      const isSub=directAssign&&!isMain;
+      if(isMain&&noAssign){if(t===2||t===3)nightCount++;if(t===4)overCount++;}
+      else if(directAssign){
+        if(isSub){if(t===2||t===3)subNightCount++;if(t===1||t===3)subDayCount++;if(t===4)overCount++;}
+        else{if(t===2||t===3)nightCount++;if(t===4)overCount++;}
+      }
+    }
+  }
+  const nRate=w.salary?.nightly||0,dRate=w.salary?.daily||0;
+  const base=w.salary?.monthly||0;
+  const nightBonus=nightCount*nRate;
+  const overBonus=overCount*(dRate||nRate);
+  const subBonus=subNightCount*nRate+subDayCount*dRate;
+  const totalAccrued=base+nightBonus+overBonus+subBonus;
+  const pays=(pd.payments[w.id]||[]).reduce((s,p)=>s+p.amount,0);
+  const balance=totalAccrued-pays;
+  return{base,nightCount,nightBonus,overCount,overBonus,subNightCount,subDayCount,subBonus,totalAccrued,pays,balance};
+}
+
+function renderWorkers(){
+  let h='',totAccrued=0,totPaid=0,totBal=0;
+  for(const w of cfg.workers){
+    const eq=cfg.equipment.find(e=>e.id===w.equipmentId);
+    const earn=calcWorkerEarnings(w);
+    totAccrued+=earn.totalAccrued;totPaid+=earn.pays;totBal+=earn.balance;
+    const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+    h+=`<tr style="cursor:pointer" onclick="openWorkerDetail('${w.id}')">
+      <td><strong>${w.name}</strong></td>
+      <td><span class="badge-type t-${w.type}">${WORKER_TYPES[w.type]||w.type}</span></td>
+      <td>${eq?eq.name:'—'}</td>
+      <td class="num tr">${fmt(earn.base)} ₸</td>
+      <td class="num tr" style="color:var(--blue)">${earn.nightBonus?fmt(earn.nightBonus)+' ₸ ('+earn.nightCount+'н)':'—'}</td>
+      <td class="num tr" style="color:var(--accent)">${earn.subBonus?fmt(earn.subBonus)+' ₸':'—'}</td>
+      <td class="num tr" style="font-weight:700">${fmt(earn.totalAccrued)} ₸</td>
+      <td class="num tr" style="color:var(--green)">${fmt(earn.pays)} ₸</td>
+      <td class="num tr" style="color:${balColor};font-weight:700">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</td>
+      <td onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-secondary" onclick="openPayModal('${w.id}')">+ Выплата</button>
+        <button class="edit-btn" onclick="openWorkerModal('${w.id}')">✏</button>
+        <button class="del-btn" onclick="deleteWorker('${w.id}')">✕</button>
+      </td>
+    </tr>`;
+  }
+  if(!h){document.getElementById('workersTbl').innerHTML=`<tr><td colspan="10" class="empty">Работников нет</td></tr>`;return;}
+  h+=`<tr style="background:var(--card2);font-weight:700;font-size:12px">
+    <td colspan="6" style="text-align:right;color:var(--muted);font-size:11px">ИТОГО:</td>
+    <td class="num tr">${fmt(totAccrued)} ₸</td>
+    <td class="num tr" style="color:var(--green)">${fmt(totPaid)} ₸</td>
+    <td class="num tr" style="color:${totBal>0?'var(--red)':'var(--green)'}">${totBal>0?'+':''}${fmt(totBal)} ₸</td>
+    <td></td>
+  </tr>`;
+  document.getElementById('workersTbl').innerHTML=h;
+}
+
+function openWorkerDetail(wId){
+  const w=cfg.workers.find(x=>x.id===wId);if(!w)return;
+  const earn=calcWorkerEarnings(w);
+  const pays=pd.payments[wId]||[];
+  const eq=cfg.equipment.find(e=>e.id===w.equipmentId);
+  document.getElementById('wdTitle').textContent=w.name;
+  document.getElementById('wdSub').textContent=`${WORKER_TYPES[w.type]||w.type}${eq?' · '+eq.name:''}`;
+  document.getElementById('wdPayBtn').onclick=()=>{closeMo('moWorkerDetail');openPayModal(wId);};
+
+  let h='<div class="wdet-section"><h4>Начисления за период</h4>';
+  h+=`<div class="wdet-row"><span>Оклад / ЗП за месяц</span><span>${fmt(earn.base)} ₸</span></div>`;
+  if(earn.nightBonus){h+=`<div class="wdet-row"><span>Ночные смены (${earn.nightCount} × ${fmt(w.salary?.nightly||0)} ₸)</span><span style="color:var(--blue)">${fmt(earn.nightBonus)} ₸</span></div>`;}
+  if(earn.overBonus){h+=`<div class="wdet-row"><span>Переработки (${earn.overCount} × ${fmt(w.salary?.daily||w.salary?.nightly||0)} ₸)</span><span style="color:var(--accent)">${fmt(earn.overBonus)} ₸</span></div>`;}
+  if(earn.subBonus){
+    h+=`<div class="wdet-row"><span>Подмены (${earn.subNightCount} ноч. + ${earn.subDayCount} дн.)</span><span style="color:var(--accent)">${fmt(earn.subBonus)} ₸</span></div>`;
+  }
+  h+=`<div class="wdet-row total"><span>Итого начислено</span><span style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</span></div>`;
+  h+='</div>';
+
+  h+='<div class="wdet-section"><h4>История выплат</h4>';
+  if(!pays.length){h+='<div style="color:var(--muted);font-size:13px;padding:8px 0">Выплат не было</div>';}
+  else{
+    let running=earn.totalAccrued;
+    h+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+    h+='<tr style="color:var(--muted)"><th style="text-align:left;padding:4px 0">Дата</th><th style="text-align:left">Назначение</th><th style="text-align:right">Выплата</th><th style="text-align:right">Остаток</th></tr>';
+    for(const p of pays){
+      running-=p.amount;
+      const rc=running>0?'rb-neg':'rb-pos';
+      h+=`<tr style="border-top:1px solid #1e2235"><td style="padding:5px 0">${fmtDate(p.date)}</td><td style="color:var(--muted)">${p.note||'—'}</td><td style="text-align:right;color:var(--green)">−${fmt(p.amount)} ₸</td><td style="text-align:right" class="${rc}">${running>0?'+':''}${fmt(running)} ₸</td></tr>`;
+    }
+    h+='</table>';
+  }
+  h+='</div>';
+
+  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+  h+=`<div class="wdet-section" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px">
+    <div class="wdet-row"><span>Начислено</span><span style="color:var(--blue);font-weight:600">${fmt(earn.totalAccrued)} ₸</span></div>
+    <div class="wdet-row"><span>Выплачено</span><span style="color:var(--green);font-weight:600">${fmt(earn.pays)} ₸</span></div>
+    <div class="wdet-row" style="font-weight:700;border:none"><span>Остаток к выплате</span><span style="color:${balColor};font-size:16px">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</span></div>
+  </div>`;
+
+  document.getElementById('wdContent').innerHTML=h;
+  openMo('moWorkerDetail');
+}
+
+function openWorkerModal(id){
+  const w=id?cfg.workers.find(x=>x.id===id):null;
+  document.getElementById('moWorkerTitle').textContent=w?'Редактировать работника':'Новый работник';
+  document.getElementById('wId').value=w?w.id:'';
+  document.getElementById('wName').value=w?w.name:'';
+  document.getElementById('wType').value=w?w.type:'crane_op';
+  document.getElementById('wSalMonth').value=w?w.salary?.monthly||0:0;
+  document.getElementById('wSalNight').value=w?w.salary?.nightly||0:0;
+  document.getElementById('wSalDay').value=w?w.salary?.daily||0:0;
+  const sel=document.getElementById('wEquipId');
+  sel.innerHTML='<option value="">— Не привязан —</option>'+cfg.equipment.map(e=>`<option value="${e.id}"${w?.equipmentId===e.id?' selected':''}>${e.name}</option>`).join('');
+  openMo('moWorker');
+}
+
+function saveWorker(){
+  const id=document.getElementById('wId').value;
+  const obj={
+    id:id||uuid(),name:document.getElementById('wName').value.trim(),
+    type:document.getElementById('wType').value,
+    salary:{monthly:+document.getElementById('wSalMonth').value||0,nightly:+document.getElementById('wSalNight').value||0,daily:+document.getElementById('wSalDay').value||0},
+    equipmentId:document.getElementById('wEquipId').value
+  };
+  if(!obj.name){alert('Введите имя');return;}
+  if(id){const i=cfg.workers.findIndex(x=>x.id===id);if(i>=0)cfg.workers[i]=obj;}
+  else cfg.workers.push(obj);
+  saveCfg();closeMo('moWorker');renderWorkers();
+}
+
+function deleteWorker(id){
+  if(!confirm('Удалить работника?'))return;
+  cfg.workers=cfg.workers.filter(w=>w.id!==id);
+  saveCfg();renderWorkers();
+}
+
+// PAYMENTS
+function openPayModal(wId){
+  const w=cfg.workers.find(x=>x.id===wId);
+  document.getElementById('moPayTitle').textContent='Выплата — '+(w?w.name:'');
+  const earn=w?calcWorkerEarnings(w):{totalAccrued:0,pays:0,balance:0};
+  document.getElementById('moPaySub').textContent=`Начислено: ${fmt(earn.totalAccrued)} ₸ · Выплачено: ${fmt(earn.pays)} ₸ · Остаток: ${fmt(earn.balance)} ₸`;
+  document.getElementById('pyWorkerId').value=wId;
+  document.getElementById('pyDate').value=todayISO();
+  document.getElementById('pyAmount').value='';
+  document.getElementById('pyNote').value='';
+  openMo('moPay');
+}
+
+function savePayment(){
+  const wId=document.getElementById('pyWorkerId').value;
+  const amount=+document.getElementById('pyAmount').value||0;
+  if(!amount){alert('Введите сумму');return;}
+  if(!pd.payments[wId])pd.payments[wId]=[];
+  pd.payments[wId].push({date:document.getElementById('pyDate').value,amount,note:document.getElementById('pyNote').value.trim()});
+  pd.payments[wId].sort((a,b)=>a.date.localeCompare(b.date));
+  savePd();closeMo('moPay');renderWorkers();
+}
+
+// ═══════════════════════════════════════════════
+// EQUIPMENT TAB
+// ═══════════════════════════════════════════════
+function renderEquip(){
+  let h='';
+  for(const e of cfg.equipment){
+    const op=cfg.workers.find(w=>w.id===e.primaryWorkerId);
+    const obj=cfg.objects.find(o=>o.id===e.objectId);
+    const pt=cfg.partners.find(p=>p.id===e.rentalPartnerId);
+    const r=e.rates||{};
+    h+=`<div class="c-card">
+      <div class="c-card-head">
+        <div><div class="c-card-title">${e.name}</div><div class="c-card-sub">${e.serial||''}</div></div>
+      </div>
+      <div class="c-card-body" style="font-size:12px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div style="color:var(--muted)">Оператор:</div><div>${op?op.name:'—'}</div>
+          <div style="color:var(--muted)">Объект:</div><div>${obj?obj.name:'—'}</div>
+          <div style="color:var(--muted)">Аренда у:</div><div>${pt?pt.name:'—'}</div>
+          <div style="color:var(--muted)">Аренда/мес:</div><div>${fmt(e.rentalCost||0)} ₸</div>
+          <div style="color:var(--muted)">Договор/мес:</div><div>${fmt(r.monthly||0)} ₸</div>
+          <div style="color:var(--muted)">Ночь/мес:</div><div>${fmt(r.nightly||0)} ₸</div>
+        </div>
+      </div>
+      <div class="c-card-foot">
+        <button class="btn btn-secondary btn-sm" onclick="openEquipModal('${e.id}')">✏ Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEquip('${e.id}')">✕ Удалить</button>
+      </div>
+    </div>`;
+  }
+  document.getElementById('equipCards').innerHTML=h||'<div class="empty">Техники нет. Добавьте первую.</div>';
+}
+
+function openEquipModal(id){
+  const e=id?cfg.equipment.find(x=>x.id===id):null;
+  const r=e?.rates||{};
+  document.getElementById('moEquipTitle').textContent=e?'Редактировать технику':'Новая техника';
+  document.getElementById('eqId').value=e?e.id:'';
+  document.getElementById('eqName').value=e?e.name:'';
+  document.getElementById('eqSerial').value=e?e.serial||'':'';
+  document.getElementById('eqRentalCost').value=e?e.rentalCost||0:0;
+  document.getElementById('eqRMonth').value=r.monthly||0;
+  document.getElementById('eqRNight').value=r.nightly||0;
+  document.getElementById('eqRDay').value=r.daily||0;
+  document.getElementById('eqRSection').value=r.section||0;
+  document.getElementById('eqRWall').value=r.wall||0;
+  document.getElementById('eqRAnchor').value=r.anchor||0;
+  document.getElementById('eqRTransport').value=r.transport||0;
+  document.getElementById('eqRInstall').value=r.install||0;
+  document.getElementById('eqRDismantle').value=r.dismantle||0;
+
+  const ws=document.getElementById('eqWorker');
+  ws.innerHTML='<option value="">— Не назначен —</option>'+cfg.workers.map(w=>`<option value="${w.id}"${e?.primaryWorkerId===w.id?' selected':''}>${w.name}</option>`).join('');
+
+  const os=document.getElementById('eqObject');
+  os.innerHTML='<option value="">— Не назначен —</option>'+cfg.objects.map(o=>`<option value="${o.id}"${e?.objectId===o.id?' selected':''}>${o.name}</option>`).join('');
+
+  const ps=document.getElementById('eqRentalPartner');
+  ps.innerHTML='<option value="">— —</option>'+cfg.partners.map(p=>`<option value="${p.id}"${e?.rentalPartnerId===p.id?' selected':''}>${p.name}</option>`).join('');
+
+  openMo('moEquip');
+}
+
+function saveEquip(){
+  const id=document.getElementById('eqId').value;
+  const obj={
+    id:id||uuid(),name:document.getElementById('eqName').value.trim(),
+    serial:document.getElementById('eqSerial').value.trim(),
+    primaryWorkerId:document.getElementById('eqWorker').value,
+    objectId:document.getElementById('eqObject').value,
+    rentalPartnerId:document.getElementById('eqRentalPartner').value,
+    rentalCost:+document.getElementById('eqRentalCost').value||0,
+    rates:{
+      monthly:+document.getElementById('eqRMonth').value||0,
+      nightly:+document.getElementById('eqRNight').value||0,
+      daily:+document.getElementById('eqRDay').value||0,
+      section:+document.getElementById('eqRSection').value||0,
+      wall:+document.getElementById('eqRWall').value||0,
+      anchor:+document.getElementById('eqRAnchor').value||0,
+      transport:+document.getElementById('eqRTransport').value||0,
+      install:+document.getElementById('eqRInstall').value||0,
+      dismantle:+document.getElementById('eqRDismantle').value||0,
+    }
+  };
+  if(!obj.name){alert('Введите название');return;}
+  if(id){const i=cfg.equipment.findIndex(x=>x.id===id);if(i>=0)cfg.equipment[i]=obj;}
+  else cfg.equipment.push(obj);
+  saveCfg();closeMo('moEquip');renderEquip();
+}
+
+function deleteEquip(id){
+  if(!confirm('Удалить технику?'))return;
+  cfg.equipment=cfg.equipment.filter(e=>e.id!==id);
+  saveCfg();renderEquip();
+}
+
+// ═══════════════════════════════════════════════
+// OBJECTS TAB
+// ═══════════════════════════════════════════════
+function renderObjects(){
+  let h='';
+  for(const o of cfg.objects){
+    const eqs=cfg.equipment.filter(e=>e.objectId===o.id);
+    h+=`<div class="c-card">
+      <div class="c-card-head">
+        <div><div class="c-card-title">${o.name}</div><div class="c-card-sub">${o.client||''}</div></div>
+      </div>
+      <div class="c-card-body" style="font-size:12px">
+        ${o.note?`<div style="color:var(--muted);margin-bottom:6px">${o.note}</div>`:''}
+        <div style="color:var(--muted);margin-bottom:4px">Техника на объекте:</div>
+        ${eqs.length?eqs.map(e=>`<span class="badge-type t-crane_op" style="margin-right:4px">${e.name}</span>`).join(''):'<span style="color:var(--muted)">нет</span>'}
+      </div>
+      <div class="c-card-foot">
+        <button class="btn btn-secondary btn-sm" onclick="openObjModal('${o.id}')">✏ Изменить</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteObj('${o.id}')">✕</button>
+      </div>
+    </div>`;
+  }
+  document.getElementById('objCards').innerHTML=h||'<div class="empty">Объектов нет</div>';
+}
+
+function openObjModal(id){
+  const o=id?cfg.objects.find(x=>x.id===id):null;
+  document.getElementById('moObjTitle').textContent=o?'Редактировать объект':'Новый объект';
+  document.getElementById('obId').value=o?o.id:'';
+  document.getElementById('obName').value=o?o.name:'';
+  document.getElementById('obClient').value=o?o.client||'':'';
+  document.getElementById('obNote').value=o?o.note||'':'';
+  openMo('moObj');
+}
+function saveObj(){
+  const id=document.getElementById('obId').value;
+  const obj={id:id||uuid(),name:document.getElementById('obName').value.trim(),client:document.getElementById('obClient').value.trim(),note:document.getElementById('obNote').value.trim()};
+  if(!obj.name){alert('Введите название');return;}
+  if(id){const i=cfg.objects.findIndex(x=>x.id===id);if(i>=0)cfg.objects[i]=obj;}
+  else cfg.objects.push(obj);
+  saveCfg();closeMo('moObj');renderObjects();
+}
+function deleteObj(id){if(!confirm('Удалить объект?'))return;cfg.objects=cfg.objects.filter(o=>o.id!==id);saveCfg();renderObjects();}
+
+// ═══════════════════════════════════════════════
+// PARTNERS TAB
+// ═══════════════════════════════════════════════
+function renderPartners(){
+  let h='';
+  for(const p of cfg.partners){
+    const exps=(pd.expenses||[]).filter(e=>e.partnerId===p.id);
+    const totalExp=exps.reduce((s,e)=>s+e.amount,0);
+    h+=`<div class="c-card">
+      <div class="c-card-head">
+        <div><div class="c-card-title">${p.name}</div><div class="c-card-sub">${PARTNER_TYPES[p.type]||p.type}</div></div>
+      </div>
+      <div class="c-card-body" style="font-size:12px">
+        ${p.note?`<div style="color:var(--muted);margin-bottom:8px">${p.note}</div>`:''}
+        <div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">Расходы в периоде:</span><span style="color:var(--red);font-weight:600">${fmt(totalExp)} ₸</span></div>
+        <div style="margin-top:6px;max-height:100px;overflow-y:auto">
+          ${exps.slice(-5).map(e=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #1e2235;font-size:11px"><span>${fmtDate(e.date)} ${e.note||''}</span><span>${fmt(e.amount)} ₸</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="c-card-foot">
+        <button class="btn btn-secondary btn-sm" onclick="openPartnerModal('${p.id}')">✏</button>
+        <button class="btn btn-danger btn-sm" onclick="deletePartner('${p.id}')">✕</button>
+      </div>
+    </div>`;
+  }
+  document.getElementById('partnerCards').innerHTML=h||'<div class="empty">Партнеров нет</div>';
+}
+function openPartnerModal(id){
+  const p=id?cfg.partners.find(x=>x.id===id):null;
+  document.getElementById('moPartnerTitle').textContent=p?'Редактировать партнера':'Новый партнер / ИП';
+  document.getElementById('ptId').value=p?p.id:'';
+  document.getElementById('ptName').value=p?p.name:'';
+  document.getElementById('ptType').value=p?p.type:'rental';
+  document.getElementById('ptNote').value=p?p.note||'':'';
+  openMo('moPartner');
+}
+function savePartner(){
+  const id=document.getElementById('ptId').value;
+  const obj={id:id||uuid(),name:document.getElementById('ptName').value.trim(),type:document.getElementById('ptType').value,note:document.getElementById('ptNote').value.trim()};
+  if(!obj.name){alert('Введите название');return;}
+  if(id){const i=cfg.partners.findIndex(x=>x.id===id);if(i>=0)cfg.partners[i]=obj;}
+  else cfg.partners.push(obj);
+  saveCfg();closeMo('moPartner');renderPartners();
+}
+function deletePartner(id){if(!confirm('Удалить?'))return;cfg.partners=cfg.partners.filter(p=>p.id!==id);saveCfg();renderPartners();}
+
+// ═══════════════════════════════════════════════
+// INCOME TAB
+// ═══════════════════════════════════════════════
+function renderIncome(){
+  const vat=cfg.settings.vatRate||16;
+  const dates=getPeriodDates(curYear,curEM);
+  const n=dates.length;
+
+  // Populate income filters
+  const ife=document.getElementById('inFilterEquip');
+  const ift=document.getElementById('inFilterType');
+  const ifo=document.getElementById('inFilterObj');
+  const prevEq=ife.value,prevT=ift.value,prevO=ifo.value;
+  ife.innerHTML='<option value="">Вся</option>'+cfg.equipment.map(e=>`<option value="${e.id}"${prevEq===e.id?' selected':''}>${e.name}</option>`).join('');
+  ift.innerHTML='<option value="">Все типы</option>'+Object.entries(INC_TYPES).map(([k,v])=>`<option value="${k}"${prevT===k?' selected':''}>${v}</option>`).join('');
+  ifo.innerHTML='<option value="">Все</option>'+cfg.objects.map(o=>`<option value="${o.id}"${prevO===o.id?' selected':''}>${o.name}</option>`).join('');
+
+  // Auto income from shifts per equipment
+  let autoHtml='<div class="sec-title">Базовый доход (из смен и договора)</div>';
+  autoHtml+='<div class="tbl-wrap"><table><thead><tr><th>Техника</th><th>Объект</th><th>Договор/мес б/НДС</th><th>Ночей</th><th class="tr">Ночной доход б/НДС</th><th class="tr">Итого б/НДС</th><th class="tr">НДС '+vat+'%</th><th class="tr">С НДС</th></tr></thead><tbody>';
+  let grandNoVat=0;
+  for(const e of cfg.equipment){
+    const cs=pd.shifts[e.id]||{};
+    let nights=0;
+    for(const k in cs){const t=cs[k].type||0;if(t===2||t===3)nights++;}
+    const r=e.rates||{};
+    const nightInc=nights*(r.nightly||0)/n;
+    const totalNoVat=(r.monthly||0)+nightInc;
+    const vatAmt=totalNoVat*vat/100;
+    const totalWithVat=totalNoVat+vatAmt;
+    const obj=cfg.objects.find(o=>o.id===e.objectId);
+    grandNoVat+=totalNoVat;
+    autoHtml+=`<tr><td>${e.name}</td><td>${obj?obj.name:'—'}</td>
+      <td class="num">${fmt(r.monthly||0)} ₸</td>
+      <td style="text-align:center">${nights}</td>
+      <td class="num tr">${fmt(Math.round(nightInc))} ₸</td>
+      <td class="num tr">${fmt(Math.round(totalNoVat))} ₸</td>
+      <td class="num tr" style="color:var(--yellow)">${fmt(Math.round(vatAmt))} ₸</td>
+      <td class="num tr" style="color:var(--blue)">${fmt(Math.round(totalWithVat))} ₸</td>
+    </tr>`;
+  }
+  autoHtml+='</tbody></table></div>';
+  document.getElementById('incomeAuto').innerHTML=autoHtml;
+
+  // Manual income items (with filters)
+  let items=pd.incomeItems||[];
+  if(ife.value)items=items.filter(i=>i.equipmentId===ife.value);
+  if(ift.value)items=items.filter(i=>i.type===ift.value);
+  if(ifo.value)items=items.filter(i=>i.objectId===ifo.value);
+
+  let manualH='',manualNoVat=0;
+  for(const it of items){
+    const tot=it.total||((it.qty||1)*(it.unitPrice||0));
+    const vatA=tot*vat/100;
+    manualNoVat+=tot;
+    manualH+=`<tr>
+      <td>${fmtDate(it.date)}</td>
+      <td>${eqName(it.equipmentId)}${it.recurring?'<span class="rec">↻</span>':''}</td>
+      <td>${oName(it.objectId)}</td>
+      <td><span class="tag it-${it.type||'other'}">${INC_TYPES[it.type]||it.type||'—'}</span></td>
+      <td style="text-align:center">${it.qty||1}</td>
+      <td class="num tr">${fmt(it.unitPrice||0)}</td>
+      <td class="num tr">${fmt(Math.round(tot))} ₸</td>
+      <td class="num tr" style="color:var(--yellow)">${fmt(Math.round(vatA))} ₸</td>
+      <td class="num tr" style="color:var(--blue)">${fmt(Math.round(tot+vatA))} ₸</td>
+      <td><button class="edit-btn" onclick="openIncomeModal('${it.id}')">✏</button><button class="del-btn" onclick="delIncomeItem('${it.id}')">✕</button></td>
+    </tr>`;
+  }
+  document.getElementById('incomeManualTbl').innerHTML=manualH||'<tr><td colspan="10" class="empty">Нет доп. услуг</td></tr>';
+
+  // Totals
+  const allManual=(pd.incomeItems||[]).reduce((s,i)=>s+(i.total||0),0);
+  const totalNoVat=grandNoVat+allManual;
+  const totalVat=totalNoVat*vat/100;
+  const totalWithVat=totalNoVat+totalVat;
+  document.getElementById('incomeTotals').innerHTML=`<div class="vat-box">
+    <h3>Итого по доходам</h3>
+    <div class="vat-row"><span>Базовый доход (краны)</span><span class="vv bl">${fmt(Math.round(grandNoVat))} ₸</span></div>
+    <div class="vat-row"><span>Дополнительные услуги</span><span class="vv bl">${fmt(Math.round(allManual))} ₸</span></div>
+    <div class="vat-row"><span>Итого без НДС</span><span class="vv bl">${fmt(Math.round(totalNoVat))} ₸</span></div>
+    <div class="vat-row"><span>НДС ${vat}%</span><span class="vv yw">${fmt(Math.round(totalVat))} ₸</span></div>
+    <div class="vat-row"><span>ИТОГО С НДС</span><span class="vv gn">${fmt(Math.round(totalWithVat))} ₸</span></div>
+  </div>`;
+}
+
+function openIncomeModal(id){
+  const it=id?(pd.incomeItems||[]).find(x=>x.id===id):null;
+  document.getElementById('moIncomeTitle').textContent=it?'Редактировать услугу':'Добавить услугу';
+  document.getElementById('inId').value=it?it.id:'';
+  document.getElementById('inDate').value=it?it.date:todayISO();
+  document.getElementById('inQty').value=it?it.qty||1:1;
+  document.getElementById('inPrice').value=it?it.unitPrice||0:0;
+  document.getElementById('inTotal').value=it?it.total||0:0;
+  document.getElementById('inNote').value=it?it.note||'':'';
+  document.getElementById('inRecurring').checked=it?!!it.recurring:false;
+
+  const esel=document.getElementById('inEquip');
+  esel.innerHTML=cfg.equipment.map(e=>`<option value="${e.id}"${it?.equipmentId===e.id?' selected':''}>${e.name}</option>`).join('');
+
+  const osel=document.getElementById('inObject');
+  osel.innerHTML='<option value="">— —</option>'+cfg.objects.map(o=>`<option value="${o.id}"${it?.objectId===o.id?' selected':''}>${o.name}</option>`).join('');
+
+  const tsel=document.getElementById('inType');
+  tsel.innerHTML=Object.entries(INC_TYPES).map(([k,v])=>`<option value="${k}"${it?.type===k?' selected':''}>${v}</option>`).join('');
+
+  if(it)document.getElementById('inEquip').value=it.equipmentId||'';
+  openMo('moIncome');
+}
+
+function autoFillIncomePrice(){
+  const type=document.getElementById('inType').value;
+  const equipId=document.getElementById('inEquip').value;
+  const equip=cfg.equipment.find(e=>e.id===equipId);
+  if(!equip)return;
+  const rate=(equip.rates||{})[type]||0;
+  if(rate){document.getElementById('inPrice').value=rate;calcIncomeTotal();}
+}
+
+function calcIncomeTotal(){
+  const qty=+document.getElementById('inQty').value||1;
+  const price=+document.getElementById('inPrice').value||0;
+  document.getElementById('inTotal').value=Math.round(qty*price);
+}
+
+function saveIncomeItem(){
+  const id=document.getElementById('inId').value;
+  const qty=+document.getElementById('inQty').value||1;
+  const unitPrice=+document.getElementById('inPrice').value||0;
+  const total=qty*unitPrice;
+  const obj={
+    id:id||uuid(),date:document.getElementById('inDate').value,
+    equipmentId:document.getElementById('inEquip').value,
+    objectId:document.getElementById('inObject').value,
+    type:document.getElementById('inType').value,
+    qty,unitPrice,total,
+    note:document.getElementById('inNote').value.trim(),
+    recurring:document.getElementById('inRecurring').checked
+  };
+  if(!pd.incomeItems)pd.incomeItems=[];
+  if(id){const i=pd.incomeItems.findIndex(x=>x.id===id);if(i>=0)pd.incomeItems[i]=obj;}
+  else pd.incomeItems.push(obj);
+  pd.incomeItems.sort((a,b)=>a.date.localeCompare(b.date));
+  savePd();closeMo('moIncome');renderIncome();
+}
+
+function delIncomeItem(id){
+  if(!confirm('Удалить?'))return;
+  pd.incomeItems=(pd.incomeItems||[]).filter(x=>x.id!==id);
+  savePd();renderIncome();
+}
+
+// ═══════════════════════════════════════════════
+// EXPENSES TAB
+// ═══════════════════════════════════════════════
+function renderExpenses(){
+  const cf=document.getElementById('expFilterCat');
+  const ef=document.getElementById('expFilterEquip');
+  const wf=document.getElementById('expFilterWorker');
+  const pf=document.getElementById('expFilterPartner');
+  const of2=document.getElementById('expFilterObj');
+  const prevCat=cf.value,prevEq=ef.value,prevW=wf.value,prevP=pf.value,prevO=of2.value;
+
+  cf.innerHTML='<option value="">Все</option>'+Object.entries(EXP_CATS).map(([k,v])=>`<option value="${k}"${prevCat===k?' selected':''}>${v}</option>`).join('');
+  ef.innerHTML='<option value="">Вся</option>'+cfg.equipment.map(e=>`<option value="${e.id}"${prevEq===e.id?' selected':''}>${e.name}</option>`).join('');
+  wf.innerHTML='<option value="">Все</option>'+cfg.workers.map(w=>`<option value="${w.id}"${prevW===w.id?' selected':''}>${w.name}</option>`).join('');
+  pf.innerHTML='<option value="">Все</option>'+cfg.partners.map(p=>`<option value="${p.id}"${prevP===p.id?' selected':''}>${p.name}</option>`).join('');
+  of2.innerHTML='<option value="">Все</option>'+cfg.objects.map(o=>`<option value="${o.id}"${prevO===o.id?' selected':''}>${o.name}</option>`).join('');
+
+  let exps=pd.expenses||[];
+  if(cf.value)exps=exps.filter(e=>e.category===cf.value);
+  if(ef.value)exps=exps.filter(e=>e.equipmentId===ef.value);
+  if(wf.value)exps=exps.filter(e=>e.workerId===wf.value);
+  if(pf.value)exps=exps.filter(e=>e.partnerId===pf.value);
+  if(of2.value)exps=exps.filter(e=>e.objectId===of2.value);
+
+  // Group by category for subtotals
+  const catTotals={};
+  for(const e of exps){if(!catTotals[e.category])catTotals[e.category]=0;catTotals[e.category]+=e.amount||0;}
+
+  let h='',total=0;
+  for(const e of exps){
+    total+=e.amount||0;
+    const who=e.workerId?wName(e.workerId):e.partnerId?pName(e.partnerId):'—';
+    h+=`<tr>
+      <td>${fmtDate(e.date)}</td>
+      <td><span class="badge-type ec-${e.category}">${EXP_CATS[e.category]||e.category}</span>${e.recurring?'<span class="rec">↻</span>':''}</td>
+      <td>${e.equipmentId?eqName(e.equipmentId):'—'}</td>
+      <td>${who}</td>
+      <td>${e.note||'—'}</td>
+      <td class="num tr" style="font-weight:600;color:var(--red)">${fmt(e.amount)} ₸</td>
+      <td style="white-space:nowrap"><button class="edit-btn" onclick="openExpenseModal('${e.id}')">✏</button><button class="del-btn" onclick="delExpense('${e.id}')">✕</button></td>
+    </tr>`;
+  }
+  // Category subtotals row if filtering
+  if(!cf.value&&Object.keys(catTotals).length>1){
+    h+=`<tr style="background:var(--card2);font-size:11px">
+      <td colspan="5" style="color:var(--muted)">${Object.entries(catTotals).map(([k,v])=>`${EXP_CATS[k]||k}: <b>${fmt(v)} ₸</b>`).join(' · ')}</td>
+      <td class="num tr" style="color:var(--red);font-weight:700">${fmt(total)} ₸</td><td></td>
+    </tr>`;
+  }
+
+  document.getElementById('expensesTbl').innerHTML=h||'<tr><td colspan="7" class="empty">Нет расходов</td></tr>';
+  document.getElementById('expTotal').textContent=fmt(total)+' ₸';
+}
+
+function openExpenseModal(id){
+  const ex=id?(pd.expenses||[]).find(x=>x.id===id):null;
+  document.getElementById('moExpenseTitle').textContent=ex?'Редактировать расход':'Новый расход';
+  document.getElementById('exId').value=ex?ex.id:'';
+  document.getElementById('exDate').value=ex?ex.date:todayISO();
+  document.getElementById('exAmount').value=ex?ex.amount||0:0;
+  document.getElementById('exCat').value=ex?ex.category:'salary';
+  document.getElementById('exNote').value=ex?ex.note||'':'';
+  document.getElementById('exRecurring').checked=ex?!!ex.recurring:false;
+
+  document.getElementById('exEquip').innerHTML='<option value="">— —</option>'+cfg.equipment.map(e=>`<option value="${e.id}"${ex?.equipmentId===e.id?' selected':''}>${e.name}</option>`).join('');
+  document.getElementById('exWorker').innerHTML='<option value="">— —</option>'+cfg.workers.map(w=>`<option value="${w.id}"${ex?.workerId===w.id?' selected':''}>${w.name}</option>`).join('');
+  document.getElementById('exPartner').innerHTML='<option value="">— —</option>'+cfg.partners.map(p=>`<option value="${p.id}"${ex?.partnerId===p.id?' selected':''}>${p.name}</option>`).join('');
+  document.getElementById('exObject').innerHTML='<option value="">— —</option>'+cfg.objects.map(o=>`<option value="${o.id}"${ex?.objectId===o.id?' selected':''}>${o.name}</option>`).join('');
+  openMo('moExpense');
+}
+
+function saveExpense(){
+  const id=document.getElementById('exId').value;
+  const obj={
+    id:id||uuid(),date:document.getElementById('exDate').value,
+    amount:+document.getElementById('exAmount').value||0,
+    category:document.getElementById('exCat').value,
+    equipmentId:document.getElementById('exEquip').value,
+    workerId:document.getElementById('exWorker').value,
+    partnerId:document.getElementById('exPartner').value,
+    objectId:document.getElementById('exObject').value,
+    note:document.getElementById('exNote').value.trim(),
+    recurring:document.getElementById('exRecurring').checked
+  };
+  if(!pd.expenses)pd.expenses=[];
+  if(id){const i=pd.expenses.findIndex(x=>x.id===id);if(i>=0)pd.expenses[i]=obj;}
+  else pd.expenses.push(obj);
+  pd.expenses.sort((a,b)=>a.date.localeCompare(b.date));
+  savePd();closeMo('moExpense');renderExpenses();
+}
+
+function delExpense(id){
+  if(!confirm('Удалить расход?'))return;
+  pd.expenses=(pd.expenses||[]).filter(x=>x.id!==id);
+  savePd();renderExpenses();
+}
+
+// ═══════════════════════════════════════════════
+// SUMMARY TAB
+// ═══════════════════════════════════════════════
+function renderSummary(){
+  const vat=cfg.settings.vatRate||16;
+  const dates=getPeriodDates(curYear,curEM);
+  const n=dates.length;
+
+  // Income
+  let totalBaseNoVat=0;
+  const equipStats=[];
+  for(const e of cfg.equipment){
+    const cs=pd.shifts[e.id]||{};
+    let nights=0;
+    for(const k in cs){const t=cs[k].type||0;if(t===2||t===3)nights++;}
+    const r=e.rates||{};
+    const nightInc=nights*(r.nightly||0)/n;
+    const base=(r.monthly||0)+nightInc;
+    const manual=(pd.incomeItems||[]).filter(i=>i.equipmentId===e.id).reduce((s,i)=>s+(i.total||0),0);
+    const totalInc=base+manual;
+    totalBaseNoVat+=totalInc;
+    const expForEquip=(pd.expenses||[]).filter(x=>x.equipmentId===e.id).reduce((s,x)=>s+x.amount,0);
+    const rentalCost=e.rentalCost||0;
+    const netForEquip=totalInc-expForEquip-rentalCost;
+    equipStats.push({e,nights,base,manual,totalInc,expForEquip,rentalCost,netForEquip});
+  }
+  const manualTotal=(pd.incomeItems||[]).reduce((s,i)=>s+(i.total||0),0);
+  const totalNoVat=totalBaseNoVat;
+  const totalVat=totalNoVat*vat/100;
+  const totalWithVat=totalNoVat+totalVat;
+
+  // Expenses
+  const exps=pd.expenses||[];
+  const totalExp=exps.reduce((s,e)=>s+e.amount,0);
+
+  // Salary debt
+  const totalSalary=cfg.workers.reduce((s,w)=>s+(w.salary?.monthly||0),0);
+  const totalPaid=Object.values(pd.payments||{}).flat().reduce((s,p)=>s+p.amount,0);
+  const salDebt=totalSalary-totalPaid;
+
+  // Net
+  const net=totalNoVat-totalExp;
+
+  // KPIs
+  document.getElementById('sumKpi').innerHTML=`
+    <div class="kpi bl"><div class="kl">Доход б/НДС</div><div class="kv bl">${fmtM(Math.round(totalNoVat))}</div><div class="ks">НДС: ${fmtM(Math.round(totalVat))}</div></div>
+    <div class="kpi bl"><div class="kl">Доход с НДС</div><div class="kv bl">${fmtM(Math.round(totalWithVat))}</div><div class="ks">выставлено заказчику</div></div>
+    <div class="kpi rd"><div class="kl">Расходы</div><div class="kv rd">${fmtM(totalExp)}</div><div class="ks">аренда + зарплата + прочее</div></div>
+    <div class="kpi ${net>=0?'gn':'rd'}"><div class="kl">Прибыль / Убыток</div><div class="kv ${net>=0?'gn':'rd'}">${net>=0?'+':''}${fmtM(Math.round(net))}</div><div class="ks">б/НДС</div></div>
+  `;
+
+  // Per-equipment breakdown
+  let eqH='<div class="sec-title">По технике</div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px">';
+  for(const s of equipStats){
+    const color=s.netForEquip>=0?'var(--green)':'var(--red)';
+    eqH+=`<div class="c-card">
+      <div class="c-card-head"><div><div class="c-card-title">${s.e.name}</div><div class="c-card-sub">${s.nights} ночей · ${n} дней</div></div></div>
+      <div class="c-card-body" style="font-size:12px">
+        <div class="vat-row"><span style="color:var(--muted)">Договор/месяц</span><span>${fmt(s.e.rates?.monthly||0)} ₸</span></div>
+        <div class="vat-row"><span style="color:var(--muted)">Ночной доход</span><span>${fmt(Math.round(s.nightInc||s.base-(s.e.rates?.monthly||0)))} ₸</span></div>
+        <div class="vat-row"><span style="color:var(--muted)">Доп. услуги</span><span>${fmt(Math.round(s.manual))} ₸</span></div>
+        <div class="vat-row"><span style="color:var(--muted)">Аренда у партнера</span><span style="color:var(--red)">${fmt(s.rentalCost)} ₸</span></div>
+        <div class="vat-row"><span style="color:var(--muted)">Прочие расходы</span><span style="color:var(--red)">${fmt(s.expForEquip)} ₸</span></div>
+        <div class="vat-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">Результат</span><span style="font-weight:700;color:${color}">${s.netForEquip>=0?'+':''}${fmt(Math.round(s.netForEquip))} ₸</span></div>
+      </div>
+    </div>`;
+  }
+  eqH+='</div>';
+  document.getElementById('sumEquip').innerHTML=eqH;
+
+  // Expense breakdown by category
+  const byCat={};
+  for(const e of exps){if(!byCat[e.category])byCat[e.category]=0;byCat[e.category]+=e.amount;}
+  let bkH='<div class="set-group"><h3>Расходы по статьям</h3>';
+  for(const[k,v] of Object.entries(byCat)){
+    bkH+=`<div class="set-row"><span>${EXP_CATS[k]||k}</span><span style="font-weight:600;color:var(--red)">${fmt(v)} ₸</span></div>`;
+  }
+  // Salary
+  bkH+=`<div class="set-row"><span style="color:var(--muted)">Долг по зарплате</span><span style="color:var(--yellow)">${fmt(salDebt)} ₸</span></div>`;
+  bkH+='</div>';
+
+  let revH='<div class="set-group"><h3>Доходы по источникам</h3>';
+  for(const s of equipStats){
+    revH+=`<div class="set-row"><span>${s.e.name}</span><span style="color:var(--blue)">${fmt(Math.round(s.totalInc))} ₸</span></div>`;
+  }
+  revH+=`<div class="set-row"><span style="font-weight:700">ИТОГО б/НДС</span><span style="font-weight:700;color:var(--blue)">${fmt(Math.round(totalNoVat))} ₸</span></div>`;
+  revH+=`<div class="set-row"><span>НДС ${vat}%</span><span style="color:var(--yellow)">${fmt(Math.round(totalVat))} ₸</span></div>`;
+  revH+=`<div class="set-row"><span style="font-weight:700">С НДС</span><span style="font-weight:700;color:var(--green)">${fmt(Math.round(totalWithVat))} ₸</span></div>`;
+  revH+='</div>';
+
+  document.getElementById('sumBreakdown').innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">${revH}${bkH}</div>`;
+}
+
+// ═══════════════════════════════════════════════
+// SETTINGS TAB
+// ═══════════════════════════════════════════════
+function renderSettings(){
+  const s=cfg.settings;
+  document.getElementById('sPeriodStart').value=s.periodStartDay||21;
+  document.getElementById('sPeriodEnd').value=s.periodEndDay||20;
+  document.getElementById('sVat').value=s.vatRate||16;
+  document.getElementById('sCompany').value=s.companyName||'ТОО';
+  renderMobileInstall();
+}
+
+function renderMobileInstall(){
+  const el=document.getElementById('mobileInstallInfo');if(!el)return;
+  const ua=navigator.userAgent;
+  const isIOS=/iphone|ipad|ipod/i.test(ua);
+  const isAndroid=/android/i.test(ua);
+  const isStandalone=('standalone' in navigator&&navigator.standalone)||window.matchMedia('(display-mode:standalone)').matches;
+
+  const shareBtn=document.getElementById('shareFileBtn');
+  if(shareBtn&&navigator.share)shareBtn.style.display='flex';
+
+  if(isStandalone){
+    el.innerHTML='<div style="color:var(--green);font-size:13px;padding:8px 0">✓ Приложение уже установлено на главный экран</div>';return;
+  }
+  const box=(text,steps)=>`<div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:13px;line-height:1.9">
+    <div style="font-weight:700;margin-bottom:6px">${text}</div>${steps.map((s,i)=>`<div><span style="color:var(--accent);font-weight:700">${i+1}.</span> ${s}</div>`).join('')}
+  </div>`;
+  if(isIOS){
+    el.innerHTML=box('Добавить на экран «Домой» (iPhone/iPad)',[
+      'Откройте файл в браузере <b>Safari</b>',
+      'Нажмите кнопку <b>⎙ Поделиться</b> (внизу Safari)',
+      'Прокрутите список вниз → нажмите <b>На экран «Домой»</b>',
+      'Нажмите <b>Добавить</b> — иконка появится на главном экране'
+    ]);
+  } else if(isAndroid){
+    el.innerHTML=box('Добавить на главный экран (Android)',[
+      'Откройте файл в браузере <b>Chrome</b>',
+      'Нажмите <b>⋮</b> (три точки) в правом верхнем углу',
+      'Выберите <b>«Добавить на главный экран»</b>',
+      'Нажмите <b>Добавить</b> для подтверждения'
+    ])+`<div style="margin-top:10px;font-size:12px;color:var(--muted)">Или: Chrome может показать баннер «Установить» внизу экрана — просто нажмите его.</div>`;
+  } else {
+    el.innerHTML=`<div style="font-size:13px;color:var(--muted);padding:8px 0">
+      Откройте этот .html файл на телефоне — в <b>Safari</b> (iPhone) или <b>Chrome</b> (Android) — и следуйте инструкции «Добавить на главный экран».
+    </div>`;
+  }
+}
+
+async function shareAppFile(){
+  try{
+    const html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+    const blob=new Blob([html],{type:'text/html'});
+    const file=new File([blob],'too-uchet.html',{type:'text/html'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'ТОО — Учёт смен',text:'Файл приложения учёта'});
+    } else if(navigator.share){
+      await navigator.share({title:'ТОО — Учёт смен',text:'Открой файл too-uchet.html в браузере'});
+    } else {alert('Функция «Поделиться» недоступна в этом браузере');}
+  } catch(e){if(e.name!=='AbortError')alert('Ошибка: '+e.message);}
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════
+function exportData(){
+  const all={config:cfg,periods:{}};
+  for(const k of Object.keys(localStorage)){
+    if(k.startsWith('too_v2_period_'))all.periods[k]=JSON.parse(localStorage.getItem(k));
+  }
+  const json=JSON.stringify(all,null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const ua=navigator.userAgent;
+  const isIOS=/iphone|ipad|ipod/i.test(ua);
+  if(isIOS){
+    // iOS Safari: open JSON in new tab (user can then share/save)
+    const url=URL.createObjectURL(blob);
+    const w=window.open(url,'_blank');
+    if(!w){
+      // If popup blocked, try inline download
+      const a=document.createElement('a');a.href=url;a.download=`too_export_${todayISO()}.json`;a.click();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),10000);
+  } else {
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=`too_export_${todayISO()}.json`;
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  }
+}
+function importData(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(d.config){cfg=d.config;saveCfg();}
+      if(d.periods){for(const[k,v] of Object.entries(d.periods))localStorage.setItem(k,JSON.stringify(v));}
+      loadPd();loadCfg();renderAll();
+      alert('Импорт выполнен!');
+    }catch{alert('Ошибка файла');}
+  };
+  r.readAsText(f);e.target.value='';
+}
+
+// ═══════════════════════════════════════════════
+// INIT — default data
+// ═══════════════════════════════════════════════
+function init(){
+  loadCfg();
+  loadPd();
+
+  // Show mobile install hint once on mobile devices
+  (function(){
+    const ua=navigator.userAgent;
+    const isMobile=/iphone|ipad|ipod|android/i.test(ua);
+    const isStandalone=('standalone' in navigator&&navigator.standalone)||window.matchMedia('(display-mode:standalone)').matches;
+    const dismissed=localStorage.getItem('too_hint_dismissed');
+    const hint=document.getElementById('mobileHint');
+    if(hint&&isMobile&&!isStandalone&&!dismissed){hint.style.display='flex';}
+  })();
+
+  // Seed default config if empty
+  if(cfg.equipment.length===0){
+    const p1=uuid(),p2=uuid();
+    const w1=uuid(),w2=uuid(),w3=uuid(),w4=uuid(),w5=uuid(),w6=uuid(),w7=uuid(),w8=uuid(),w9=uuid(),w10=uuid();
+    const e1=uuid(),e2=uuid(),e3=uuid(),e4=uuid();
+    const o1=uuid();
+
+    cfg.partners=[
+      {id:p1,name:'ИП Негметжан',type:'rental',note:'Аренда башенных кранов'},
+      {id:p2,name:'ИП Мырзабаев',type:'service',note:'Тех. обслуживание, секции, пристежки'},
+    ];
+    cfg.objects=[{id:o1,name:'Объект ТТК',client:'ТРАНСТЕЛЕКОМ РВС',note:''}];
+    cfg.equipment=[
+      {id:e1,name:'Liebherr',serial:'F3523581',primaryWorkerId:w1,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3000000,nightly:1300000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
+      {id:e2,name:'NTP QTZ',serial:'030105-005',primaryWorkerId:w2,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
+      {id:e3,name:'Zoomlion',serial:'50123',primaryWorkerId:w3,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
+      {id:e4,name:'QTZ-100',serial:'',primaryWorkerId:w4,objectId:o1,rentalPartnerId:p1,rentalCost:0,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
+    ];
+    cfg.workers=[
+      {id:w1,name:'Айбек',type:'crane_op',salary:{monthly:940000,nightly:20000,daily:0},equipmentId:e1},
+      {id:w2,name:'Рустам',type:'crane_op',salary:{monthly:700000,nightly:20000,daily:0},equipmentId:e2},
+      {id:w3,name:'Айдынбек',type:'crane_op',salary:{monthly:720000,nightly:20000,daily:0},equipmentId:e3},
+      {id:w4,name:'Максат',type:'crane_op',salary:{monthly:860000,nightly:20000,daily:0},equipmentId:e4},
+      {id:w5,name:'ИП Мырзабаев',type:'ip',salary:{monthly:860000,nightly:0,daily:0},equipmentId:''},
+      {id:w6,name:'БиОТ МАДИ',type:'maint',salary:{monthly:161141,nightly:0,daily:0},equipmentId:''},
+      {id:w7,name:'БЦ Нурлан',type:'office',salary:{monthly:202020,nightly:0,daily:0},equipmentId:''},
+      {id:w8,name:'БЦ Миша',type:'office',salary:{monthly:216647,nightly:0,daily:0},equipmentId:''},
+      {id:w9,name:'Мурад (Надя)',type:'office',salary:{monthly:350000,nightly:0,daily:0},equipmentId:''},
+      {id:w10,name:'Директор',type:'office',salary:{monthly:250000,nightly:0,daily:0},equipmentId:''},
+    ];
+    saveCfg();
+
+    // Seed June 2026 period data
+    if(pdKey()==='too_v2_period_2026_06'){
+      pd.shifts={
+        [e1]:{
+          '2026-05-21':{type:2,workerId:'',note:''},'2026-05-23':{type:2,workerId:'',note:''},
+          '2026-05-24':{type:2,workerId:'',note:''},'2026-05-25':{type:2,workerId:'',note:''},
+          '2026-05-26':{type:2,workerId:'',note:''},'2026-05-30':{type:2,workerId:'',note:''},
+          '2026-05-31':{type:2,workerId:'',note:''},'2026-06-06':{type:3,workerId:'',note:'подмена'},
+          '2026-06-07':{type:3,workerId:'',note:'подмена'},'2026-06-09':{type:3,workerId:'',note:'Подмена'},
+          '2026-06-10':{type:3,workerId:'',note:'Подмена'},'2026-06-11':{type:3,workerId:'',note:'Подмена'},
+        },
+        [e2]:{},[e3]:{'2026-05-25':{type:2,workerId:'',note:'Баха'}},
+        [e4]:{
+          '2026-05-22':{type:2,workerId:'',note:''},'2026-05-23':{type:2,workerId:'',note:''},
+          '2026-05-26':{type:2,workerId:'',note:''},'2026-05-30':{type:2,workerId:'',note:''},
+          '2026-05-31':{type:2,workerId:'',note:''},'2026-06-01':{type:2,workerId:'',note:''},
+          '2026-06-03':{type:2,workerId:'',note:''},'2026-06-04':{type:2,workerId:'',note:'смена'},
+        }
+      };
+      pd.expenses=[
+        {id:uuid(),date:'2026-06-01',amount:300000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Масло станция'},
+        {id:uuid(),date:'2026-06-04',amount:50000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Подшипник'},
+        {id:uuid(),date:'2026-06-04',amount:20000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Маке кабель'},
+        {id:uuid(),date:'2026-06-04',amount:560000,category:'other',equipmentId:e1,partnerId:p2,workerId:'',objectId:o1,note:'Секции 6 и пристежка'},
+        {id:uuid(),date:'2026-06-08',amount:5545000,category:'other',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Машина 50%'},
+        {id:uuid(),date:'2026-06-09',amount:453638,category:'other',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Страховка машины'},
+        {id:uuid(),date:'2026-06-14',amount:80000,category:'repair',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'СМР кондер'},
+        {id:uuid(),date:'2026-06-14',amount:140970,category:'repair',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Кондиционер'},
+        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e1,partnerId:p1,workerId:'',objectId:'',note:'Аренда Liebherr'},
+        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e2,partnerId:p1,workerId:'',objectId:'',note:'Аренда NTP QTZ'},
+        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e3,partnerId:p1,workerId:'',objectId:'',note:'Аренда Zoomlion'},
+        {id:uuid(),date:'2026-06-01',amount:150000,category:'taxes',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Налоги ТОО'},
+      ];
+      pd.payments={
+        [w1]:[{date:'2026-06-04',amount:300000,note:'аванс'},{date:'2026-06-08',amount:220000,note:'Гулеке'},{date:'2026-06-09',amount:50000,note:'Куралай'},{date:'2026-06-11',amount:100000,note:'Гулек 2д2н'}],
+        [w2]:[{date:'2026-05-18',amount:150000,note:'Аванс'},{date:'2026-05-28',amount:30000,note:'Баха'},{date:'2026-06-08',amount:100000,note:'Аванс'}],
+        [w3]:[{date:'2026-05-25',amount:20000,note:'Баха ночь'},{date:'2026-06-06',amount:400000,note:'Аванс'},{date:'2026-06-07',amount:30000,note:'Гулеке'}],
+        [w4]:[{date:'2026-05-15',amount:200000,note:'Аванс'},{date:'2026-06-04',amount:50000,note:'Замена'},{date:'2026-06-05',amount:248710,note:'Макс расчет'}],
+      };
+      pd.incomeItems=[{id:uuid(),date:'2026-06-01',equipmentId:'',objectId:o1,type:'other',qty:1,unitPrice:302400,total:302400,note:'Сенсата ставки'}];
+      savePd();
+    }
+  }
+
+  renderAll();
+}
+
+init();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        reg.addEventListener('updatefound', () => {
+          const sw = reg.installing;
+          sw.addEventListener('statechange', () => {
+            if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version available — silently activate it
+              sw.postMessage('skipWaiting');
+            }
+          });
+        });
+      })
+      .catch(() => {}); // SW not critical — fail silently
+  });
+}
+</script>
+</body>
+</html>
