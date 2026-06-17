@@ -1,7 +1,7 @@
 'use strict';
 
 // Increment this version to force cache refresh on all clients
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `too-uchet-${CACHE_VERSION}`;
 
 // Core assets — always cache these on install
@@ -17,7 +17,6 @@ const OPTIONAL_ASSETS = [
   './icon-512.png',
   './icon-maskable.png',
   './apple-touch-icon.png',
-  './dashboard.html',
 ];
 
 // ─── Install ──────────────────────────────────────────────────────────────────
