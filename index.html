@@ -12,6 +12,10 @@
 <meta name="apple-mobile-web-app-title" content="ТОО Учёт">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
+<!-- Firebase SDK (compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 <style>
 :root{--bg:#0f1117;--card:#1a1d27;--card2:#21253a;--accent:#6c63ff;--green:#22d3a0;--red:#f05c6e;--yellow:#f5a623;--blue:#38bdf8;--text:#e2e8f0;--muted:#8892a4;--border:#2d3348}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -279,6 +283,52 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 </head>
 <body>
 
+<!-- AUTH SCREEN -->
+<div id="authScreen" style="position:fixed;inset:0;background:var(--bg);z-index:9000;display:flex;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:400px">
+    <div style="text-align:center;margin-bottom:22px">
+      <div style="font-size:30px;font-weight:900;color:var(--accent);letter-spacing:-1px">ТОО</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px">Учёт смен и расходов</div>
+    </div>
+    <!-- Login -->
+    <div id="authTabLogin">
+      <div class="fg"><label class="fl">Email</label><input class="fi" id="authEmail" type="email" placeholder="user@company.kz" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div class="fg"><label class="fl">Пароль</label><input class="fi" id="authPassword" type="password" placeholder="••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <div id="authError" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:6px"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doLogin()">Войти</button>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted)">
+        Нет аккаунта? <span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('register')">Зарегистрироваться</span>
+      </div>
+    </div>
+    <!-- Register -->
+    <div id="authTabRegister" style="display:none">
+      <div class="fg"><label class="fl">Имя</label><input class="fi" id="regName" placeholder="Ваше имя"></div>
+      <div class="fg"><label class="fl">Email</label><input class="fi" id="regEmail" type="email" placeholder="user@company.kz"></div>
+      <div class="fg"><label class="fl">Пароль</label><input class="fi" id="regPassword" type="password" placeholder="Минимум 6 символов"></div>
+      <div id="regError" style="color:var(--red);font-size:12px;min-height:18px;margin-bottom:6px"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="doRegister()">Зарегистрироваться</button>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:var(--muted)">
+        Уже есть аккаунт? <span style="color:var(--accent);cursor:pointer" onclick="switchAuthTab('login')">Войти</span>
+      </div>
+    </div>
+    <!-- Pending -->
+    <div id="authTabPending" style="display:none;text-align:center;padding:10px 0">
+      <div style="font-size:38px;margin-bottom:10px">⏳</div>
+      <div style="font-weight:700;margin-bottom:8px">Ожидание активации</div>
+      <div style="color:var(--muted);font-size:13px;margin-bottom:14px">Аккаунт создан. Администратор назначит вам роль.</div>
+      <button class="btn btn-secondary" onclick="doLogout()">Выйти</button>
+    </div>
+    <!-- Not configured -->
+    <div id="authTabConfig" style="display:none">
+      <div style="background:rgba(240,92,110,.12);border:1px solid rgba(240,92,110,.3);border-radius:8px;padding:14px;font-size:13px;line-height:1.9">
+        <b style="color:var(--red)">Firebase не настроен</b><br>
+        Откройте <code style="color:var(--green)">index.html</code> и замените значения в блоке <code style="color:var(--green)">FIREBASE_CONFIG</code>.<br><br>
+        <b>Пошаговая инструкция:</b> откройте файл <code style="color:var(--green)">FIREBASE_SETUP.md</code>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">ТОО</div>
@@ -294,9 +344,14 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <button class="tab-btn" onclick="showTab('settings',this)">⚙ Настройки</button>
   </div>
   <div class="top-right">
+    <div id="userBadge" style="display:none;padding:0 8px;border-right:1px solid var(--border);line-height:1.3">
+      <div id="userBadgeName" style="font-size:11px;font-weight:700;color:var(--text)"></div>
+      <div id="userBadgeRole" style="font-size:10px;color:var(--muted)"></div>
+    </div>
     <button class="icon-btn" onclick="exportData()">⬇ Экспорт</button>
     <button class="icon-btn" onclick="document.getElementById('impFile').click()">⬆ Импорт</button>
     <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(event)">
+    <button class="icon-btn" id="logoutBtn" style="display:none;color:var(--red)" onclick="doLogout()">⏻</button>
   </div>
 </div>
 
@@ -408,9 +463,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 <!-- ═══════════ ИТОГИ ═══════════ -->
 <div id="pane-summary" class="tab-pane">
-  <div class="ph"><h2>Итоги периода</h2>
-    <a href="dashboard.html" target="_blank" style="font-size:12px;color:var(--accent);text-decoration:none">↗ Дашборд</a>
-  </div>
+  <div class="ph"><h2>Итоги периода</h2></div>
   <div class="kpi-row" id="sumKpi"></div>
   <div id="sumEquip" style="margin-bottom:14px"></div>
   <div id="sumBreakdown"></div>
@@ -436,6 +489,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <h3>Реквизиты</h3>
     <div class="set-row"><span class="set-label">Название компании</span>
       <input class="set-val" type="text" id="sCompany" style="width:200px;text-align:left" onchange="saveSetting('companyName',this.value)"></div>
+  </div>
+  <div class="set-group" id="usersSection" style="display:none">
+    <h3>Пользователи</h3>
+    <div id="usersList" style="margin-bottom:14px"></div>
+    <button class="btn btn-primary btn-sm" onclick="openUserModal()">+ Добавить пользователя</button>
   </div>
   <div class="set-group">
     <h3>📱 Установить на телефон</h3>
@@ -678,6 +736,34 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 </div>
 
+<!-- USER MODAL (admin) -->
+<div class="mo hidden" id="moUser" onclick="closeMoCheck('moUser',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moUserTitle">Новый пользователь</div>
+    <div class="mo-sub">Пользователь получит доступ по email и паролю</div>
+    <input type="hidden" id="muUid">
+    <div class="fg"><label class="fl">Имя</label><input class="fi" id="muName" placeholder="Айбек Крановщик"></div>
+    <div class="fg" id="muEmailGroup"><label class="fl">Email</label><input class="fi" id="muEmail" type="email" placeholder="user@company.kz"></div>
+    <div class="fg" id="muPasswordGroup"><label class="fl">Временный пароль</label><input class="fi" id="muPassword" type="password" placeholder="Минимум 6 символов"></div>
+    <div class="fg"><label class="fl">Роль</label>
+      <select class="fi" id="muRole" onchange="toggleWorkerField()">
+        <option value="admin">Admin — Полный доступ</option>
+        <option value="dispatcher" selected>Dispatcher — Смены и техника</option>
+        <option value="accountant">Accountant — Финансы</option>
+        <option value="worker">Worker — Только свои смены</option>
+        <option value="pending">Pending — Без доступа</option>
+      </select></div>
+    <div class="fg" id="muWorkerGroup" style="display:none">
+      <label class="fl">Привязать к работнику (для роли Worker)</label>
+      <select class="fi" id="muWorker"><option value="">— не выбрано —</option></select></div>
+    <div id="muError" style="color:var(--red);font-size:12px;min-height:18px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moUser')">Отмена</button>
+      <button class="btn btn-primary" id="muSaveBtn" onclick="saveUser()">Создать</button>
+    </div>
+  </div>
+</div>
+
 <!-- WORKER DETAIL MODAL -->
 <div class="mo hidden" id="moWorkerDetail" onclick="closeMoCheck('moWorkerDetail',event)">
   <div class="mo-box wide">
@@ -693,6 +779,18 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 <script>
 // ═══════════════════════════════════════════════
+// FIREBASE CONFIG — проект: togir-control
+// ═══════════════════════════════════════════════
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyB38fwN4mt3KdB4Ml-tJPJlPqICd6XWG5c",
+  authDomain:        "togir-control.firebaseapp.com",
+  projectId:         "togir-control",
+  storageBucket:     "togir-control.firebasestorage.app",
+  messagingSenderId: "25479724973",
+  appId:             "1:25479724973:web:23e26a8cec0cf229846b24"
+};
+
+// ═══════════════════════════════════════════════
 // CONSTANTS
 // ═══════════════════════════════════════════════
 const MRU=['','Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
@@ -707,39 +805,229 @@ const PARTNER_TYPES={rental:'Аренда техники',service:'Услуги'
 const SHIFT_VALS={0:'none',1:'day',2:'night',3:'daynight',4:'over'};
 
 // ═══════════════════════════════════════════════
-// STORE
+// FIREBASE INIT
 // ═══════════════════════════════════════════════
-const CFG_KEY='too_v2_config';
-let cfg={};  // {settings, workers, equipment, objects, partners}
-let pd={};   // period data: {shifts, incomeItems, expenses, payments}
-let curYear=2026, curEM=6; // current period end month/year
-
-function loadCfg(){
-  const r=localStorage.getItem(CFG_KEY);
-  cfg=r?JSON.parse(r):{};
-  cfg.settings=cfg.settings||{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'};
-  cfg.workers=cfg.workers||[];
-  cfg.equipment=cfg.equipment||[];
-  cfg.objects=cfg.objects||[];
-  cfg.partners=cfg.partners||[];
+let auth, db;
+function initFirebase() {
+  try {
+    if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+    auth = firebase.auth();
+    db = firebase.firestore();
+    return true;
+  } catch(e) { console.error(e); return false; }
 }
-function saveCfg(){localStorage.setItem(CFG_KEY,JSON.stringify(cfg));}
 
-function pdKey(){return`too_v2_period_${curYear}_${pad(curEM)}`;}
-function loadPd(){
-  const r=localStorage.getItem(pdKey());
-  pd=r?JSON.parse(r):{};
-  pd.shifts=pd.shifts||{};
-  pd.incomeItems=pd.incomeItems||[];
-  pd.expenses=pd.expenses||[];
-  pd.payments=pd.payments||{};
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let currentUser = null; // {uid, email, name, role, workerId}
+let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[] };
+let pd = { shifts:{}, incomeItems:[], expenses:[], payments:{} };
+let curYear, curEM;
+(function(){
+  const now = new Date();
+  curYear = now.getFullYear();
+  const m = now.getMonth() + 1, d = now.getDate();
+  if (d >= 21) { curEM = m + 1; if (curEM > 12) { curEM = 1; curYear++; } }
+  else { curEM = m; }
+})();
+let _cfgUnsubs = [], _pdUnsubs = [], _renderTimer = null;
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+const ROLE_LABELS = { admin:'Администратор', dispatcher:'Диспетчер', worker:'Крановщик', accountant:'Бухгалтер', pending:'Ожидает' };
+const ROLE_TABS = {
+  admin:      ['smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
+  dispatcher: ['smeny','workers','equip','objects'],
+  worker:     ['workers'],
+  accountant: ['income','expenses','summary','settings'],
+  pending:    []
+};
+
+function switchAuthTab(tab) {
+  ['Login','Register','Pending','Config'].forEach(t => {
+    const el = document.getElementById('authTab'+t);
+    if (el) el.style.display = (t.toLowerCase()===tab?'block':'none');
+  });
 }
-function savePd(){localStorage.setItem(pdKey(),JSON.stringify(pd));}
 
+async function doLogin() {
+  document.getElementById('authError').textContent = '';
+  const email = document.getElementById('authEmail').value.trim();
+  const pw = document.getElementById('authPassword').value;
+  if (!email || !pw) { document.getElementById('authError').textContent = 'Заполните email и пароль'; return; }
+  try { await auth.signInWithEmailAndPassword(email, pw); }
+  catch(e) {
+    const m = {'auth/wrong-password':'Неверный пароль','auth/user-not-found':'Пользователь не найден','auth/invalid-email':'Неверный email','auth/too-many-requests':'Слишком много попыток'};
+    document.getElementById('authError').textContent = m[e.code] || e.message;
+  }
+}
+
+async function doRegister() {
+  document.getElementById('regError').textContent = '';
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pw = document.getElementById('regPassword').value;
+  if (!name||!email||!pw) { document.getElementById('regError').textContent = 'Заполните все поля'; return; }
+  try {
+    const snap = await db.collection('users').limit(1).get();
+    const isFirst = snap.empty;
+    const cred = await auth.createUserWithEmailAndPassword(email, pw);
+    await db.collection('users').doc(cred.user.uid).set({ email, name, role: isFirst?'admin':'pending', workerId:'' });
+  } catch(e) {
+    const m = {'auth/email-already-in-use':'Email уже используется','auth/weak-password':'Пароль слишком простой (мин. 6 символов)','auth/invalid-email':'Неверный email'};
+    document.getElementById('regError').textContent = m[e.code] || e.message;
+  }
+}
+
+async function doLogout() {
+  unsubAll(); await auth.signOut();
+  document.getElementById('authScreen').style.display = 'flex';
+  switchAuthTab('login');
+  document.getElementById('userBadge').style.display = 'none';
+  document.getElementById('logoutBtn').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════
+// FIRESTORE LISTENERS
+// ═══════════════════════════════════════════════
+function unsubAll() {
+  [..._cfgUnsubs,..._pdUnsubs].forEach(fn=>fn());
+  _cfgUnsubs=[]; _pdUnsubs=[];
+}
+
+function scheduleRender() {
+  if (_renderTimer) clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(()=>{ renderAll(); _renderTimer=null; }, 60);
+}
+
+function listenConfig() {
+  _cfgUnsubs.push(db.collection('settings').doc('main').onSnapshot(snap=>{
+    cfg.settings = snap.exists ? snap.data() : {periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'};
+    scheduleRender();
+  },()=>{}));
+  _cfgUnsubs.push(db.collection('workers').onSnapshot(snap=>{
+    cfg.workers = snap.docs.map(d=>({id:d.id,...d.data()}));
+    scheduleRender();
+  },()=>{}));
+  _cfgUnsubs.push(db.collection('equipment').onSnapshot(snap=>{
+    cfg.equipment = snap.docs.map(d=>({id:d.id,...d.data()}));
+    scheduleRender();
+  },()=>{}));
+  _cfgUnsubs.push(db.collection('objects').onSnapshot(snap=>{
+    cfg.objects = snap.docs.map(d=>({id:d.id,...d.data()}));
+    scheduleRender();
+  },()=>{}));
+  _cfgUnsubs.push(db.collection('partners').onSnapshot(snap=>{
+    cfg.partners = snap.docs.map(d=>({id:d.id,...d.data()}));
+    scheduleRender();
+  },()=>{}));
+}
+
+function listenPeriod(year, month) {
+  _pdUnsubs.forEach(fn=>fn()); _pdUnsubs=[];
+  pd = { shifts:{}, incomeItems:[], expenses:[], payments:{} };
+  const pk = `${year}_${pad(month)}`;
+  _pdUnsubs.push(db.collection('shifts').where('period','==',pk).onSnapshot(snap=>{
+    pd.shifts = {};
+    snap.docs.forEach(d=>{ const{equipId,date,...rest}=d.data(); if(!pd.shifts[equipId])pd.shifts[equipId]={}; pd.shifts[equipId][date]=rest; });
+    scheduleRender();
+  },()=>{}));
+  _pdUnsubs.push(db.collection('incomes').where('period','==',pk).onSnapshot(snap=>{
+    pd.incomeItems = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.date.localeCompare(b.date));
+    scheduleRender();
+  },()=>{}));
+  _pdUnsubs.push(db.collection('expenses').where('period','==',pk).onSnapshot(snap=>{
+    pd.expenses = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>a.date.localeCompare(b.date));
+    scheduleRender();
+  },()=>{}));
+  _pdUnsubs.push(db.collection('payments').where('period','==',pk).onSnapshot(snap=>{
+    pd.payments = {};
+    snap.docs.forEach(d=>{ const dat=d.data(); const wid=dat.workerId; if(!pd.payments[wid])pd.payments[wid]=[]; pd.payments[wid].push({...dat,_docId:d.id}); });
+    Object.keys(pd.payments).forEach(wid=>pd.payments[wid].sort((a,b)=>a.date.localeCompare(b.date)));
+    scheduleRender();
+  },()=>{}));
+}
+
+// ═══════════════════════════════════════════════
+// FIRESTORE WRITE HELPERS
+// ═══════════════════════════════════════════════
+function curPK() { return `${curYear}_${pad(curEM)}`; }
+function fbErr(e) { console.error(e); alert('Ошибка сохранения: '+(e.message||e)); }
+
+async function fbSaveSettings(s) { try{await db.collection('settings').doc('main').set(s);}catch(e){fbErr(e);} }
+async function fbSaveWorker(w)   { const{id,...d}=w; try{await db.collection('workers').doc(id).set(d);}catch(e){fbErr(e);} }
+async function fbDelWorker(id)   { try{await db.collection('workers').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSaveEquip(eq)   { const{id,...d}=eq; try{await db.collection('equipment').doc(id).set(d);}catch(e){fbErr(e);} }
+async function fbDelEquip(id)    { try{await db.collection('equipment').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSaveObj(o)      { const{id,...d}=o; try{await db.collection('objects').doc(id).set(d);}catch(e){fbErr(e);} }
+async function fbDelObj(id)      { try{await db.collection('objects').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSavePart(p)     { const{id,...d}=p; try{await db.collection('partners').doc(id).set(d);}catch(e){fbErr(e);} }
+async function fbDelPart(id)     { try{await db.collection('partners').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSaveShift(equipId,date,shiftData) {
+  const ref = db.collection('shifts').doc(equipId+'_'+date);
+  const pk = curPK();
+  try { if(!shiftData.type&&!shiftData.note&&!shiftData.workerId){await ref.delete();}else{await ref.set({period:pk,equipId,date,...shiftData});} }
+  catch(e){fbErr(e);}
+}
+async function fbSaveIncome(item)  { const{id,...d}=item; try{await db.collection('incomes').doc(id).set({...d,period:curPK()});}catch(e){fbErr(e);} }
+async function fbDelIncome(id)     { try{await db.collection('incomes').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSaveExpense(item) { const{id,...d}=item; try{await db.collection('expenses').doc(id).set({...d,period:curPK()});}catch(e){fbErr(e);} }
+async function fbDelExpense(id)    { try{await db.collection('expenses').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSavePayment(pay)  {
+  const{_docId,...d}=pay; const id=_docId||uuid();
+  try{await db.collection('payments').doc(id).set({...d,period:curPK()});}catch(e){fbErr(e);}
+}
+
+// ═══════════════════════════════════════════════
+// ROLE/PERMISSION HELPERS
+// ═══════════════════════════════════════════════
+function can(p) {
+  const r = currentUser?.role;
+  const map = {
+    edit_shifts:   ['admin','dispatcher'],
+    edit_workers:  ['admin'],
+    view_salaries: ['admin','worker'],
+    edit_config:   ['admin'],
+    view_income:   ['admin','accountant'],
+    edit_income:   ['admin'],
+    view_expenses: ['admin','accountant'],
+    edit_expenses: ['admin'],
+    view_summary:  ['admin','accountant'],
+    manage_users:  ['admin'],
+  };
+  return (map[p]||[]).includes(r);
+}
+
+function applyRoleVisibility() {
+  const role = currentUser?.role || 'pending';
+  const allowed = ROLE_TABS[role] || [];
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    const m = btn.getAttribute('onclick')?.match(/'(\w+)'/);
+    if (m) btn.style.display = allowed.includes(m[1]) ? '' : 'none';
+  });
+  if (!allowed.includes(activeTab)) {
+    const first = allowed[0];
+    if (first) showTab(first, document.querySelector(`.tab-btn[onclick*="'${first}'"]`));
+  }
+  const us = document.getElementById('usersSection');
+  if (us) us.style.display = role==='admin' ? '' : 'none';
+  const badge = document.getElementById('userBadge');
+  if (badge && currentUser) {
+    badge.style.display = '';
+    document.getElementById('userBadgeName').textContent = currentUser.name || currentUser.email;
+    document.getElementById('userBadgeRole').textContent = ROLE_LABELS[role] || role;
+    document.getElementById('logoutBtn').style.display = '';
+  }
+}
+
+// ═══════════════════════════════════════════════
+// PERIOD HELPERS — pdKey removed (key is computed inline now)
+// ═══════════════════════════════════════════════
 function saveSetting(key,val){
   cfg.settings[key]=isNaN(Number(val))?val:Number(val);
-  saveCfg();
-  renderAll();
+  fbSaveSettings({...cfg.settings});
 }
 
 // ═══════════════════════════════════════════════
@@ -768,63 +1056,55 @@ function periodLabel(year,em){
 }
 
 function chPeriod(d){
-  const prevEM=curEM,prevYear=curYear;
   curEM+=d;
   if(curEM>12){curEM=1;curYear++;}
   if(curEM<1){curEM=12;curYear--;}
-  loadPd();
-  // If navigating forward into an empty period, offer to copy recurring items
-  if(d>0){
-    const isEmpty=!pd.expenses.length&&!pd.incomeItems.length;
-    if(isEmpty){
-      const prevKey=`too_v2_period_${prevYear}_${pad(prevEM)}`;
-      const prevRaw=localStorage.getItem(prevKey);
-      if(prevRaw){
-        const prev=JSON.parse(prevRaw);
-        const recExp=(prev.expenses||[]).filter(e=>e.recurring);
-        const recInc=(prev.incomeItems||[]).filter(i=>i.recurring);
-        if(recExp.length+recInc.length>0){
-          document.getElementById('recurringBar').style.display='';
-          document.getElementById('recurringBar').dataset.from=prevKey;
-        }
-      }
-    }
-  }
-  checkRecurringBar();
-  renderAll();
+  listenPeriod(curYear,curEM);
+  // checkRecurringBar runs after data loads (async)
+  setTimeout(checkRecurringBar, 800);
+  renderPeriodBar();
 }
 
-function checkRecurringBar(){
-  const hasRecurring=(pd.expenses||[]).some(e=>e.recurring)||(pd.incomeItems||[]).some(i=>i.recurring);
-  // Show copy button if current period is empty and previous has recurring
-  const isEmpty=!pd.expenses.length&&!pd.incomeItems.length;
-  if(!isEmpty)document.getElementById('recurringBar').style.display='none';
-}
-
-function copyRecurringFromPrev(){
-  // Find previous period key
+async function checkRecurringBar(){
+  const bar = document.getElementById('recurringBar');
+  if(!bar)return;
+  const hasData=(pd.expenses||[]).length>0||(pd.incomeItems||[]).length>0;
+  if(hasData){bar.style.display='none';return;}
   let pm=curEM-1,py=curYear;
   if(pm<1){pm=12;py--;}
-  const prevKey=`too_v2_period_${py}_${pad(pm)}`;
-  const prevRaw=localStorage.getItem(prevKey);
-  if(!prevRaw){alert('Нет данных за предыдущий период');return;}
-  const prev=JSON.parse(prevRaw);
-  const recExp=(prev.expenses||[]).filter(e=>e.recurring);
-  const recInc=(prev.incomeItems||[]).filter(i=>i.recurring);
-  if(!recExp.length&&!recInc.length){alert('В прошлом периоде нет постоянных статей (☑ Постоянная статья)');return;}
-  if(!confirm(`Перенести ${recExp.length} расходов + ${recInc.length} доходов из предыдущего периода?`))return;
-  const periodStart=getPeriodDates(curYear,curEM)[0];
-  const startDate=dk(periodStart);
-  if(!pd.expenses)pd.expenses=[];
-  if(!pd.incomeItems)pd.incomeItems=[];
-  for(const e of recExp)pd.expenses.push({...e,id:uuid(),date:startDate});
-  for(const i of recInc)pd.incomeItems.push({...i,id:uuid(),date:startDate});
-  pd.expenses.sort((a,b)=>a.date.localeCompare(b.date));
-  pd.incomeItems.sort((a,b)=>a.date.localeCompare(b.date));
-  savePd();
-  document.getElementById('recurringBar').style.display='none';
-  renderAll();
-  alert(`Перенесено: ${recExp.length} расходов, ${recInc.length} доходов. Проверьте даты и суммы.`);
+  const prevPK=`${py}_${pad(pm)}`;
+  try{
+    const[eSnap,iSnap]=await Promise.all([
+      db.collection('expenses').where('period','==',prevPK).get(),
+      db.collection('incomes').where('period','==',prevPK).get(),
+    ]);
+    const hasRec=eSnap.docs.some(d=>d.data().recurring)||iSnap.docs.some(d=>d.data().recurring);
+    bar.style.display=hasRec?'':'none';
+  }catch{bar.style.display='none';}
+}
+
+async function copyRecurringFromPrev(){
+  let pm=curEM-1,py=curYear;
+  if(pm<1){pm=12;py--;}
+  const prevPK=`${py}_${pad(pm)}`;
+  const pk=curPK();
+  try{
+    const[eSnap,iSnap]=await Promise.all([
+      db.collection('expenses').where('period','==',prevPK).get(),
+      db.collection('incomes').where('period','==',prevPK).get(),
+    ]);
+    const recExp=eSnap.docs.map(d=>d.data()).filter(d=>d.recurring);
+    const recInc=iSnap.docs.map(d=>d.data()).filter(d=>d.recurring);
+    if(!recExp.length&&!recInc.length){alert('В прошлом периоде нет постоянных статей');return;}
+    if(!confirm(`Перенести ${recExp.length} расходов + ${recInc.length} доходов?`))return;
+    const startDate=dk(getPeriodDates(curYear,curEM)[0]);
+    const batch=db.batch();
+    for(const e of recExp){const id=uuid();batch.set(db.collection('expenses').doc(id),{...e,id,period:pk,date:startDate});}
+    for(const i of recInc){const id=uuid();batch.set(db.collection('incomes').doc(id),{...i,id,period:pk,date:startDate});}
+    await batch.commit();
+    document.getElementById('recurringBar').style.display='none';
+    alert(`Перенесено: ${recExp.length} расходов, ${recInc.length} доходов.`);
+  }catch(e){fbErr(e);}
 }
 
 // ═══════════════════════════════════════════════
@@ -1060,16 +1340,18 @@ function selSOpt(v){
 }
 
 function saveShift(){
+  if(!can('edit_shifts')){alert('Нет прав для редактирования смен');return;}
   const equipId=document.getElementById('shEquipId').value;
   const key=document.getElementById('shDateKey').value;
   const note=document.getElementById('shNote').value.trim();
   const workerId=document.getElementById('shWorker').value;
+  // Optimistic local update for immediate feedback
   if(!pd.shifts[equipId])pd.shifts[equipId]={};
   if(shiftOptVal===0&&!note&&!workerId){delete pd.shifts[equipId][key];}
   else{pd.shifts[equipId][key]={type:shiftOptVal,workerId,note};}
-  savePd();
   closeMo('moShift');
   renderShifts();
+  fbSaveShift(equipId,key,{type:shiftOptVal,workerId,note});
 }
 
 // ═══════════════════════════════════════════════
@@ -1104,6 +1386,44 @@ function calcWorkerEarnings(w){
 }
 
 function renderWorkers(){
+  const role = currentUser?.role;
+  const addBtn = document.querySelector('#pane-workers .ph .btn-primary');
+  if(addBtn) addBtn.style.display = role==='admin' ? '' : 'none';
+
+  // Dispatcher: name+type+equipment only, no salary
+  if(role==='dispatcher'){
+    let h='';
+    for(const w of cfg.workers){
+      const eq=cfg.equipment.find(e=>e.id===w.equipmentId);
+      h+=`<tr><td><strong>${w.name}</strong></td><td><span class="badge-type t-${w.type}">${WORKER_TYPES[w.type]||w.type}</span></td>
+        <td>${eq?eq.name:'—'}</td><td colspan="7" style="color:var(--muted);font-size:11px;font-style:italic">финансы скрыты</td></tr>`;
+    }
+    document.getElementById('workersTbl').innerHTML=h||'<tr><td colspan="10" class="empty">Работников нет</td></tr>';
+    return;
+  }
+
+  // Worker: only own record
+  if(role==='worker'){
+    const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+    if(!myW){document.getElementById('workersTbl').innerHTML=`<tr><td colspan="10" class="empty">Вы не привязаны к работнику. Обратитесь к администратору.</td></tr>`;return;}
+    const earn=calcWorkerEarnings(myW);
+    const eq=cfg.equipment.find(e=>e.id===myW.equipmentId);
+    const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+    document.getElementById('workersTbl').innerHTML=`<tr style="cursor:pointer" onclick="openWorkerDetail('${myW.id}')">
+      <td><strong>${myW.name}</strong></td>
+      <td><span class="badge-type t-${myW.type}">${WORKER_TYPES[myW.type]||myW.type}</span></td>
+      <td>${eq?eq.name:'—'}</td>
+      <td class="num tr">${fmt(earn.base)} ₸</td>
+      <td class="num tr" style="color:var(--blue)">${earn.nightBonus?fmt(earn.nightBonus)+' ₸ ('+earn.nightCount+'н)':'—'}</td>
+      <td class="num tr" style="color:var(--accent)">${earn.subBonus?fmt(earn.subBonus)+' ₸':'—'}</td>
+      <td class="num tr" style="font-weight:700">${fmt(earn.totalAccrued)} ₸</td>
+      <td class="num tr" style="color:var(--green)">${fmt(earn.pays)} ₸</td>
+      <td class="num tr" style="color:${balColor};font-weight:700">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</td>
+      <td></td></tr>`;
+    return;
+  }
+
+  // Admin: full view
   let h='',totAccrued=0,totPaid=0,totBal=0;
   for(const w of cfg.workers){
     const eq=cfg.equipment.find(e=>e.id===w.equipmentId);
@@ -1206,15 +1526,13 @@ function saveWorker(){
     equipmentId:document.getElementById('wEquipId').value
   };
   if(!obj.name){alert('Введите имя');return;}
-  if(id){const i=cfg.workers.findIndex(x=>x.id===id);if(i>=0)cfg.workers[i]=obj;}
-  else cfg.workers.push(obj);
-  saveCfg();closeMo('moWorker');renderWorkers();
+  closeMo('moWorker');
+  fbSaveWorker(obj);
 }
 
 function deleteWorker(id){
   if(!confirm('Удалить работника?'))return;
-  cfg.workers=cfg.workers.filter(w=>w.id!==id);
-  saveCfg();renderWorkers();
+  fbDelWorker(id);
 }
 
 // PAYMENTS
@@ -1234,10 +1552,9 @@ function savePayment(){
   const wId=document.getElementById('pyWorkerId').value;
   const amount=+document.getElementById('pyAmount').value||0;
   if(!amount){alert('Введите сумму');return;}
-  if(!pd.payments[wId])pd.payments[wId]=[];
-  pd.payments[wId].push({date:document.getElementById('pyDate').value,amount,note:document.getElementById('pyNote').value.trim()});
-  pd.payments[wId].sort((a,b)=>a.date.localeCompare(b.date));
-  savePd();closeMo('moPay');renderWorkers();
+  const pay={workerId:wId,date:document.getElementById('pyDate').value,amount,note:document.getElementById('pyNote').value.trim()};
+  closeMo('moPay');
+  fbSavePayment(pay);
 }
 
 // ═══════════════════════════════════════════════
@@ -1325,15 +1642,13 @@ function saveEquip(){
     }
   };
   if(!obj.name){alert('Введите название');return;}
-  if(id){const i=cfg.equipment.findIndex(x=>x.id===id);if(i>=0)cfg.equipment[i]=obj;}
-  else cfg.equipment.push(obj);
-  saveCfg();closeMo('moEquip');renderEquip();
+  closeMo('moEquip');
+  fbSaveEquip(obj);
 }
 
 function deleteEquip(id){
   if(!confirm('Удалить технику?'))return;
-  cfg.equipment=cfg.equipment.filter(e=>e.id!==id);
-  saveCfg();renderEquip();
+  fbDelEquip(id);
 }
 
 // ═══════════════════════════════════════════════
@@ -1374,11 +1689,10 @@ function saveObj(){
   const id=document.getElementById('obId').value;
   const obj={id:id||uuid(),name:document.getElementById('obName').value.trim(),client:document.getElementById('obClient').value.trim(),note:document.getElementById('obNote').value.trim()};
   if(!obj.name){alert('Введите название');return;}
-  if(id){const i=cfg.objects.findIndex(x=>x.id===id);if(i>=0)cfg.objects[i]=obj;}
-  else cfg.objects.push(obj);
-  saveCfg();closeMo('moObj');renderObjects();
+  closeMo('moObj');
+  fbSaveObj(obj);
 }
-function deleteObj(id){if(!confirm('Удалить объект?'))return;cfg.objects=cfg.objects.filter(o=>o.id!==id);saveCfg();renderObjects();}
+function deleteObj(id){if(!confirm('Удалить объект?'))return;fbDelObj(id);}
 
 // ═══════════════════════════════════════════════
 // PARTNERS TAB
@@ -1420,11 +1734,10 @@ function savePartner(){
   const id=document.getElementById('ptId').value;
   const obj={id:id||uuid(),name:document.getElementById('ptName').value.trim(),type:document.getElementById('ptType').value,note:document.getElementById('ptNote').value.trim()};
   if(!obj.name){alert('Введите название');return;}
-  if(id){const i=cfg.partners.findIndex(x=>x.id===id);if(i>=0)cfg.partners[i]=obj;}
-  else cfg.partners.push(obj);
-  saveCfg();closeMo('moPartner');renderPartners();
+  closeMo('moPartner');
+  fbSavePart(obj);
 }
-function deletePartner(id){if(!confirm('Удалить?'))return;cfg.partners=cfg.partners.filter(p=>p.id!==id);saveCfg();renderPartners();}
+function deletePartner(id){if(!confirm('Удалить?'))return;fbDelPart(id);}
 
 // ═══════════════════════════════════════════════
 // INCOME TAB
@@ -1564,17 +1877,13 @@ function saveIncomeItem(){
     note:document.getElementById('inNote').value.trim(),
     recurring:document.getElementById('inRecurring').checked
   };
-  if(!pd.incomeItems)pd.incomeItems=[];
-  if(id){const i=pd.incomeItems.findIndex(x=>x.id===id);if(i>=0)pd.incomeItems[i]=obj;}
-  else pd.incomeItems.push(obj);
-  pd.incomeItems.sort((a,b)=>a.date.localeCompare(b.date));
-  savePd();closeMo('moIncome');renderIncome();
+  closeMo('moIncome');
+  fbSaveIncome(obj);
 }
 
 function delIncomeItem(id){
   if(!confirm('Удалить?'))return;
-  pd.incomeItems=(pd.incomeItems||[]).filter(x=>x.id!==id);
-  savePd();renderIncome();
+  fbDelIncome(id);
 }
 
 // ═══════════════════════════════════════════════
@@ -1661,17 +1970,13 @@ function saveExpense(){
     note:document.getElementById('exNote').value.trim(),
     recurring:document.getElementById('exRecurring').checked
   };
-  if(!pd.expenses)pd.expenses=[];
-  if(id){const i=pd.expenses.findIndex(x=>x.id===id);if(i>=0)pd.expenses[i]=obj;}
-  else pd.expenses.push(obj);
-  pd.expenses.sort((a,b)=>a.date.localeCompare(b.date));
-  savePd();closeMo('moExpense');renderExpenses();
+  closeMo('moExpense');
+  fbSaveExpense(obj);
 }
 
 function delExpense(id){
   if(!confirm('Удалить расход?'))return;
-  pd.expenses=(pd.expenses||[]).filter(x=>x.id!==id);
-  savePd();renderExpenses();
+  fbDelExpense(id);
 }
 
 // ═══════════════════════════════════════════════
@@ -1777,6 +2082,112 @@ function renderSettings(){
   document.getElementById('sVat').value=s.vatRate||16;
   document.getElementById('sCompany').value=s.companyName||'ТОО';
   renderMobileInstall();
+  if(can('manage_users')) renderUsersList();
+}
+
+// ═══════════════════════════════════════════════
+// USER MANAGEMENT
+// ═══════════════════════════════════════════════
+async function renderUsersList(){
+  const el=document.getElementById('usersList');if(!el)return;
+  try{
+    const snap=await db.collection('users').get();
+    const roleColors={admin:'t-crane_op',dispatcher:'t-shift',accountant:'t-ip',worker:'t-partner',pending:'t-office'};
+    let h='<table style="width:100%;border-collapse:collapse;font-size:13px">';
+    h+='<tr style="color:var(--muted);font-size:11px"><th style="text-align:left;padding:4px 0">Имя</th><th style="text-align:left">Email</th><th>Роль</th><th></th></tr>';
+    snap.docs.forEach(d=>{
+      const u=d.data(),uid=d.id;
+      const isSelf=uid===currentUser?.uid;
+      const rc=roleColors[u.role]||'t-office';
+      h+=`<tr style="border-top:1px solid #1e2235">
+        <td style="padding:6px 0;font-weight:${isSelf?700:400}">${u.name||'—'}${isSelf?' (вы)':''}</td>
+        <td style="color:var(--muted);font-size:11px">${u.email||'—'}</td>
+        <td style="text-align:center"><span class="badge-type ${rc}">${ROLE_LABELS[u.role]||u.role}</span></td>
+        <td>${isSelf?'':`<button class="edit-btn" onclick="openEditRoleModal('${uid}','${u.role||'pending'}','${u.workerId||''}','${(u.name||'').replace(/'/g,'')}')" title="Изменить роль">✏</button>`}</td>
+      </tr>`;
+    });
+    h+='</table>';
+    el.innerHTML=h;
+  }catch(e){ el.innerHTML=`<div style="color:var(--muted);font-size:13px">${e.message}</div>`; }
+}
+
+let _muMode='create';
+
+function openUserModal(){
+  _muMode='create';
+  document.getElementById('moUserTitle').textContent='Новый пользователь';
+  document.getElementById('muUid').value='';
+  document.getElementById('muName').value='';
+  document.getElementById('muEmail').value='';
+  document.getElementById('muPassword').value='';
+  document.getElementById('muEmailGroup').style.display='';
+  document.getElementById('muPasswordGroup').style.display='';
+  document.getElementById('muRole').value='dispatcher';
+  document.getElementById('muError').textContent='';
+  document.getElementById('muSaveBtn').textContent='Создать';
+  document.getElementById('muSaveBtn').disabled=false;
+  const ws=document.getElementById('muWorker');
+  ws.innerHTML='<option value="">— не выбрано —</option>'+cfg.workers.map(w=>`<option value="${w.id}">${w.name}</option>`).join('');
+  toggleWorkerField();
+  openMo('moUser');
+}
+
+function openEditRoleModal(uid,role,workerId,name){
+  _muMode='edit';
+  document.getElementById('moUserTitle').textContent='Роль: '+(name||uid);
+  document.getElementById('muUid').value=uid;
+  document.getElementById('muName').value=name||'';
+  document.getElementById('muEmailGroup').style.display='none';
+  document.getElementById('muPasswordGroup').style.display='none';
+  document.getElementById('muRole').value=role;
+  document.getElementById('muError').textContent='';
+  document.getElementById('muSaveBtn').textContent='Сохранить';
+  document.getElementById('muSaveBtn').disabled=false;
+  const ws=document.getElementById('muWorker');
+  ws.innerHTML='<option value="">— не выбрано —</option>'+cfg.workers.map(w=>`<option value="${w.id}"${w.id===workerId?' selected':''}>${w.name}</option>`).join('');
+  toggleWorkerField();
+  openMo('moUser');
+}
+
+function toggleWorkerField(){
+  const r=document.getElementById('muRole').value;
+  document.getElementById('muWorkerGroup').style.display=r==='worker'?'':'none';
+}
+
+async function saveUser(){
+  const name=document.getElementById('muName').value.trim();
+  const role=document.getElementById('muRole').value;
+  const workerId=document.getElementById('muWorker').value;
+  document.getElementById('muError').textContent='';
+
+  if(_muMode==='edit'){
+    const uid=document.getElementById('muUid').value;
+    try{
+      await db.collection('users').doc(uid).update({role,workerId:workerId||''});
+      closeMo('moUser'); renderUsersList();
+    }catch(e){document.getElementById('muError').textContent='Ошибка: '+e.message;}
+    return;
+  }
+
+  const email=document.getElementById('muEmail').value.trim();
+  const pw=document.getElementById('muPassword').value;
+  if(!name||!email||!pw){document.getElementById('muError').textContent='Заполните все поля';return;}
+
+  document.getElementById('muSaveBtn').textContent='Создание...';
+  document.getElementById('muSaveBtn').disabled=true;
+  try{
+    // Create via secondary app so admin stays logged in
+    const sec=firebase.initializeApp(FIREBASE_CONFIG,'sec_'+Date.now());
+    const cred=await sec.auth().createUserWithEmailAndPassword(email,pw);
+    await db.collection('users').doc(cred.user.uid).set({email,name,role,workerId:workerId||''});
+    await sec.delete();
+    closeMo('moUser'); renderUsersList();
+  }catch(e){
+    const msgs={'auth/email-already-in-use':'Email уже используется','auth/weak-password':'Пароль слишком простой','auth/invalid-email':'Неверный email'};
+    document.getElementById('muError').textContent=msgs[e.code]||e.message;
+    document.getElementById('muSaveBtn').textContent='Создать';
+    document.getElementById('muSaveBtn').disabled=false;
+  }
 }
 
 function renderMobileInstall(){
@@ -1833,140 +2244,202 @@ async function shareAppFile(){
 // EXPORT / IMPORT
 // ═══════════════════════════════════════════════
 function exportData(){
-  const all={config:cfg,periods:{}};
-  for(const k of Object.keys(localStorage)){
-    if(k.startsWith('too_v2_period_'))all.periods[k]=JSON.parse(localStorage.getItem(k));
-  }
+  // Exports current period + config from in-memory state
+  const all={config:cfg,period:pd,meta:{year:curYear,month:curEM,exportedAt:new Date().toISOString()}};
   const json=JSON.stringify(all,null,2);
   const blob=new Blob([json],{type:'application/json'});
-  const ua=navigator.userAgent;
-  const isIOS=/iphone|ipad|ipod/i.test(ua);
+  const fname=`too_export_${curYear}_${pad(curEM)}_${todayISO()}.json`;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
   if(isIOS){
-    // iOS Safari: open JSON in new tab (user can then share/save)
     const url=URL.createObjectURL(blob);
     const w=window.open(url,'_blank');
-    if(!w){
-      // If popup blocked, try inline download
-      const a=document.createElement('a');a.href=url;a.download=`too_export_${todayISO()}.json`;a.click();
-    }
+    if(!w){const a=document.createElement('a');a.href=url;a.download=fname;a.click();}
     setTimeout(()=>URL.revokeObjectURL(url),10000);
-  } else {
+  }else{
     const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download=`too_export_${todayISO()}.json`;
+    a.href=URL.createObjectURL(blob);a.download=fname;
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
   }
 }
-function importData(e){
+
+async function importData(e){
   const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=ev=>{
-    try{
-      const d=JSON.parse(ev.target.result);
-      if(d.config){cfg=d.config;saveCfg();}
-      if(d.periods){for(const[k,v] of Object.entries(d.periods))localStorage.setItem(k,JSON.stringify(v));}
-      loadPd();loadCfg();renderAll();
-      alert('Импорт выполнен!');
-    }catch{alert('Ошибка файла');}
-  };
-  r.readAsText(f);e.target.value='';
+  try{
+    const text=await f.text();
+    const d=JSON.parse(text);
+    if(!confirm('Импортировать данные в Firebase?\nСуществующие данные периода будут перезаписаны.'))return;
+    const batch=db.batch();
+    // Config
+    if(d.config?.settings)batch.set(db.collection('settings').doc('main'),d.config.settings);
+    for(const w of d.config?.workers||[]){const{id,...data}=w;batch.set(db.collection('workers').doc(id),data);}
+    for(const eq of d.config?.equipment||[]){const{id,...data}=eq;batch.set(db.collection('equipment').doc(id),data);}
+    for(const o of d.config?.objects||[]){const{id,...data}=o;batch.set(db.collection('objects').doc(id),data);}
+    for(const p of d.config?.partners||[]){const{id,...data}=p;batch.set(db.collection('partners').doc(id),data);}
+    // Period
+    const pdata=d.period||d.periods?.[Object.keys(d.periods||{})[0]];
+    if(pdata){
+      const yr=d.meta?.year||curYear, mo=d.meta?.month||curEM;
+      const pk=`${yr}_${pad(mo)}`;
+      for(const[eqId,dates] of Object.entries(pdata.shifts||{})){
+        for(const[date,shift] of Object.entries(dates)){
+          batch.set(db.collection('shifts').doc(eqId+'_'+date),{period:pk,equipId:eqId,date,...shift});
+        }
+      }
+      for(const i of pdata.incomeItems||[]){const{id,...data}=i;batch.set(db.collection('incomes').doc(id),{...data,period:pk});}
+      for(const x of pdata.expenses||[]){const{id,...data}=x;batch.set(db.collection('expenses').doc(id),{...data,period:pk});}
+      for(const[wid,pays] of Object.entries(pdata.payments||{})){
+        for(const p of pays){const id=p._docId||uuid();batch.set(db.collection('payments').doc(id),{...p,workerId:wid,period:pk});}
+      }
+    }
+    await batch.commit();
+    alert('Импорт выполнен!');
+  }catch(err){alert('Ошибка импорта: '+err.message);}
+  e.target.value='';
 }
 
 // ═══════════════════════════════════════════════
-// INIT — default data
+// MIGRATION FROM LOCALSTORAGE → FIRESTORE
+// ═══════════════════════════════════════════════
+async function migrateFromLocalStorage(){
+  if(localStorage.getItem('too_migrated_to_firebase'))return;
+
+  // Detect old-format localStorage keys
+  const rawCfg=localStorage.getItem('too_v2_cfg');
+  const pdKeys=[];
+  for(let i=0;i<localStorage.length;i++){
+    const k=localStorage.key(i);
+    if(k&&k.startsWith('too_v2_period_'))pdKeys.push(k);
+  }
+
+  if(!rawCfg&&!pdKeys.length){
+    localStorage.setItem('too_migrated_to_firebase','1');
+    return;
+  }
+
+  if(!confirm('Найдены данные в локальном хранилище устройства.\nПеренести их в Firebase?\n\n(ОК — скопировать в облако, Отмена — пропустить)')){
+    localStorage.setItem('too_migrated_to_firebase','1');
+    return;
+  }
+
+  try{
+    const batch=db.batch();
+    let n=0;
+
+    // Migrate config: workers, equipment, objects, partners, settings
+    if(rawCfg){
+      const c=JSON.parse(rawCfg);
+      if(c.settings){batch.set(db.collection('settings').doc('main'),c.settings);n++;}
+      for(const w of c.workers||[]){const{id,...d}=w;if(id){batch.set(db.collection('workers').doc(id),d);n++;}}
+      for(const e of c.equipment||[]){const{id,...d}=e;if(id){batch.set(db.collection('equipment').doc(id),d);n++;}}
+      for(const o of c.objects||[]){const{id,...d}=o;if(id){batch.set(db.collection('objects').doc(id),d);n++;}}
+      for(const p of c.partners||[]){const{id,...d}=p;if(id){batch.set(db.collection('partners').doc(id),d);n++;}}
+    }
+
+    // Migrate period data: shifts, incomes, expenses, payments
+    for(const pdKey of pdKeys){
+      const raw=localStorage.getItem(pdKey);if(!raw)continue;
+      // Key format: too_v2_period_YYYY_MM → extract YYYY_MM
+      const parts=pdKey.split('_');
+      const pk=parts[3]+'_'+parts[4]; // YYYY_MM
+
+      const pdata=JSON.parse(raw);
+
+      for(const[eqId,dates] of Object.entries(pdata.shifts||{})){
+        for(const[date,shift] of Object.entries(dates)){
+          if(!shift||!shift.type)continue;
+          batch.set(db.collection('shifts').doc(eqId+'_'+date),{period:pk,equipId:eqId,date,...shift});n++;
+        }
+      }
+      for(const i of pdata.incomeItems||[]){
+        const{id,...d}=i;if(!id)continue;
+        batch.set(db.collection('incomes').doc(id),{...d,period:pk});n++;
+      }
+      for(const x of pdata.expenses||[]){
+        const{id,...d}=x;if(!id)continue;
+        batch.set(db.collection('expenses').doc(id),{...d,period:pk});n++;
+      }
+      for(const[wid,pays] of Object.entries(pdata.payments||{})){
+        for(const p of pays){
+          const id=p._docId||uuid();
+          batch.set(db.collection('payments').doc(id),{...p,workerId:wid,period:pk});n++;
+        }
+      }
+    }
+
+    if(n>0)await batch.commit();
+    localStorage.setItem('too_migrated_to_firebase','1');
+    if(n>0)alert(`Миграция выполнена: ${n} записей перенесено в Firebase.`);
+  }catch(e){
+    console.error('Migration error:',e);
+    alert('Ошибка миграции: '+e.message+'\nДанные не изменены.');
+  }
+}
+
+// ═══════════════════════════════════════════════
+// INIT
 // ═══════════════════════════════════════════════
 function init(){
-  loadCfg();
-  loadPd();
-
-  // Show mobile install hint once on mobile devices
+  // Mobile hint
   (function(){
     const ua=navigator.userAgent;
     const isMobile=/iphone|ipad|ipod|android/i.test(ua);
     const isStandalone=('standalone' in navigator&&navigator.standalone)||window.matchMedia('(display-mode:standalone)').matches;
     const dismissed=localStorage.getItem('too_hint_dismissed');
     const hint=document.getElementById('mobileHint');
-    if(hint&&isMobile&&!isStandalone&&!dismissed){hint.style.display='flex';}
+    if(hint&&isMobile&&!isStandalone&&!dismissed)hint.style.display='flex';
   })();
 
-  // Seed default config if empty
-  if(cfg.equipment.length===0){
-    const p1=uuid(),p2=uuid();
-    const w1=uuid(),w2=uuid(),w3=uuid(),w4=uuid(),w5=uuid(),w6=uuid(),w7=uuid(),w8=uuid(),w9=uuid(),w10=uuid();
-    const e1=uuid(),e2=uuid(),e3=uuid(),e4=uuid();
-    const o1=uuid();
-
-    cfg.partners=[
-      {id:p1,name:'ИП Негметжан',type:'rental',note:'Аренда башенных кранов'},
-      {id:p2,name:'ИП Мырзабаев',type:'service',note:'Тех. обслуживание, секции, пристежки'},
-    ];
-    cfg.objects=[{id:o1,name:'Объект ТТК',client:'ТРАНСТЕЛЕКОМ РВС',note:''}];
-    cfg.equipment=[
-      {id:e1,name:'Liebherr',serial:'F3523581',primaryWorkerId:w1,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3000000,nightly:1300000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
-      {id:e2,name:'NTP QTZ',serial:'030105-005',primaryWorkerId:w2,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
-      {id:e3,name:'Zoomlion',serial:'50123',primaryWorkerId:w3,objectId:o1,rentalPartnerId:p1,rentalCost:2500000,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
-      {id:e4,name:'QTZ-100',serial:'',primaryWorkerId:w4,objectId:o1,rentalPartnerId:p1,rentalCost:0,rates:{monthly:3200000,nightly:1500000,section:134000,wall:250000,anchor:1200000,transport:45000,install:1125000,dismantle:0}},
-    ];
-    cfg.workers=[
-      {id:w1,name:'Айбек',type:'crane_op',salary:{monthly:940000,nightly:20000,daily:0},equipmentId:e1},
-      {id:w2,name:'Рустам',type:'crane_op',salary:{monthly:700000,nightly:20000,daily:0},equipmentId:e2},
-      {id:w3,name:'Айдынбек',type:'crane_op',salary:{monthly:720000,nightly:20000,daily:0},equipmentId:e3},
-      {id:w4,name:'Максат',type:'crane_op',salary:{monthly:860000,nightly:20000,daily:0},equipmentId:e4},
-      {id:w5,name:'ИП Мырзабаев',type:'ip',salary:{monthly:860000,nightly:0,daily:0},equipmentId:''},
-      {id:w6,name:'БиОТ МАДИ',type:'maint',salary:{monthly:161141,nightly:0,daily:0},equipmentId:''},
-      {id:w7,name:'БЦ Нурлан',type:'office',salary:{monthly:202020,nightly:0,daily:0},equipmentId:''},
-      {id:w8,name:'БЦ Миша',type:'office',salary:{monthly:216647,nightly:0,daily:0},equipmentId:''},
-      {id:w9,name:'Мурад (Надя)',type:'office',salary:{monthly:350000,nightly:0,daily:0},equipmentId:''},
-      {id:w10,name:'Директор',type:'office',salary:{monthly:250000,nightly:0,daily:0},equipmentId:''},
-    ];
-    saveCfg();
-
-    // Seed June 2026 period data
-    if(pdKey()==='too_v2_period_2026_06'){
-      pd.shifts={
-        [e1]:{
-          '2026-05-21':{type:2,workerId:'',note:''},'2026-05-23':{type:2,workerId:'',note:''},
-          '2026-05-24':{type:2,workerId:'',note:''},'2026-05-25':{type:2,workerId:'',note:''},
-          '2026-05-26':{type:2,workerId:'',note:''},'2026-05-30':{type:2,workerId:'',note:''},
-          '2026-05-31':{type:2,workerId:'',note:''},'2026-06-06':{type:3,workerId:'',note:'подмена'},
-          '2026-06-07':{type:3,workerId:'',note:'подмена'},'2026-06-09':{type:3,workerId:'',note:'Подмена'},
-          '2026-06-10':{type:3,workerId:'',note:'Подмена'},'2026-06-11':{type:3,workerId:'',note:'Подмена'},
-        },
-        [e2]:{},[e3]:{'2026-05-25':{type:2,workerId:'',note:'Баха'}},
-        [e4]:{
-          '2026-05-22':{type:2,workerId:'',note:''},'2026-05-23':{type:2,workerId:'',note:''},
-          '2026-05-26':{type:2,workerId:'',note:''},'2026-05-30':{type:2,workerId:'',note:''},
-          '2026-05-31':{type:2,workerId:'',note:''},'2026-06-01':{type:2,workerId:'',note:''},
-          '2026-06-03':{type:2,workerId:'',note:''},'2026-06-04':{type:2,workerId:'',note:'смена'},
-        }
-      };
-      pd.expenses=[
-        {id:uuid(),date:'2026-06-01',amount:300000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Масло станция'},
-        {id:uuid(),date:'2026-06-04',amount:50000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Подшипник'},
-        {id:uuid(),date:'2026-06-04',amount:20000,category:'maintenance',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Маке кабель'},
-        {id:uuid(),date:'2026-06-04',amount:560000,category:'other',equipmentId:e1,partnerId:p2,workerId:'',objectId:o1,note:'Секции 6 и пристежка'},
-        {id:uuid(),date:'2026-06-08',amount:5545000,category:'other',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Машина 50%'},
-        {id:uuid(),date:'2026-06-09',amount:453638,category:'other',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Страховка машины'},
-        {id:uuid(),date:'2026-06-14',amount:80000,category:'repair',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'СМР кондер'},
-        {id:uuid(),date:'2026-06-14',amount:140970,category:'repair',equipmentId:e1,partnerId:'',workerId:'',objectId:o1,note:'Кондиционер'},
-        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e1,partnerId:p1,workerId:'',objectId:'',note:'Аренда Liebherr'},
-        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e2,partnerId:p1,workerId:'',objectId:'',note:'Аренда NTP QTZ'},
-        {id:uuid(),date:'2026-06-01',amount:2500000,category:'rental',equipmentId:e3,partnerId:p1,workerId:'',objectId:'',note:'Аренда Zoomlion'},
-        {id:uuid(),date:'2026-06-01',amount:150000,category:'taxes',equipmentId:'',partnerId:'',workerId:'',objectId:'',note:'Налоги ТОО'},
-      ];
-      pd.payments={
-        [w1]:[{date:'2026-06-04',amount:300000,note:'аванс'},{date:'2026-06-08',amount:220000,note:'Гулеке'},{date:'2026-06-09',amount:50000,note:'Куралай'},{date:'2026-06-11',amount:100000,note:'Гулек 2д2н'}],
-        [w2]:[{date:'2026-05-18',amount:150000,note:'Аванс'},{date:'2026-05-28',amount:30000,note:'Баха'},{date:'2026-06-08',amount:100000,note:'Аванс'}],
-        [w3]:[{date:'2026-05-25',amount:20000,note:'Баха ночь'},{date:'2026-06-06',amount:400000,note:'Аванс'},{date:'2026-06-07',amount:30000,note:'Гулеке'}],
-        [w4]:[{date:'2026-05-15',amount:200000,note:'Аванс'},{date:'2026-06-04',amount:50000,note:'Замена'},{date:'2026-06-05',amount:248710,note:'Макс расчет'}],
-      };
-      pd.incomeItems=[{id:uuid(),date:'2026-06-01',equipmentId:'',objectId:o1,type:'other',qty:1,unitPrice:302400,total:302400,note:'Сенсата ставки'}];
-      savePd();
-    }
+  // Check Firebase config
+  if(FIREBASE_CONFIG.apiKey==='YOUR_API_KEY'){
+    document.getElementById('authScreen').style.display='flex';
+    switchAuthTab('config');
+    return;
   }
 
-  renderAll();
+  if(!initFirebase()){
+    document.getElementById('authScreen').style.display='flex';
+    switchAuthTab('config');
+    return;
+  }
+
+  // Listen for auth state
+  auth.onAuthStateChanged(async user=>{
+    if(user){
+      try{
+        const snap=await db.collection('users').doc(user.uid).get();
+        if(snap.exists){
+          currentUser={uid:user.uid,email:user.email,...snap.data()};
+        }else{
+          // First user ever → make admin
+          const any=await db.collection('users').limit(1).get();
+          const role=any.empty?'admin':'pending';
+          currentUser={uid:user.uid,email:user.email,name:user.displayName||user.email,role,workerId:''};
+          await db.collection('users').doc(user.uid).set(currentUser);
+        }
+        if(currentUser.role==='pending'){
+          document.getElementById('authScreen').style.display='flex';
+          switchAuthTab('pending');
+        }else{
+          document.getElementById('authScreen').style.display='none';
+          applyRoleVisibility();
+          listenConfig();
+          listenPeriod(curYear,curEM);
+          setTimeout(migrateFromLocalStorage, 1200);
+        }
+      }catch(err){
+        console.error(err);
+        document.getElementById('authScreen').style.display='flex';
+      }
+    }else{
+      currentUser=null;
+      unsubAll();
+      document.getElementById('authScreen').style.display='flex';
+      switchAuthTab('login');
+      document.getElementById('userBadge').style.display='none';
+      document.getElementById('logoutBtn').style.display='none';
+    }
+  });
 }
 
 init();
