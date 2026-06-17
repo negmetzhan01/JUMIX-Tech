@@ -264,6 +264,35 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   .tabs,.sg-wrap,.tbl-wrap,.filter-bar{-webkit-overflow-scrolling:touch}
 }
 /* ═══ END MOBILE ═══ */
+/* PAYMENT STATUS / HISTORY */
+.pay-badge{display:inline-flex;align-items:center;gap:3px;border-radius:10px;padding:2px 8px;font-size:10px;font-weight:700}
+.pay-paid{background:rgba(34,211,160,.15);color:var(--green);border:1px solid rgba(34,211,160,.3)}
+.pay-pending{background:rgba(245,166,35,.15);color:var(--yellow);border:1px solid rgba(245,166,35,.3)}
+.pay-history{background:var(--card2);border-radius:6px;padding:8px 10px;margin-top:4px;font-size:11px}
+.pay-hist-entry{padding:4px 0;border-bottom:1px solid #1e2235}
+.pay-hist-entry:last-child{border:none}
+/* DASHBOARD */
+.dash-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px}
+.dash-greeting{font-size:18px;font-weight:700;margin-bottom:2px}
+.dash-greeting-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+/* WORKER CARD view (used in workers tab for worker role) */
+.worker-summary-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
+.worker-summary-card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.worker-summary-card-body{padding:14px 16px}
+.worker-summary-card-foot{border-top:1px solid var(--border);padding:10px 16px;display:flex;gap:8px}
+/* Mobile enhancements */
+@media(max-width:600px){
+  .dash-greeting{font-size:20px}
+  .kpi-row{gap:8px}
+  /* Workers tab: hide table header, show card instead */
+  #pane-workers .tbl-wrap{display:none}
+  #pane-workers .worker-summary-card{display:block!important}
+  /* Payment modal wider tap area */
+  .mo-acts .btn{flex:1}
+}
+@media(min-width:601px){
+  #pane-workers .worker-summary-card{display:none}
+}
 /* WORKER DETAIL */
 .wdet-section{margin-bottom:14px}
 .wdet-section h4{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;border-bottom:1px solid var(--border);padding-bottom:6px}
@@ -333,7 +362,9 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 <div class="topbar">
   <div class="brand">ТОО</div>
   <div class="tabs">
+    <button class="tab-btn" onclick="showTab('dashboard',this)">🏠 Главная</button>
     <button class="tab-btn active" onclick="showTab('smeny',this)">📅 Смены</button>
+    <button class="tab-btn" onclick="showTab('myshifts',this)">🌙 Мои смены</button>
     <button class="tab-btn" onclick="showTab('workers',this)">👥 Работники</button>
     <button class="tab-btn" onclick="showTab('equip',this)">🏗 Техника</button>
     <button class="tab-btn" onclick="showTab('objects',this)">🏢 Объекты</button>
@@ -371,6 +402,11 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 </div>
 
+<!-- ═══════════ ДАШБОРД ═══════════ -->
+<div id="pane-dashboard" class="tab-pane">
+  <div id="dashContent"></div>
+</div>
+
 <!-- MOBILE FIRST-VISIT HINT -->
 <div id="mobileHint" style="display:none;background:rgba(108,99,255,.12);border-bottom:1px solid rgba(108,99,255,.25);padding:8px 16px;font-size:12px;color:#a89dff;align-items:center;justify-content:space-between;gap:8px">
   <span>📱 Добавьте на главный экран для удобного доступа → <b>Настройки</b></span>
@@ -379,6 +415,7 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
 <!-- ═══════════ СМЕНЫ ═══════════ -->
 <div id="pane-smeny" class="tab-pane active">
+  <div id="pendingShiftsPanel" style="display:none;margin-bottom:14px"></div>
   <div class="ph"><h2>Табель смен</h2>
     <div style="display:flex;gap:8px;align-items:center">
       <span style="font-size:12px;color:var(--muted)">Кран:</span>
@@ -395,6 +432,16 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <span><span class="shb over" style="display:inline-flex">П</span> Переработка</span>
   </div>
   <div id="shiftSummary"></div>
+</div>
+
+<!-- ═══════════ МОИ СМЕНЫ (WORKER) ═══════════ -->
+<div id="pane-myshifts" class="tab-pane">
+  <div class="ph">
+    <h2>Мои смены</h2>
+    <button class="btn btn-primary" id="wsAddBtn" onclick="openWorkerShiftModal()">+ Добавить смену</button>
+  </div>
+  <div id="myShiftsInfo"></div>
+  <div id="myShiftsList"></div>
 </div>
 
 <!-- ═══════════ РАБОТНИКИ ═══════════ -->
@@ -720,18 +767,55 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
   </div>
 </div>
 
+<!-- WORKER SHIFT MODAL -->
+<div class="mo hidden" id="moWorkerShift" onclick="closeMoCheck('moWorkerShift',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="wsTitle">Добавить смену</div>
+    <div class="mo-sub">Заявка будет отправлена на подтверждение администратору</div>
+    <input type="hidden" id="wsEditKey">
+    <div class="fg"><label class="fl">Дата</label>
+      <select class="fi" id="wsDate"></select>
+    </div>
+    <div class="fg"><label class="fl">Тип смены</label>
+      <select class="fi" id="wsType">
+        <option value="2">🌙 Ночная смена</option>
+        <option value="4">⚡ Переработка</option>
+      </select>
+    </div>
+    <div class="fg"><label class="fl">Комментарий</label>
+      <input class="fi" id="wsNote" placeholder="Особые условия, описание...">
+    </div>
+    <div id="wsError" style="color:var(--red);font-size:12px;min-height:18px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moWorkerShift')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveWorkerShift()">Отправить заявку</button>
+    </div>
+  </div>
+</div>
+
 <!-- PAYMENT MODAL -->
 <div class="mo hidden" id="moPay" onclick="closeMoCheck('moPay',event)">
   <div class="mo-box">
     <div class="mo-title" id="moPayTitle">Выплата</div>
     <div class="mo-sub" id="moPaySub"></div>
     <input type="hidden" id="pyWorkerId">
+    <input type="hidden" id="pyDocId">
     <div class="fg"><label class="fl">Дата</label><input class="fi" type="date" id="pyDate"></div>
     <div class="fg"><label class="fl">Сумма ₸</label><input class="fi" type="number" id="pyAmount" placeholder="0"></div>
-    <div class="fg"><label class="fl">Примечание</label><input class="fi" id="pyNote" placeholder="аванс, расчёт..."></div>
+    <div class="fg"><label class="fl">Статус</label>
+      <select class="fi" id="pyStatus">
+        <option value="paid">✓ Выдан</option>
+        <option value="pending">⏳ Ожидает выдачи</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="fl">Комментарий <span style="color:var(--red)">*</span></label>
+      <input class="fi" id="pyNote" placeholder="аванс, расчёт, назначение...">
+    </div>
+    <div id="pyNoteError" style="color:var(--red);font-size:12px;min-height:16px;margin-top:-4px;margin-bottom:4px"></div>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moPay')">Отмена</button>
-      <button class="btn btn-primary" onclick="savePayment()">Добавить</button>
+      <button class="btn btn-primary" id="pySubmitBtn" onclick="savePayment()">Сохранить</button>
     </div>
   </div>
 </div>
@@ -839,10 +923,10 @@ let _cfgUnsubs = [], _pdUnsubs = [], _renderTimer = null;
 // ═══════════════════════════════════════════════
 const ROLE_LABELS = { admin:'Администратор', dispatcher:'Диспетчер', worker:'Крановщик', accountant:'Бухгалтер', pending:'Ожидает' };
 const ROLE_TABS = {
-  admin:      ['smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
-  dispatcher: ['smeny','workers','equip','objects'],
-  worker:     ['workers'],
-  accountant: ['income','expenses','summary','settings'],
+  admin:      ['dashboard','smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
+  dispatcher: ['dashboard','smeny','workers','equip','objects'],
+  worker:     ['dashboard','myshifts','workers'],
+  accountant: ['dashboard','income','expenses','summary','settings'],
   pending:    []
 };
 
@@ -1160,7 +1244,9 @@ function closeMoCheck(id,e){if(e.target===document.getElementById(id))closeMo(id
 // ═══════════════════════════════════════════════
 function renderAll(){
   renderPeriodBar();
+  if(activeTab==='dashboard')  renderDashboard();
   if(activeTab==='smeny')     renderShifts();
+  if(activeTab==='myshifts')  renderMyShifts();
   if(activeTab==='workers')   renderWorkers();
   if(activeTab==='equip')     renderEquip();
   if(activeTab==='objects')   renderObjects();
@@ -1189,6 +1275,7 @@ function renderPeriodBar(){
 let shiftOptVal=0;
 
 function renderShifts(){
+  if(can('edit_shifts'))renderPendingShifts();
   const sel=document.getElementById('shiftEquipSel');
   const prev=sel.value;
   sel.innerHTML='<option value="all">Вся техника</option>'+cfg.equipment.map(e=>`<option value="${e.id}">${e.name}</option>`).join('');
@@ -1229,11 +1316,13 @@ function _drawShiftGridAll(){
       const key=dk(dt);const cell=cs[key]||{type:0};const t=cell.type||0;
       const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6,tod=key===todayKey,bdr=dt.d===1&&dt.m!==dates[0].m;
       if(t===2||t===3)nightCount++;
+      const isPending=cell.status==='pending',isRejected=cell.status==='rejected';
       let inner='';
       if(t===1)inner='<div class="shb day">Д</div>';
-      else if(t===2)inner='<div class="shb night">Н</div>';
+      else if(t===2)inner=isPending?'<div class="shb night" style="border-style:dashed;opacity:.65;font-size:8px">Н?</div>':'<div class="shb night">Н</div>';
       else if(t===3)inner='<div class="shb day" style="font-size:8px">Д</div><div class="shb night" style="font-size:8px">Н</div>';
-      else if(t===4)inner='<div class="shb over">П</div>';
+      else if(t===4)inner=isPending?'<div class="shb over" style="border-style:dashed;opacity:.65;font-size:8px">П?</div>':'<div class="shb over">П</div>';
+      if(isRejected)inner=`<div style="opacity:.2">${inner}</div>`;
       const hasNote=cell.note&&cell.note.length>0;
       h+=`<td class="dc${we?' we-bg':''}${tod?' today-bg':''}${bdr?' mborder':''}" onclick="openShiftModal('${equip.id}','${key}')"><div class="ci">${inner}${hasNote?'<div class="nd"></div>':''}</div></td>`;
     }
@@ -1298,11 +1387,13 @@ function _drawShiftGrid(equip){
     if(t===1||t===3){dayCount++;}
     if(t===2||t===3){nightCount++;}
     if(t===4){overCount++;}
+    const isPending=cell.status==='pending',isRejected=cell.status==='rejected';
     let inner='';
     if(t===1)inner='<div class="shb day">Д</div>';
-    else if(t===2)inner='<div class="shb night">Н</div>';
+    else if(t===2)inner=isPending?'<div class="shb night" style="border-style:dashed;opacity:.65;font-size:8px">Н?</div>':'<div class="shb night">Н</div>';
     else if(t===3)inner='<div class="shb day">Д</div><div class="shb night">Н</div>';
-    else if(t===4)inner='<div class="shb over">П</div>';
+    else if(t===4)inner=isPending?'<div class="shb over" style="border-style:dashed;opacity:.65;font-size:8px">П?</div>':'<div class="shb over">П</div>';
+    if(isRejected)inner=`<div style="opacity:.2">${inner}</div>`;
     const hasNote=cell.note&&cell.note.length>0;
     h+=`<td class="dc${we?' we-bg':''}${tod?' today-bg':''}${bdr?' mborder':''}" onclick="openShiftModal('${equip.id}','${key}')"><div class="ci">${inner}${hasNote?'<div class="nd"></div>':''}</div></td>`;
   }
@@ -1376,6 +1467,7 @@ function calcWorkerEarnings(w){
     const isMain=equip.primaryWorkerId===w.id;
     for(const[key,cell] of Object.entries(cs)){
       const t=cell.type||0;if(!t)continue;
+      if(cell.status==='pending'||cell.status==='rejected')continue;
       const noAssign=!cell.workerId;
       const directAssign=cell.workerId===w.id;
       const isSub=directAssign&&!isMain;
@@ -1414,10 +1506,13 @@ function renderWorkers(){
     return;
   }
 
-  // Worker: only own record
+  // Worker: only own record — table (desktop) + card (mobile)
   if(role==='worker'){
     const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
-    if(!myW){document.getElementById('workersTbl').innerHTML=`<tr><td colspan="10" class="empty">Вы не привязаны к работнику. Обратитесь к администратору.</td></tr>`;return;}
+    if(!myW){
+      document.getElementById('workersTbl').innerHTML=`<tr><td colspan="10" class="empty">Вы не привязаны к работнику. Обратитесь к администратору.</td></tr>`;
+      _renderWorkerSummaryCard(null,null,null);return;
+    }
     const earn=calcWorkerEarnings(myW);
     const eq=cfg.equipment.find(e=>e.id===myW.equipmentId);
     const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
@@ -1432,6 +1527,7 @@ function renderWorkers(){
       <td class="num tr" style="color:var(--green)">${fmt(earn.pays)} ₸</td>
       <td class="num tr" style="color:${balColor};font-weight:700">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</td>
       <td></td></tr>`;
+    _renderWorkerSummaryCard(myW,earn,eq);
     return;
   }
 
@@ -1489,20 +1585,44 @@ function openWorkerDetail(wId){
   h+=`<div class="wdet-row total"><span>Итого начислено</span><span style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</span></div>`;
   h+='</div>';
 
+  const canEditPay=can('edit_workers');
   h+='<div class="wdet-section"><h4>История выплат</h4>';
   if(!pays.length){h+='<div style="color:var(--muted);font-size:13px;padding:8px 0">Выплат не было</div>';}
   else{
     let running=earn.totalAccrued;
     h+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
-    h+='<tr style="color:var(--muted)"><th style="text-align:left;padding:4px 0">Дата</th><th style="text-align:left">Назначение</th><th style="text-align:right">Выплата</th><th style="text-align:right">Остаток</th></tr>';
+    h+=`<tr style="color:var(--muted)"><th style="text-align:left;padding:4px 0">Дата</th><th style="text-align:left">Назначение</th><th style="text-align:left">Статус</th><th style="text-align:right">Выплата</th><th style="text-align:right">Остаток</th>${canEditPay?'<th></th>':''}</tr>`;
     for(const p of pays){
       running-=p.amount;
       const rc=running>0?'rb-neg':'rb-pos';
-      h+=`<tr style="border-top:1px solid #1e2235"><td style="padding:5px 0">${fmtDate(p.date)}</td><td style="color:var(--muted)">${p.note||'—'}</td><td style="text-align:right;color:var(--green)">−${fmt(p.amount)} ₸</td><td style="text-align:right" class="${rc}">${running>0?'+':''}${fmt(running)} ₸</td></tr>`;
+      const stBadge=p.status==='pending'?'<span class="pay-badge pay-pending">⏳ Ожидает</span>':'<span class="pay-badge pay-paid">✓ Выдан</span>';
+      const editBtn=canEditPay?`<td style="padding:3px 0"><button class="edit-btn" onclick="closeMo('moWorkerDetail');editPayment('${w.id}','${p._docId}')">✏</button></td>`:'';
+      h+=`<tr style="border-top:1px solid #1e2235"><td style="padding:5px 0">${fmtDate(p.date)}</td><td style="color:var(--muted)">${p.note||'—'}</td><td>${stBadge}</td><td style="text-align:right;color:var(--green)">−${fmt(p.amount)} ₸</td><td style="text-align:right" class="${rc}">${running>0?'+':''}${fmt(running)} ₸</td>${editBtn}</tr>`;
     }
     h+='</table>';
   }
   h+='</div>';
+  // Change history
+  const allHist=[];
+  for(const p of pays){for(const e of(p.history||[])){allHist.push({...e,_docId:p._docId});}}
+  allHist.sort((a,b)=>b.at.localeCompare(a.at));
+  if(allHist.length){
+    const FLAB={amount:'Сумма',date:'Дата',note:'Комментарий',status:'Статус'};
+    const SLAB={paid:'Выдан',pending:'Ожидает'};
+    h+='<div class="wdet-section"><h4>История изменений</h4><div class="pay-history">';
+    for(const e of allHist.slice(0,15)){
+      const dt=e.at.split('T');
+      h+=`<div class="pay-hist-entry"><div style="display:flex;justify-content:space-between;color:var(--muted);margin-bottom:3px"><span>${e.by||'—'}</span><span>${fmtDate(dt[0])} ${dt[1]?.slice(0,5)||''}</span></div>`;
+      for(const ch of(e.changes||[])){
+        const fld=FLAB[ch.field]||ch.field;
+        const ov=ch.field==='status'?(SLAB[ch.old]||ch.old):ch.field==='amount'?fmt(ch.old)+' ₸':ch.old;
+        const nv=ch.field==='status'?(SLAB[ch.new]||ch.new):ch.field==='amount'?fmt(ch.new)+' ₸':ch.new;
+        h+=`<div style="padding-left:8px">${fld}: <span style="color:var(--red)">${ov}</span> → <span style="color:var(--green)">${nv}</span></div>`;
+      }
+      h+='</div>';
+    }
+    h+='</div></div>';
+  }
 
   const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
   h+=`<div class="wdet-section" style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:12px">
@@ -1548,25 +1668,524 @@ function deleteWorker(id){
 }
 
 // PAYMENTS
-function openPayModal(wId){
+function openPayModal(wId,payObj){
   const w=cfg.workers.find(x=>x.id===wId);
-  document.getElementById('moPayTitle').textContent='Выплата — '+(w?w.name:'');
+  const isEdit=!!(payObj&&payObj._docId);
+  document.getElementById('moPayTitle').textContent=(isEdit?'Редактировать выплату — ':'Выплата — ')+(w?w.name:'');
   const earn=w?calcWorkerEarnings(w):{totalAccrued:0,pays:0,balance:0};
   document.getElementById('moPaySub').textContent=`Начислено: ${fmt(earn.totalAccrued)} ₸ · Выплачено: ${fmt(earn.pays)} ₸ · Остаток: ${fmt(earn.balance)} ₸`;
   document.getElementById('pyWorkerId').value=wId;
-  document.getElementById('pyDate').value=todayISO();
-  document.getElementById('pyAmount').value='';
-  document.getElementById('pyNote').value='';
+  document.getElementById('pyDocId').value=payObj?._docId||'';
+  document.getElementById('pyDate').value=payObj?.date||todayISO();
+  document.getElementById('pyAmount').value=payObj?.amount||'';
+  document.getElementById('pyStatus').value=payObj?.status||'paid';
+  document.getElementById('pyNote').value=payObj?.note||'';
+  document.getElementById('pyNoteError').textContent='';
+  document.getElementById('pySubmitBtn').textContent=isEdit?'Сохранить':'Добавить';
   openMo('moPay');
 }
 
-function savePayment(){
+function editPayment(wId,docId){
+  const pays=pd.payments[wId]||[];
+  const pay=pays.find(p=>p._docId===docId);
+  if(pay)openPayModal(wId,pay);
+}
+
+async function savePayment(){
   const wId=document.getElementById('pyWorkerId').value;
+  const docId=document.getElementById('pyDocId').value;
   const amount=+document.getElementById('pyAmount').value||0;
+  const note=document.getElementById('pyNote').value.trim();
+  const status=document.getElementById('pyStatus').value||'paid';
+  const date=document.getElementById('pyDate').value;
   if(!amount){alert('Введите сумму');return;}
-  const pay={workerId:wId,date:document.getElementById('pyDate').value,amount,note:document.getElementById('pyNote').value.trim()};
+  if(!note){document.getElementById('pyNoteError').textContent='Комментарий обязателен';return;}
+  document.getElementById('pyNoteError').textContent='';
   closeMo('moPay');
-  fbSavePayment(pay);
+  if(docId){
+    const existing=(pd.payments[wId]||[]).find(p=>p._docId===docId);
+    const changes=[];
+    if(existing){
+      if(existing.amount!==amount)changes.push({field:'amount',old:existing.amount,new:amount});
+      if(existing.date!==date)changes.push({field:'date',old:existing.date,new:date});
+      if((existing.note||'')!==note)changes.push({field:'note',old:existing.note||'',new:note});
+      if((existing.status||'paid')!==status)changes.push({field:'status',old:existing.status||'paid',new:status});
+    }
+    const updateData={amount,date,note,status};
+    if(changes.length){
+      const entry={at:new Date().toISOString(),by:currentUser.name||currentUser.email,byUid:currentUser.uid,changes};
+      updateData.history=[...(existing?.history||[]),entry];
+    }
+    try{await db.collection('payments').doc(docId).update(updateData);}catch(e){fbErr(e);}
+  }else{
+    fbSavePayment({workerId:wId,date,amount,note,status,history:[]});
+  }
+}
+
+// ═══════════════════════════════════════════════
+// WORKER SUMMARY CARD (mobile card in pane-workers)
+// ═══════════════════════════════════════════════
+function _renderWorkerSummaryCard(myW,earn,eq){
+  const pane=document.getElementById('pane-workers');
+  if(!pane)return;
+  let card=document.getElementById('workerSummaryCard');
+  if(!card){
+    card=document.createElement('div');
+    card.id='workerSummaryCard';
+    card.className='worker-summary-card';
+    const tblWrap=pane.querySelector('.tbl-wrap');
+    if(tblWrap)pane.insertBefore(card,tblWrap);
+    else pane.appendChild(card);
+  }
+  if(!myW){card.innerHTML='<div class="empty" style="padding:20px">Вы не привязаны к работнику</div>';return;}
+  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+  card.innerHTML=`<div class="worker-summary-card-head">
+    <div><div style="font-size:15px;font-weight:700">${myW.name}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${WORKER_TYPES[myW.type]||myW.type}${eq?' · '+eq.name:''}</div></div>
+    <span class="badge-type t-${myW.type}">${WORKER_TYPES[myW.type]||myW.type}</span>
+  </div>
+  <div class="worker-summary-card-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div class="kpi bl" style="padding:12px"><div class="kl">Начислено</div><div class="kv bl" style="font-size:18px">${fmt(earn.totalAccrued)}</div><div class="ks">₸</div></div>
+      <div class="kpi gn" style="padding:12px"><div class="kl">Выплачено</div><div class="kv gn" style="font-size:18px">${fmt(earn.pays)}</div><div class="ks">₸</div></div>
+    </div>
+    <div class="kpi ${earn.balance>0?'rd':'gn'}" style="padding:12px">
+      <div class="kl">Остаток к выплате</div>
+      <div class="kv" style="color:${balColor};font-size:22px">${earn.balance>0?'+':''}${fmt(earn.balance)}</div>
+      <div class="ks">₸</div>
+    </div>
+    ${earn.nightCount?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">Ночных: <span style="color:var(--blue);font-weight:700">${earn.nightCount}</span> · Переработок: <span style="color:var(--accent);font-weight:700">${earn.overCount}</span></div>`:''}
+  </div>
+  <div class="worker-summary-card-foot">
+    <button class="btn btn-primary" style="flex:1" onclick="openWorkerDetail('${myW.id}')">👁 Подробный расчёт</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════
+function renderDashboard(){
+  const el=document.getElementById('dashContent');
+  if(!el)return;
+  const role=currentUser?.role;
+  const h=new Date().getHours();
+  const greeting=h<6?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';
+  const pl=periodLabel(curYear,curEM);
+  const name=(currentUser?.name||currentUser?.email||'').split(' ')[0];
+  let html=`<div style="margin-bottom:18px">
+    <div class="dash-greeting">${greeting}, ${name}!</div>
+    <div class="dash-greeting-sub">${pl.main}</div>
+  </div>`;
+  if(role==='worker')html+=_workerDash();
+  else if(role==='admin')html+=_adminDash();
+  else if(role==='dispatcher')html+=_dispatcherDash();
+  else if(role==='accountant')html+=_accountantDash();
+  el.innerHTML=html;
+}
+
+function _workerDash(){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  if(!myW)return`<div class="empty" style="text-align:center;padding:40px 0"><div style="font-size:40px;margin-bottom:12px">👤</div><div style="font-size:15px">Вы не привязаны к работнику.<br>Обратитесь к администратору.</div></div>`;
+  const earn=calcWorkerEarnings(myW);
+  const myEquip=cfg.equipment.find(e=>e.id===myW.equipmentId);
+  const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
+  // Shift stats
+  let dayN=0,nightN=0,overN=0,subN=0,pendingShifts=0,approvedShifts=0,rejectedShifts=0;
+  if(myEquip){
+    const cs=pd.shifts[myEquip.id]||{};
+    for(const[,cell] of Object.entries(cs)){
+      const t=cell.type||0;if(!t)continue;
+      if(cell.createdBy===currentUser.uid){
+        if(cell.status==='pending')pendingShifts++;
+        else if(cell.status==='approved')approvedShifts++;
+        else if(cell.status==='rejected')rejectedShifts++;
+      }
+      if(cell.status==='pending'||cell.status==='rejected')continue;
+      if(!cell.workerId||cell.workerId===myW.id){
+        if(t===1||t===3)dayN++;
+        if(t===2||t===3)nightN++;
+        if(t===4)overN++;
+      }
+    }
+    for(const equip of cfg.equipment){
+      if(equip.id===myEquip.id)continue;
+      const cs2=pd.shifts[equip.id]||{};
+      for(const[,cell] of Object.entries(cs2)){
+        if(cell.workerId===myW.id&&(!cell.status||cell.status==='approved'))subN++;
+      }
+    }
+  }
+  const pays=pd.payments[myW.id]||[];
+  const paidAmt=pays.filter(p=>!p.status||p.status==='paid').reduce((s,p)=>s+p.amount,0);
+  const pendAmt=pays.filter(p=>p.status==='pending').reduce((s,p)=>s+p.amount,0);
+  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+  let h='';
+  if(myEquip){
+    h+=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Техника</div><div style="font-weight:700;color:var(--accent);font-size:15px">${myEquip.name}</div></div>
+      <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Объект</div><div style="font-weight:700;font-size:15px">${myObj?myObj.name:'—'}</div></div>
+    </div></div>`;
+  }
+  h+=`<div class="dash-section-title">Смены за период</div>`;
+  h+=`<div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+    <div class="kpi gn"><div class="kl">Дней</div><div class="kv gn">${dayN}</div></div>
+    <div class="kpi bl"><div class="kl">Ночей</div><div class="kv bl">${nightN}</div></div>
+    <div class="kpi yw"><div class="kl">Переработок</div><div class="kv yw">${overN}</div></div>
+    <div class="kpi rd"><div class="kl">Подмен</div><div class="kv rd">${subN}</div></div>
+  </div>`;
+  h+=`<div class="dash-section-title">Финансы</div>`;
+  h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+    <div class="kpi bl"><div class="kl">Начислено</div><div class="kv bl" style="font-size:16px">${fmt(earn.totalAccrued)}</div><div class="ks">₸</div></div>
+    <div class="kpi gn"><div class="kl">Выплачено</div><div class="kv gn" style="font-size:16px">${fmt(earn.pays)}</div><div class="ks">₸</div></div>
+    <div class="kpi ${earn.balance>0?'rd':'gn'}"><div class="kl">Остаток</div><div class="kv" style="color:${balColor};font-size:16px">${earn.balance>0?'+':''}${fmt(earn.balance)}</div><div class="ks">₸</div></div>
+  </div>`;
+  if(pays.length){
+    h+=`<div class="dash-section-title">Авансы</div>`;
+    h+=`<div class="kpi-row" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+      <div class="kpi yw"><div class="kl">Ожидает выдачи</div><div class="kv yw" style="font-size:16px">${fmt(pendAmt)}</div><div class="ks">₸</div></div>
+      <div class="kpi gn"><div class="kl">Выдано авансов</div><div class="kv gn" style="font-size:16px">${fmt(paidAmt)}</div><div class="ks">₸</div></div>
+    </div>`;
+  }
+  if(pendingShifts||approvedShifts||rejectedShifts){
+    h+=`<div class="dash-section-title">Заявки на смены</div>`;
+    h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+      <div class="kpi yw"><div class="kl">Ожидают</div><div class="kv yw">${pendingShifts}</div></div>
+      <div class="kpi gn"><div class="kl">Принято</div><div class="kv gn">${approvedShifts}</div></div>
+      <div class="kpi rd"><div class="kl">Отклонено</div><div class="kv rd">${rejectedShifts}</div></div>
+    </div>`;
+  }
+  // Recent shifts
+  const shiftList=[];
+  if(myEquip){
+    const cs=pd.shifts[myEquip.id]||{};
+    for(const[date,cell] of Object.entries(cs)){
+      const t=cell.type||0;if(!t||t===1)continue;
+      if(!cell.workerId||cell.workerId===myW.id||cell.createdBy===currentUser.uid)shiftList.push({date,...cell});
+    }
+    shiftList.sort((a,b)=>b.date.localeCompare(a.date));shiftList.splice(8);
+  }
+  if(shiftList.length){
+    h+=`<div class="dash-section-title">Последние смены</div>`;
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Дата</th><th>Тип</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>';
+    const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
+    for(const s of shiftList){
+      const dp=s.date.split('-');
+      const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+      const tShb=s.type===2?'<div class="shb night" style="display:inline-flex">Н</div>':s.type===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex;font-size:8px">Д+Н</div>';
+      let st;
+      if(!s.status||!s.createdBy)st='<span style="color:var(--muted);font-size:11px">Admin</span>';
+      else if(s.status==='pending')st='<span style="color:var(--yellow);font-weight:600">⏳ Ожидает</span>';
+      else if(s.status==='approved')st='<span style="color:var(--green);font-weight:600">✓ Принято</span>';
+      else st='<span style="color:var(--red);font-weight:600">✕ Отклонено</span>';
+      h+=`<tr><td style="font-weight:600">${+dp[2]} ${MSHO[+dp[1]]} <span style="color:var(--muted);font-size:11px">${dow}</span></td><td>${tShb} ${TLAB[s.type]||''}</td><td>${st}</td><td style="color:var(--muted);font-size:12px">${s.note||'—'}</td></tr>`;
+    }
+    h+='</tbody></table></div>';
+  }
+  return h;
+}
+
+function _adminDash(){
+  let pendingShifts=0;
+  for(const dates of Object.values(pd.shifts))
+    for(const cell of Object.values(dates))if(cell.status==='pending')pendingShifts++;
+  let pendingAdvances=0;
+  for(const pays of Object.values(pd.payments))
+    for(const p of pays)if(p.status==='pending')pendingAdvances++;
+  const incomeTotal=pd.incomeItems.reduce((s,i)=>s+(i.amountWithVat||0),0);
+  const incomeNoVat=pd.incomeItems.reduce((s,i)=>s+(i.amountNoVat||0),0);
+  const expTotal=pd.expenses.reduce((s,e)=>s+(e.amount||0),0);
+  let salTotal=0;for(const pays of Object.values(pd.payments))for(const p of pays)salTotal+=p.amount||0;
+  const profit=incomeNoVat-expTotal-salTotal;
+  const activeObjs=new Set(cfg.equipment.map(e=>e.objectId).filter(Boolean)).size;
+  let h='';
+  h+=`<div class="dash-section-title">Техника и объекты</div>`;
+  h+=`<div class="kpi-row" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+    <div class="kpi bl"><div class="kl">Единиц техники</div><div class="kv bl">${cfg.equipment.length}</div><div class="ks">в работе</div></div>
+    <div class="kpi gn"><div class="kl">Активных объектов</div><div class="kv gn">${activeObjs}</div><div class="ks">с техникой</div></div>
+  </div>`;
+  if(pendingShifts>0||pendingAdvances>0){
+    h+=`<div class="dash-section-title" style="color:var(--yellow)">⏳ Требуют внимания</div>`;
+    h+=`<div class="kpi-row" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+      <div class="kpi yw" style="cursor:pointer" onclick="showTab('smeny',document.querySelector('.tab-btn[onclick*=smeny]'))">
+        <div class="kl">Заявки на смены</div><div class="kv yw">${pendingShifts}</div><div class="ks">нажмите → Смены</div>
+      </div>
+      <div class="kpi yw"><div class="kl">Авансы к выдаче</div><div class="kv yw">${pendingAdvances}</div><div class="ks">ожидают</div></div>
+    </div>`;
+  }
+  h+=`<div class="dash-section-title">Финансы периода</div>`;
+  h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+    <div class="kpi gn"><div class="kl">Доходы</div><div class="kv gn" style="font-size:15px">${fmt(incomeTotal)}</div><div class="ks">₸ с НДС</div></div>
+    <div class="kpi rd"><div class="kl">Расходы + ЗП</div><div class="kv rd" style="font-size:15px">${fmt(expTotal+salTotal)}</div><div class="ks">₸</div></div>
+    <div class="kpi ${profit>=0?'gn':'rd'}"><div class="kl">Прибыль</div><div class="kv" style="color:${profit>=0?'var(--green)':'var(--red)'};font-size:15px">${profit>=0?'+':''}${fmt(profit)}</div><div class="ks">₸ б/НДС</div></div>
+  </div>`;
+  h+=`<div class="dash-section-title">Техника по объектам</div>`;
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Техника</th><th>Оператор</th><th>Объект</th><th style="text-align:center">Ночей</th></tr></thead><tbody>';
+  for(const e of cfg.equipment){
+    const op=cfg.workers.find(w=>w.id===e.primaryWorkerId);
+    const obj=cfg.objects.find(o=>o.id===e.objectId);
+    const cs=pd.shifts[e.id]||{};
+    let nights=0;for(const cell of Object.values(cs))if(!cell.status||cell.status==='approved')if(cell.type===2||cell.type===3)nights++;
+    h+=`<tr><td style="font-weight:600;color:var(--accent)">${e.name}</td><td>${op?op.name:'—'}</td><td>${obj?obj.name:'—'}</td><td style="text-align:center;color:var(--blue);font-weight:700">${nights}</td></tr>`;
+  }
+  if(!cfg.equipment.length)h+='<tr><td colspan="4" class="empty">Техника не добавлена</td></tr>';
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function _dispatcherDash(){
+  let totalNights=0,pendingRequests=0;
+  for(const dates of Object.values(pd.shifts))
+    for(const[,cell] of Object.entries(dates)){
+      if(cell.status==='pending')pendingRequests++;
+      if(!cell.status||cell.status==='approved')if(cell.type===2||cell.type===3)totalNights++;
+    }
+  let h='';
+  h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+    <div class="kpi bl"><div class="kl">Ночей в периоде</div><div class="kv bl">${totalNights}</div><div class="ks">подтверждено</div></div>
+    <div class="kpi ${pendingRequests>0?'yw':'gn'}"><div class="kl">Заявок</div><div class="kv ${pendingRequests>0?'yw':'gn'}">${pendingRequests}</div><div class="ks">ожидают</div></div>
+    <div class="kpi gn"><div class="kl">Техника</div><div class="kv gn">${cfg.equipment.length}</div><div class="ks">единиц</div></div>
+  </div>`;
+  if(pendingRequests>0){
+    h+=`<div class="dash-section-title" style="color:var(--yellow)">⏳ Заявки на смены</div>`;
+    h+='<div class="tbl-wrap" style="margin-bottom:14px"><table><thead><tr><th>Работник</th><th>Техника</th><th>Дата</th><th>Тип</th><th>Комментарий</th></tr></thead><tbody>';
+    const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
+    for(const[eqId,dates] of Object.entries(pd.shifts)){
+      for(const[date,cell] of Object.entries(dates)){
+        if(cell.status!=='pending')continue;
+        const equip=cfg.equipment.find(e=>e.id===eqId);
+        const worker=cfg.workers.find(w=>w.id===cell.workerId);
+        const tShb=cell.type===2?'<div class="shb night" style="display:inline-flex">Н</div>':cell.type===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex">Д+Н</div>';
+        h+=`<tr><td style="font-weight:600">${worker?worker.name:'—'}</td><td style="color:var(--muted)">${equip?equip.name:eqId}</td><td>${fmtDate(date)}</td><td>${tShb} ${TLAB[cell.type]||''}</td><td style="color:var(--muted);font-size:12px">${cell.note||'—'}</td></tr>`;
+      }
+    }
+    h+='</tbody></table></div>';
+  }
+  h+=`<div class="dash-section-title">Техника по объектам</div>`;
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Техника</th><th>Оператор</th><th>Объект</th><th style="text-align:center">Ночей</th></tr></thead><tbody>';
+  for(const e of cfg.equipment){
+    const op=cfg.workers.find(w=>w.id===e.primaryWorkerId);
+    const obj=cfg.objects.find(o=>o.id===e.objectId);
+    const cs=pd.shifts[e.id]||{};
+    let nights=0;for(const cell of Object.values(cs))if(!cell.status||cell.status==='approved')if(cell.type===2||cell.type===3)nights++;
+    h+=`<tr><td style="font-weight:600;color:var(--accent)">${e.name}</td><td>${op?op.name:'—'}</td><td>${obj?obj.name:'—'}</td><td style="text-align:center;color:var(--blue);font-weight:700">${nights}</td></tr>`;
+  }
+  if(!cfg.equipment.length)h+='<tr><td colspan="4" class="empty">Техника не добавлена</td></tr>';
+  h+='</tbody></table></div>';
+  return h;
+}
+
+function _accountantDash(){
+  const incomeTotal=pd.incomeItems.reduce((s,i)=>s+(i.amountWithVat||0),0);
+  const incomeNoVat=pd.incomeItems.reduce((s,i)=>s+(i.amountNoVat||0),0);
+  const vatTotal=pd.incomeItems.reduce((s,i)=>s+(i.vatAmount||0),0);
+  const expTotal=pd.expenses.reduce((s,e)=>s+(e.amount||0),0);
+  let salTotal=0;for(const pays of Object.values(pd.payments))for(const p of pays)salTotal+=p.amount||0;
+  const profit=incomeNoVat-expTotal-salTotal;
+  let h='';
+  h+=`<div class="kpi-row" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+    <div class="kpi gn"><div class="kl">Доходы с НДС</div><div class="kv gn" style="font-size:16px">${fmt(incomeTotal)}</div><div class="ks">₸</div></div>
+    <div class="kpi rd"><div class="kl">Расходы + ЗП</div><div class="kv rd" style="font-size:16px">${fmt(expTotal+salTotal)}</div><div class="ks">₸</div></div>
+    <div class="kpi bl"><div class="kl">НДС к уплате</div><div class="kv bl" style="font-size:16px">${fmt(vatTotal)}</div><div class="ks">₸</div></div>
+    <div class="kpi ${profit>=0?'gn':'rd'}"><div class="kl">Прибыль б/НДС</div><div class="kv" style="color:${profit>=0?'var(--green)':'var(--red)'};font-size:16px">${profit>=0?'+':''}${fmt(profit)}</div><div class="ks">₸</div></div>
+  </div>`;
+  h+=`<div style="display:flex;gap:10px;flex-wrap:wrap">
+    <button class="btn btn-secondary" onclick="showTab('income',document.querySelector('.tab-btn[onclick*=income]'))">💵 Доходы</button>
+    <button class="btn btn-secondary" onclick="showTab('expenses',document.querySelector('.tab-btn[onclick*=expenses]'))">💸 Расходы</button>
+    <button class="btn btn-secondary" onclick="showTab('summary',document.querySelector('.tab-btn[onclick*=summary]'))">📊 Итоги</button>
+  </div>`;
+  return h;
+}
+
+// ═══════════════════════════════════════════════
+// WORKER SHIFT SELF-REPORTING
+// ═══════════════════════════════════════════════
+function renderMyShifts(){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
+  const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
+  const infoEl=document.getElementById('myShiftsInfo');
+  const listEl=document.getElementById('myShiftsList');
+  const addBtn=document.getElementById('wsAddBtn');
+  if(!myW){
+    infoEl.innerHTML=`<div class="empty" style="text-align:center;padding:32px 16px"><div style="font-size:36px;margin-bottom:10px">👤</div><div>Вы не привязаны к работнику.<br>Обратитесь к администратору.</div></div>`;
+    listEl.innerHTML='';
+    if(addBtn)addBtn.style.display='none';
+    return;
+  }
+  if(!myEquip){
+    infoEl.innerHTML=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body"><div style="font-weight:700">${myW.name}</div><div style="color:var(--muted);margin-top:4px;font-size:13px">Техника не назначена. Обратитесь к администратору.</div></div></div>`;
+    listEl.innerHTML='';
+    if(addBtn)addBtn.style.display='none';
+    return;
+  }
+  if(addBtn)addBtn.style.display='';
+  const pl=periodLabel(curYear,curEM);
+  infoEl.innerHTML=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px">
+    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">РАБОТНИК</div><div style="font-weight:700">${myW.name}</div></div>
+    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">ТЕХНИКА</div><div style="font-weight:700;color:var(--accent)">${myEquip.name}</div></div>
+    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">ОБЪЕКТ</div><div style="font-weight:700">${myObj?myObj.name:'—'}</div></div>
+  </div></div>`;
+  const cs=pd.shifts[myEquip.id]||{};
+  const myShifts=[];
+  for(const[date,cell] of Object.entries(cs)){
+    const t=cell.type||0;if(!t||t===1)continue;
+    if(!cell.workerId||cell.workerId===myW.id||cell.createdBy===currentUser.uid)
+      myShifts.push({date,...cell});
+  }
+  myShifts.sort((a,b)=>a.date.localeCompare(b.date));
+  let pendingN=0,approvedN=0;
+  myShifts.forEach(s=>{if(s.status==='pending')pendingN++;else if(!s.status||s.status==='approved')approvedN++;});
+  const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
+  let h=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+    <div class="kpi yw" style="flex:1;min-width:110px"><div class="kl">Ожидают</div><div class="kv yw">${pendingN}</div><div class="ks">заявок</div></div>
+    <div class="kpi gn" style="flex:1;min-width:110px"><div class="kl">Подтверждено</div><div class="kv gn">${approvedN}</div><div class="ks">смен</div></div>
+    <div class="kpi bl" style="flex:1;min-width:110px"><div class="kl">Период</div><div class="kv bl" style="font-size:11px">${pl.short}</div><div class="ks">${pl.main}</div></div>
+  </div>`;
+  h+='<div class="tbl-wrap"><table><thead><tr><th>Дата</th><th>День</th><th>Тип</th><th>Статус</th><th>Комментарий</th><th></th></tr></thead><tbody>';
+  for(const s of myShifts){
+    const t=s.type||0;
+    const dp=s.date.split('-');
+    const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+    const typeShb=t===2?'<div class="shb night" style="display:inline-flex">Н</div>':t===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex;font-size:8px">Д+Н</div>';
+    let statusHtml;
+    if(!s.status||(!s.createdBy&&s.status!=='pending'))statusHtml='<span style="color:var(--muted);font-size:11px">Admin</span>';
+    else if(s.status==='pending')statusHtml='<span style="color:var(--yellow);font-weight:600">⏳ Ожидает</span>';
+    else if(s.status==='approved')statusHtml='<span style="color:var(--green);font-weight:600">✓ Подтверждено</span>';
+    else statusHtml='<span style="color:var(--red);font-weight:600">✕ Отклонено</span>';
+    const canEdit=s.createdBy===currentUser.uid&&s.status==='pending';
+    h+=`<tr>
+      <td style="font-weight:600">${fmtDate(s.date)}</td>
+      <td style="color:var(--muted)">${dow}</td>
+      <td>${typeShb} ${TLAB[t]||''}</td>
+      <td>${statusHtml}</td>
+      <td style="color:var(--muted);font-size:12px">${s.note||'—'}</td>
+      <td style="white-space:nowrap">${canEdit?`<button class="edit-btn" onclick="openWorkerShiftModal('${s.date}')">✏</button> <button class="del-btn" onclick="deleteWorkerShift('${s.date}')">✕</button>`:''}</td>
+    </tr>`;
+  }
+  if(!myShifts.length)h+='<tr><td colspan="6" class="empty">Нет смен. Нажмите «+ Добавить смену»</td></tr>';
+  h+='</tbody></table></div>';
+  listEl.innerHTML=h;
+}
+
+function openWorkerShiftModal(editDateKey){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
+  if(!myEquip){alert('Техника не назначена. Обратитесь к администратору.');return;}
+  document.getElementById('wsError').textContent='';
+  const dates=getPeriodDates(curYear,curEM);
+  const cs=pd.shifts[myEquip.id]||{};
+  const dsel=document.getElementById('wsDate');
+  dsel.innerHTML=dates.map(dt=>{
+    const key=dk(dt);
+    if(editDateKey&&key===editDateKey)return null;
+    const existing=cs[key];
+    if(existing&&existing.type&&(!existing.createdBy||existing.status==='approved'))return null;
+    if(existing&&existing.createdBy&&existing.createdBy!==currentUser.uid)return null;
+    const dow=DOW[new Date(dt.y,dt.m-1,dt.d).getDay()];
+    return`<option value="${key}">${dt.d} ${MSHO[dt.m]} (${dow})</option>`;
+  }).filter(Boolean).join('');
+  if(editDateKey){
+    const dp=editDateKey.split('-');
+    const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+    const opt=document.createElement('option');
+    opt.value=editDateKey;opt.textContent=`${+dp[2]} ${MSHO[+dp[1]]} (${dow})`;
+    dsel.insertBefore(opt,dsel.firstChild);dsel.value=editDateKey;
+    const cell=cs[editDateKey]||{};
+    document.getElementById('wsTitle').textContent='Редактировать смену';
+    document.getElementById('wsEditKey').value=editDateKey;
+    document.getElementById('wsType').value=String(cell.type||2);
+    document.getElementById('wsNote').value=cell.note||'';
+  }else{
+    document.getElementById('wsTitle').textContent='Добавить смену';
+    document.getElementById('wsEditKey').value='';
+    document.getElementById('wsType').value='2';
+    document.getElementById('wsNote').value='';
+    const td=todayISO();
+    if(dsel.querySelector(`option[value="${td}"]`))dsel.value=td;
+  }
+  if(!dsel.options.length){alert('Нет доступных дат для добавления смены.');return;}
+  openMo('moWorkerShift');
+}
+
+async function saveWorkerShift(){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
+  if(!myEquip){document.getElementById('wsError').textContent='Техника не назначена';return;}
+  const dateKey=document.getElementById('wsDate').value;
+  if(!dateKey){document.getElementById('wsError').textContent='Выберите дату';return;}
+  const type=+document.getElementById('wsType').value;
+  const note=document.getElementById('wsNote').value.trim();
+  const cs=pd.shifts[myEquip.id]||{};
+  const existing=cs[dateKey];
+  if(existing&&existing.type&&(!existing.createdBy||existing.status==='approved')){
+    document.getElementById('wsError').textContent='На эту дату уже установлена смена';return;
+  }
+  if(existing&&existing.createdBy&&existing.createdBy!==currentUser.uid){
+    document.getElementById('wsError').textContent='Дата занята другим работником';return;
+  }
+  if(existing&&existing.status&&existing.status!=='pending'){
+    document.getElementById('wsError').textContent='Нельзя изменить подтверждённую/отклонённую смену';return;
+  }
+  const docId=myEquip.id+'_'+dateKey;
+  const data={period:curPK(),equipId:myEquip.id,date:dateKey,type,workerId:myW.id,note,status:'pending',createdBy:currentUser.uid,createdAt:new Date().toISOString()};
+  try{
+    await db.collection('shifts').doc(docId).set(data);
+    closeMo('moWorkerShift');
+  }catch(e){document.getElementById('wsError').textContent='Ошибка: '+e.message;}
+}
+
+async function deleteWorkerShift(dateKey){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
+  if(!myEquip)return;
+  const cell=(pd.shifts[myEquip.id]||{})[dateKey];
+  if(!cell||cell.status!=='pending'||cell.createdBy!==currentUser.uid)return;
+  if(!confirm('Удалить заявку на смену?'))return;
+  try{await db.collection('shifts').doc(myEquip.id+'_'+dateKey).delete();}
+  catch(e){alert('Ошибка: '+e.message);}
+}
+
+function renderPendingShifts(){
+  const el=document.getElementById('pendingShiftsPanel');
+  if(!el)return;
+  const list=[];
+  for(const[eqId,dates] of Object.entries(pd.shifts)){
+    for(const[date,cell] of Object.entries(dates)){
+      if(cell.status==='pending'){
+        const equip=cfg.equipment.find(e=>e.id===eqId);
+        const worker=cfg.workers.find(w=>w.id===cell.workerId);
+        list.push({docId:eqId+'_'+date,eqId,date,equip,worker,...cell});
+      }
+    }
+  }
+  list.sort((a,b)=>a.date.localeCompare(b.date));
+  if(!list.length){el.style.display='none';return;}
+  el.style.display='';
+  const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
+  let h=`<div class="set-group" style="border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.04)">
+    <h3 style="color:var(--yellow);margin-bottom:12px">⏳ Заявки на смены (${list.length})</h3>
+    <div class="tbl-wrap"><table><thead><tr><th>Работник</th><th>Техника</th><th>Дата</th><th>Тип</th><th>Комментарий</th><th style="text-align:right">Действие</th></tr></thead><tbody>`;
+  for(const s of list){
+    const typeShb=s.type===2?'<div class="shb night" style="display:inline-flex">Н</div>':s.type===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex;font-size:8px">Д+Н</div>';
+    h+=`<tr>
+      <td style="font-weight:600">${s.worker?s.worker.name:'—'}</td>
+      <td style="color:var(--muted)">${s.equip?s.equip.name:s.eqId}</td>
+      <td style="font-weight:600">${fmtDate(s.date)}</td>
+      <td>${typeShb} ${TLAB[s.type]||''}</td>
+      <td style="color:var(--muted);font-size:12px">${s.note||'—'}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="btn btn-sm" style="background:rgba(34,211,160,.12);color:var(--green);border:1px solid rgba(34,211,160,.3);margin-right:4px" onclick="approveShift('${s.docId}','approved')">✓ Принять</button>
+        <button class="btn btn-sm" style="background:rgba(240,92,110,.1);color:var(--red);border:1px solid rgba(240,92,110,.25)" onclick="approveShift('${s.docId}','rejected')">✕ Отклонить</button>
+      </td>
+    </tr>`;
+  }
+  h+='</tbody></table></div></div>';
+  el.innerHTML=h;
+}
+
+async function approveShift(docId,newStatus){
+  if(!can('edit_shifts'))return;
+  try{await db.collection('shifts').doc(docId).update({status:newStatus});}
+  catch(e){alert('Ошибка: '+e.message);}
 }
 
 // ═══════════════════════════════════════════════
