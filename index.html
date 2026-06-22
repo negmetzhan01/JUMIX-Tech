@@ -656,7 +656,7 @@ body{padding-left:var(--sidebar-w)}
 
 <!-- ═══════════ ОБЪЕКТЫ ═══════════ -->
 <div id="pane-objects" class="tab-pane">
-  <div class="ph"><h2>Объекты</h2><button class="btn btn-primary" onclick="openObjModal()">+ Добавить</button></div>
+  <div class="ph"><h2>Объекты</h2><div style="display:flex;gap:8px"><button class="btn btn-secondary" onclick="openTimesheetModal()">📄 Табель</button><button class="btn btn-primary" onclick="openObjModal()">+ Добавить</button></div></div>
   <div class="cards-grid" id="objCards"></div>
 </div>
 
@@ -846,6 +846,28 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moObj')">Отмена</button>
       <button class="btn btn-primary" onclick="saveObj()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ТАБЕЛЬ: МОДАЛ ФОРМИРОВАНИЯ -->
+<div class="mo hidden" id="moTimesheet" onclick="closeMoCheck('moTimesheet',event)">
+  <div class="mo-box wide">
+    <div class="mo-title">Формирование табеля</div>
+    <div class="mo-sub" id="tsPeriodSub">Период</div>
+    <div class="fg"><label class="fl">Объект</label>
+      <select class="fi" id="tsObject" onchange="renderTimesheetEquipList()"><option value="">— Выберите объект —</option></select></div>
+    <div class="fg"><label class="fl">Техника (можно выбрать одну или несколько)</label>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="tsToggleAll(true)">Выбрать всю</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="tsToggleAll(false)">Снять выбор</button>
+      </div>
+      <div id="tsEquipList" style="max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moTimesheet')">Отмена</button>
+      <button class="btn btn-primary" onclick="exportTimesheet('pdf')">📄 PDF</button>
+      <button class="btn btn-primary" onclick="exportTimesheet('excel')">📊 Excel</button>
     </div>
   </div>
 </div>
@@ -3019,8 +3041,7 @@ function renderObjects(){
         ${eqs.length?eqs.map(e=>`<span class="badge-type t-crane_op" style="margin-right:4px">${e.name}</span>`).join(''):'<span style="color:var(--muted)">нет</span>'}
       </div>
       <div class="c-card-foot" style="flex-wrap:wrap;gap:6px">
-        <button class="btn btn-secondary btn-sm" onclick="exportTimesheetPDF('${o.id}')">📄 Табель PDF</button>
-        <button class="btn btn-secondary btn-sm" onclick="exportTimesheetExcel('${o.id}')">📊 Excel</button>
+        <button class="btn btn-secondary btn-sm" onclick="openTimesheetModal('${o.id}')">📄 Табель</button>
         <button class="btn btn-secondary btn-sm" onclick="openObjModal('${o.id}')">✏ Изменить</button>
         <button class="btn btn-danger btn-sm" onclick="deleteObj('${o.id}')">✕</button>
       </div>
@@ -3030,100 +3051,209 @@ function renderObjects(){
 }
 
 // ═══════════════════════════════════════════════
-// ТАБЕЛЬ ПО ОБЪЕКТУ (PDF / Excel)
+// ТАБЕЛЬ ПО ОБЪЕКТУ И ТЕХНИКЕ (PDF / Excel)
 // ═══════════════════════════════════════════════
-// Собирает данные табеля по объекту за текущий период
-function buildTimesheetData(objId){
+// Типы дополнительных услуг для колонок табеля (соответствуют INC_TYPES)
+const TS_SERVICES=[['section','Наращ. секций'],['wall','Крепл. к зданию'],['anchor','Анкеры'],['transport','Перевозка'],['install','Монтаж'],['dismantle','Демонтаж'],['other','Прочие услуги']];
+
+// Экранирование для вставки в HTML табеля
+function _tsEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Открыть окно формирования табеля (с предвыбором объекта, если передан)
+function openTimesheetModal(objId){
+  const sel=document.getElementById('tsObject');
+  sel.innerHTML='<option value="">— Выберите объект —</option>'+cfg.objects.map(o=>`<option value="${o.id}"${objId===o.id?' selected':''}>${_tsEsc(o.name)}</option>`).join('');
+  document.getElementById('tsPeriodSub').textContent='Период: '+periodLabel(curYear,curEM).main+' · активный период (для другого — переключите в шапке)';
+  renderTimesheetEquipList();
+  openMo('moTimesheet');
+}
+
+// Список техники выбранного объекта с чекбоксами и полем «дней по месячной услуге»
+function renderTimesheetEquipList(){
+  const objId=document.getElementById('tsObject').value;
+  const list=document.getElementById('tsEquipList');
+  const n=getPeriodDates(curYear,curEM).length||1;
+  if(!objId){list.innerHTML='<div style="color:var(--muted);font-size:12px">Выберите объект</div>';return;}
+  const eqs=cfg.equipment.filter(e=>e.objectId===objId);
+  if(!eqs.length){list.innerHTML='<div style="color:var(--muted);font-size:12px">На объекте нет техники</div>';return;}
+  list.innerHTML=eqs.map(e=>{
+    const monthly=e.rates?.monthly||0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border-2);flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;flex:1;min-width:180px;cursor:pointer">
+        <input type="checkbox" class="ts-equip" value="${e.id}" checked>
+        <span><b>${_tsEsc(e.name)}</b> <span style="color:var(--muted);font-size:11px">${e.serial?_tsEsc(e.serial):'—'}</span></span>
+      </label>
+      ${monthly>0?`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+        <span>Услуга/мес: <b style="color:var(--text)">${fmt(monthly)} ₸</b> · дней:</span>
+        <input type="number" class="ts-days fi" data-eq="${e.id}" value="${n}" min="0" style="width:74px;padding:4px 6px">
+      </div>`:'<span style="font-size:11px;color:var(--muted)">мес. услуга не задана</span>'}
+    </div>`;
+  }).join('');
+}
+
+// Выбрать/снять всю технику
+function tsToggleAll(v){document.querySelectorAll('#tsEquipList .ts-equip').forEach(c=>c.checked=v);}
+
+// Собирает данные табеля по объекту и выбранной технике за активный период.
+// equipIds — массив выбранной техники (пусто = вся техника объекта).
+// monthDays — карта {equipId: дней} для ручной корректировки месячной услуги.
+function buildTimesheetData(objId,equipIds,monthDays){
   const o=cfg.objects.find(x=>x.id===objId);
   if(!o)return null;
   const lbl=periodLabel(curYear,curEM);
+  const n=getPeriodDates(curYear,curEM).length||1;
+  monthDays=monthDays||{};
+  const SERVICE_TYPES=TS_SERVICES.map(s=>s[0]);
+  let pool=cfg.equipment.filter(e=>e.objectId===objId);
+  if(Array.isArray(equipIds)&&equipIds.length)pool=pool.filter(e=>equipIds.includes(e.id));
   const rows=[];
-  for(const e of cfg.equipment.filter(eq=>eq.objectId===objId)){
-    let days=0,nights=0,over=0;
+  for(const e of pool){
+    let days=0,nights=0,over=0,subs=0;
+    const notes=[];
     for(const cell of Object.values(pd.shifts[e.id]||{})){
       const t=cell.type||0;
       if(cell.status==='pending'||cell.status==='rejected')continue;
       if(t===1||t===3)days++;
       if(t===2||t===3)nights++;
       if(t===4)over++;
+      // подмена — на смене отмечен кто-то, кроме основного оператора (в т.ч. партнёр)
+      if(cell.workerId&&cell.workerId!==e.primaryWorkerId)subs++;
+      if(cell.note)notes.push(cell.note);
     }
+    // Дополнительные услуги — из ручных позиций дохода по этой технике
+    const svc={};SERVICE_TYPES.forEach(k=>svc[k]=0);
+    let servicesMoney=0;
+    for(const it of (pd.incomeItems||[])){
+      if(it.equipmentId!==e.id)continue;
+      if(!SERVICE_TYPES.includes(it.type))continue;
+      svc[it.type]+=(it.qty||1);
+      servicesMoney+=(it.total||0);
+      if(it.note)notes.push(it.note);
+    }
+    const r=e.rates||{};
+    const monthly=r.monthly||0;
+    const hasMonthly=monthly>0;
+    // Месячная услуга: дней по периоду по умолчанию, с возможностью ручной корректировки
+    const mDays=hasMonthly?(monthDays[e.id]!=null?monthDays[e.id]:n):0;
+    const monthSum=hasMonthly?Math.round(monthly*mDays/n):0;
+    // Дневная ставка — только по фактическим дневным сменам (если нет месячной услуги)
+    const dailyRate=r.daily||0;
+    const dailySum=(!hasMonthly&&dailyRate>0)?dailyRate*days:0;
+    const nightRate=r.nightly||0;
+    const nightSum=nightRate>0?Math.round(nights*nightRate/n):0;
+    const rowMoney=monthSum+dailySum+nightSum+servicesMoney;
     const op=cfg.workers.find(w=>w.id===e.primaryWorkerId);
-    rows.push({equip:e.name,serial:e.serial||'—',worker:op?op.name:'—',days,nights,over});
+    rows.push({
+      equip:e.name,serial:e.serial||'—',worker:op?op.name:'—',
+      days,nights,over,subs,svc,
+      hasMonthly,mDays,monthSum,rowMoney,
+      comment:[...new Set(notes)].join('; ').slice(0,120)
+    });
   }
-  return{obj:o,periodMain:lbl.main,rows,company:cfg.settings.companyName||'ТОО'};
+  return{obj:o,periodMain:lbl.main,n,rows,company:cfg.settings.companyName||'ТОО',genDate:fmtFullDate(todayISO())};
 }
-
-// Экранирование для вставки в HTML табеля
-function _tsEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // Формирует HTML-документ табеля (используется и для печати в PDF, и для выгрузки в Excel)
 function timesheetHTML(d){
-  let body=`<tr>
-    <th>№</th><th>Техника</th><th>Госномер / инв. номер</th><th>Работник</th>
-    <th>Дневные смены</th><th>Ночные смены</th><th>Переработки</th></tr>`;
-  let i=1,td=0,tn=0,to=0;
+  let head=`<tr><th>№</th><th>Техника</th><th>Госномер /<br>инв. номер</th><th>Работник</th>
+    <th>Дн.<br>смены</th><th>Ноч.<br>смены</th><th>Пере-<br>работки</th><th>Под-<br>мены</th>`;
+  for(const[,lbl] of TS_SERVICES)head+=`<th>${lbl}</th>`;
+  head+=`<th>Дней<br>мес. услуги</th><th>Мес.<br>услуга ₸</th><th>Итого ₸</th><th>Комментарий</th></tr>`;
+  const T={days:0,nights:0,over:0,subs:0,svc:{},monthSum:0,money:0};
+  TS_SERVICES.forEach(s=>T.svc[s[0]]=0);
+  let bodyRows='',i=1;
   for(const r of d.rows){
-    td+=r.days;tn+=r.nights;to+=r.over;
-    body+=`<tr>
-      <td style="text-align:center">${i++}</td>
+    T.days+=r.days;T.nights+=r.nights;T.over+=r.over;T.subs+=r.subs;T.monthSum+=r.monthSum;T.money+=r.rowMoney;
+    for(const k in T.svc)T.svc[k]+=r.svc[k]||0;
+    let svcCells='';for(const[k] of TS_SERVICES)svcCells+=`<td class="c">${r.svc[k]||0}</td>`;
+    bodyRows+=`<tr>
+      <td class="c">${i++}</td>
       <td>${_tsEsc(r.equip)}</td>
       <td>${_tsEsc(r.serial)}</td>
       <td>${_tsEsc(r.worker)}</td>
-      <td style="text-align:center">${r.days}</td>
-      <td style="text-align:center">${r.nights}</td>
-      <td style="text-align:center">${r.over}</td></tr>`;
+      <td class="c">${r.days}</td>
+      <td class="c">${r.nights}</td>
+      <td class="c">${r.over}</td>
+      <td class="c">${r.subs}</td>
+      ${svcCells}
+      <td class="c">${r.hasMonthly?r.mDays:'—'}</td>
+      <td class="r">${r.hasMonthly?fmt(r.monthSum)+' ₸':'—'}</td>
+      <td class="r">${fmt(r.rowMoney)} ₸</td>
+      <td>${_tsEsc(r.comment)}</td>
+    </tr>`;
   }
-  body+=`<tr style="font-weight:bold;background:#f0f0f0">
+  let totSvc='';for(const[k] of TS_SERVICES)totSvc+=`<td class="c">${T.svc[k]}</td>`;
+  const totServices=Object.values(T.svc).reduce((s,v)=>s+v,0);
+  bodyRows+=`<tr class="tot">
     <td></td><td colspan="3">ИТОГО</td>
-    <td style="text-align:center">${td}</td>
-    <td style="text-align:center">${tn}</td>
-    <td style="text-align:center">${to}</td></tr>`;
+    <td class="c">${T.days}</td><td class="c">${T.nights}</td><td class="c">${T.over}</td><td class="c">${T.subs}</td>
+    ${totSvc}
+    <td></td><td class="r">${fmt(T.monthSum)} ₸</td><td class="r">${fmt(T.money)} ₸</td><td></td>
+  </tr>`;
   return `<!DOCTYPE html><html><head><meta charset="utf-8">
   <title>Табель — ${_tsEsc(d.obj.name)}</title>
   <style>
-    body{font-family:Arial,sans-serif;color:#000;padding:24px;font-size:13px}
-    h1{font-size:18px;margin:0 0 4px}
-    .meta{margin:2px 0;font-size:13px}
-    table{border-collapse:collapse;width:100%;margin-top:16px}
-    th,td{border:1px solid #000;padding:6px 8px}
-    th{background:#e8e8e8;font-size:12px}
-    .sign{margin-top:48px;display:flex;justify-content:space-between;gap:40px}
+    @page{size:A4 landscape;margin:10mm}
+    body{font-family:Arial,sans-serif;color:#000;padding:18px;font-size:12px}
+    h1{font-size:17px;margin:0 0 10px;text-align:center;letter-spacing:.5px}
+    .meta{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;margin-bottom:10px;font-size:12px}
+    .meta div{padding:1px 0}
+    table{border-collapse:collapse;width:100%;margin-top:8px;font-size:10px}
+    th,td{border:1px solid #555;padding:3px 4px}
+    th{background:#e8e8e8;font-size:9.5px;text-align:center;vertical-align:middle}
+    td.c{text-align:center}
+    td.r{text-align:right;white-space:nowrap}
+    tr.tot{font-weight:bold;background:#f0f0f0}
+    .summary{margin-top:12px;font-size:12px}
+    .summary b{font-size:14px}
+    .sign{margin-top:40px;display:flex;justify-content:space-between;gap:60px}
     .sign div{flex:1}
-    .sign .line{border-top:1px solid #000;margin-top:40px;padding-top:4px;font-size:12px;color:#333}
+    .sign .line{border-top:1px solid #000;margin-top:38px;padding-top:4px;font-size:11px;color:#333}
     @media print{body{padding:0}}
   </style></head><body>
-  <h1>ТАБЕЛЬ УЧЁТА РАБОЧЕГО ВРЕМЕНИ</h1>
-  <div class="meta"><b>Объект:</b> ${_tsEsc(d.obj.name)}${d.obj.client?' ('+_tsEsc(d.obj.client)+')':''}</div>
-  <div class="meta"><b>Период:</b> ${_tsEsc(d.periodMain)}</div>
-  <div class="meta"><b>Исполнитель:</b> ${_tsEsc(d.company)}</div>
-  <table>${body}</table>
+  <h1>ТАБЕЛЬ УЧЁТА РАБОТЫ ТЕХНИКИ</h1>
+  <div class="meta">
+    <div><b>Объект:</b> ${_tsEsc(d.obj.name)}</div>
+    <div><b>Период:</b> ${_tsEsc(d.periodMain)}</div>
+    <div><b>Заказчик:</b> ${_tsEsc(d.obj.client||'—')}</div>
+    <div><b>Дата формирования:</b> ${_tsEsc(d.genDate)}</div>
+    <div><b>Исполнитель:</b> ${_tsEsc(d.company)}</div>
+    <div><b>Дней в периоде:</b> ${d.n}</div>
+  </div>
+  <table>${head}${bodyRows}</table>
+  <div class="summary">
+    Итого доп. услуг: <b>${totServices}</b> · Общий итог по объекту: <b>${fmt(T.money)} ₸</b>
+  </div>
   <div class="sign">
-    <div><div class="line">Подпись заказчика / М.П.</div></div>
-    <div><div class="line">Подпись исполнителя / М.П.</div></div>
+    <div><div class="line">Заказчик / ____________________ / М.П.</div></div>
+    <div><div class="line">Исполнитель / ____________________ / М.П.</div></div>
   </div>
   </body></html>`;
 }
 
-function exportTimesheetPDF(objId){
-  const d=buildTimesheetData(objId);if(!d)return;
-  if(!d.rows.length){alert('На объекте нет техники для табеля');return;}
-  const w=window.open('','_blank');
-  if(!w){alert('Разрешите всплывающие окна, чтобы сохранить табель в PDF');return;}
-  w.document.write(timesheetHTML(d));
-  w.document.close();w.focus();
-  setTimeout(()=>{try{w.print();}catch(e){}},400);
-}
-
-function exportTimesheetExcel(objId){
-  const d=buildTimesheetData(objId);if(!d)return;
-  if(!d.rows.length){alert('На объекте нет техники для табеля');return;}
-  const blob=new Blob(['﻿'+timesheetHTML(d)],{type:'application/vnd.ms-excel'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;
-  a.download=`Табель_${d.obj.name}_${curYear}_${pad(curEM)}.xls`;
-  document.body.appendChild(a);a.click();
-  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+// Формирование табеля из окна (fmt: 'pdf' | 'excel')
+function exportTimesheet(fmt){
+  const objId=document.getElementById('tsObject').value;
+  if(!objId){alert('Выберите объект');return;}
+  const equipIds=[...document.querySelectorAll('#tsEquipList .ts-equip:checked')].map(c=>c.value);
+  if(!equipIds.length){alert('Выберите хотя бы одну единицу техники');return;}
+  const monthDays={};
+  document.querySelectorAll('#tsEquipList .ts-days').forEach(inp=>{monthDays[inp.dataset.eq]=+inp.value||0;});
+  const d=buildTimesheetData(objId,equipIds,monthDays);
+  if(!d||!d.rows.length){alert('Нет данных для табеля');return;}
+  if(fmt==='pdf'){
+    const w=window.open('','_blank');
+    if(!w){alert('Разрешите всплывающие окна, чтобы сохранить табель в PDF');return;}
+    w.document.write(timesheetHTML(d));w.document.close();w.focus();
+    setTimeout(()=>{try{w.print();}catch(e){}},400);
+  }else{
+    const blob=new Blob(['﻿'+timesheetHTML(d)],{type:'application/vnd.ms-excel'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;
+    a.download=`Табель_${d.obj.name}_${curYear}_${pad(curEM)}.xls`;
+    document.body.appendChild(a);a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+  }
 }
 
 function openObjModal(id){
