@@ -935,9 +935,15 @@ body{padding-left:var(--sidebar-w)}
       <button class="btn btn-sm btn-primary" id="tsModeSum" onclick="tsSetMode('summary')">Сводный табель</button>
       <button class="btn btn-sm btn-secondary" id="tsModeDet" onclick="tsSetMode('detail')">Детализированный по дням</button>
     </div>
-    <div class="frow frow-2" id="tsDateRow" style="display:none">
-      <div class="fg"><label class="fl">Дата с</label><input class="fi" type="date" id="tsFrom"></div>
-      <div class="fg"><label class="fl">Дата по</label><input class="fi" type="date" id="tsTo"></div>
+    <div id="tsDateRow">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
+        <label class="fl" style="margin:0">Период табеля (диапазон дат)</label>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="tsResetRange()">Текущий период (21→20)</button>
+      </div>
+      <div class="frow frow-2">
+        <div class="fg"><label class="fl">Дата с</label><input class="fi" type="date" id="tsFrom" onchange="renderTimesheetApproval()"></div>
+        <div class="fg"><label class="fl">Дата по</label><input class="fi" type="date" id="tsTo" onchange="renderTimesheetApproval()"></div>
+      </div>
     </div>
     <div class="fg"><label class="fl">Объекты (один, несколько или все)</label>
       <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -972,6 +978,7 @@ body{padding-left:var(--sidebar-w)}
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="tsInboxTabs"></div>
     <div id="tsInboxList" style="max-height:440px;overflow-y:auto"></div>
     <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="openTsArchive()">🗂 Архив табелей</button>
       <button class="btn btn-secondary" onclick="closeMo('moTsInbox')">Закрыть</button>
     </div>
   </div>
@@ -985,6 +992,45 @@ body{padding-left:var(--sidebar-w)}
     <div id="tsReviewBody" style="max-height:400px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px"></div>
     <div class="mo-acts" id="tsReviewActs">
       <button class="btn btn-secondary" onclick="closeMo('moTsReview')">Назад</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОТПРАВКА ТАБЕЛЯ НА СОГЛАСОВАНИЕ — выбор ответственного диспетчера -->
+<div class="mo hidden" id="moTsSend" onclick="closeMoCheck('moTsSend',event)">
+  <div class="mo-box">
+    <div class="mo-title">Отправить табель на согласование</div>
+    <div class="mo-sub">Выберите ответственного диспетчера</div>
+    <div class="fg"><label class="fl">Объект</label><div id="tsSendObj" style="font-weight:600"></div></div>
+    <div class="fg"><label class="fl">Техника</label><div id="tsSendEquip" style="font-size:13px;color:var(--muted)"></div></div>
+    <div class="fg"><label class="fl">Период</label><div id="tsSendPeriod" style="font-weight:600"></div></div>
+    <div class="fg"><label class="fl">Ответственный диспетчер</label>
+      <select class="fi" id="tsSendDispatcher"></select>
+      <div id="tsSendHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moTsSend')">Отмена</button>
+      <button class="btn btn-primary" onclick="confirmTsSend()">📨 Отправить</button>
+    </div>
+  </div>
+</div>
+
+<!-- АРХИВ ТАБЕЛЕЙ (постоянный) -->
+<div class="mo hidden" id="moTsArchive" onclick="closeMoCheck('moTsArchive',event)">
+  <div class="mo-box wide">
+    <div class="mo-title">🗂 Архив табелей</div>
+    <div class="mo-sub" id="tsArchSub">Все согласованные и отправленные табели</div>
+    <div class="frow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+      <div class="fg" style="flex:1;min-width:130px"><label class="fl">Объект</label><select class="fi" id="tsArchObj" onchange="renderTsArchive()"></select></div>
+      <div class="fg" style="flex:1;min-width:130px"><label class="fl">Техника</label><select class="fi" id="tsArchEquip" onchange="renderTsArchive()"></select></div>
+      <div class="fg" style="flex:1;min-width:130px"><label class="fl">Диспетчер</label><select class="fi" id="tsArchDisp" onchange="renderTsArchive()"></select></div>
+      <div class="fg" style="flex:1;min-width:130px"><label class="fl">Статус</label><select class="fi" id="tsArchStatus" onchange="renderTsArchive()">
+        <option value="">Все</option><option value="pending">На согласовании</option><option value="approved">Утверждён</option><option value="rejected">Отклонён</option><option value="stale">Изменён после утверждения</option>
+      </select></div>
+    </div>
+    <div id="tsArchList" style="max-height:440px;overflow-y:auto"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moTsArchive')">Закрыть</button>
     </div>
   </div>
 </div>
@@ -1546,15 +1592,25 @@ function listenPeriod(year, month) {
       scheduleRender();
     },()=>{}));
   }else if(_tsRole==='dispatcher'){
+    // Адресная модель: L1 — табели, назначенные лично этому диспетчеру (assignedDispatcherUid).
+    //                  L2 — СТАРЫЕ табели без явного получателя (fallback по назначенной технике).
+    // Оба источника сливаются в pd.tsApprovals; при общей технике L2 может не пройти правила —
+    // тогда молча остаются только адресные (L1). Ничего не ломается.
+    const uid=currentUser?.uid;
+    let _tsAddr={},_tsLeg={};
+    const _tsFlush=()=>{pd.tsApprovals={..._tsLeg,..._tsAddr};scheduleRender();};
+    _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).where('assignedDispatcherUid','==',uid).onSnapshot(snap=>{
+      _tsAddr={};snap.docs.forEach(d=>_tsAddr[d.id]={...d.data(),_docId:d.id});_tsFlush();
+    },()=>{}));
     const ids=(currentUser?.assignedEquipmentIds||[]);
     if(ids.length){
       const chunks=[];for(let i=0;i<ids.length;i+=30)chunks.push(ids.slice(i,i+30));
       const chunkRes=chunks.map(()=>[]);
       chunks.forEach((chunk,ci)=>{
         _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).where('equipmentIds','array-contains-any',chunk).onSnapshot(snap=>{
-          chunkRes[ci]=snap.docs.map(d=>({...d.data(),_docId:d.id}));
-          pd.tsApprovals={};for(const cr of chunkRes)for(const a of cr)pd.tsApprovals[a._docId]=a;
-          scheduleRender();
+          // только старые документы без явного получателя (адресные приходят из L1)
+          chunkRes[ci]=snap.docs.map(d=>({...d.data(),_docId:d.id})).filter(x=>!x.assignedDispatcherUid);
+          _tsLeg={};for(const cr of chunkRes)for(const a of cr)_tsLeg[a._docId]=a;_tsFlush();
         },()=>{}));
       });
     }
@@ -1703,6 +1759,39 @@ function canSeeEquip(equipId){
 function canApproveShiftFor(equipId){
   if(!can('approve_shifts'))return false;
   return canSeeEquip(equipId);
+}
+// Объекты, видимые диспетчеру = объекты его назначенной техники. null = без ограничений.
+// (пустой assignedEquipmentIds = без ограничений — общая конвенция видимости не меняется)
+function visibleObjectIds(){
+  if(currentUser?.role==='dispatcher'){
+    const ids=dispatcherEquipIds();
+    if(ids.length){
+      const set=new Set();
+      cfg.equipment.forEach(e=>{if(ids.includes(e.id)&&e.objectId)set.add(e.objectId);});
+      return set;
+    }
+  }
+  return null;
+}
+function visibleObjects(){
+  const set=visibleObjectIds();
+  if(!set)return cfg.objects;
+  return cfg.objects.filter(o=>set.has(o.id));
+}
+// Работники, видимые диспетчеру = закреплённые за его техникой (primaryWorkerId) или реально
+// выходившие на смены этой техники. null-эквивалент (все) для admin/owner/прочих.
+function visibleWorkers(){
+  if(currentUser?.role==='dispatcher'){
+    const ids=dispatcherEquipIds();
+    if(ids.length){
+      const eqs=cfg.equipment.filter(e=>ids.includes(e.id));
+      const wset=new Set();
+      eqs.forEach(e=>{if(e.primaryWorkerId)wset.add(e.primaryWorkerId);});
+      eqs.forEach(e=>{const cs=pd.shifts[e.id]||{};Object.values(cs).forEach(c=>{const wid=c.workerId;if(wid&&!String(wid).startsWith('p_'))wset.add(wid);});});
+      return cfg.workers.filter(w=>wset.has(w.id));
+    }
+  }
+  return cfg.workers;
 }
 
 function applyRoleVisibility() {
@@ -2173,7 +2262,7 @@ function renderWorkers(){
   // Dispatcher: name+type+equipment only, no salary
   if(role==='dispatcher'){
     let h='',cards='';
-    for(const w of cfg.workers){
+    for(const w of visibleWorkers()){
       const eq=cfg.equipment.find(e=>e.id===w.equipmentId);
       h+=`<tr><td><strong>${w.name}</strong></td><td><span class="badge-type t-${w.type}">${WORKER_TYPES[w.type]||w.type}</span></td>
         <td>${eq?eq.name:'—'}</td><td colspan="7" style="color:var(--muted);font-size:11px;font-style:italic">финансы скрыты</td></tr>`;
@@ -3085,6 +3174,7 @@ function _adminDash(){
       </div><div style="font-size:22px;color:var(--muted)">›</div>
     </div>
   </div>`;
+  h+=`<div style="margin:-8px 0 16px"><button class="btn btn-secondary btn-sm" onclick="openTsArchive()">🗂 Архив табелей</button></div>`;
   h+=`<div class="kpi-row" style="margin-bottom:16px">
     <div class="kpi bl"><div class="kl">Техника</div><div class="kv bl">${cfg.equipment.length}</div><div class="ks">в работе</div></div>
     <div class="kpi gn"><div class="kl">Работники</div><div class="kv gn">${cfg.workers.length}</div><div class="ks">всего</div></div>
@@ -3148,6 +3238,7 @@ function _dispatcherDash(){
       <div style="font-size:22px;color:var(--muted)">›</div>
     </div>
   </div>`;
+  h+=`<div style="margin:-8px 0 16px"><button class="btn btn-secondary btn-sm" onclick="openTsArchive()">🗂 Архив моих табелей</button></div>`;
   h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
     <div class="kpi bl"><div class="kl">Ночей в периоде</div><div class="kv bl">${totalNights}</div><div class="ks">подтверждено</div></div>
     <div class="kpi ${pendingRequests>0?'yw':'gn'}"><div class="kl">Заявок</div><div class="kv ${pendingRequests>0?'yw':'gn'}">${pendingRequests}</div><div class="ks">ожидают</div></div>
@@ -3665,8 +3756,9 @@ function renderObjects(){
   const addBtn=document.getElementById('objAddBtn');
   if(addBtn)addBtn.style.display=(currentUser?.role==='admin')?'':'none';
   let h='';
-  for(const o of cfg.objects){
-    const eqs=cfg.equipment.filter(e=>e.objectId===o.id);
+  for(const o of visibleObjects()){
+    // диспетчеру показываем только его технику на объекте
+    const eqs=cfg.equipment.filter(e=>e.objectId===o.id&&canSeeEquip(e.id));
     h+=`<div class="c-card">
       <div class="c-card-head">
         <div><div class="c-card-title">${o.name}</div><div class="c-card-sub">${o.client||''}</div></div>
@@ -3703,10 +3795,23 @@ function _tsApprovalKey(objId,equipIds,from,to){
   const eq=[...(equipIds||[])].sort().join(',');
   return objId+'_'+_tsHashStr(objId+'|'+(from||'')+'|'+(to||'')+'|'+eq);
 }
-// Диапазон дат текущего табеля: детализированный — из полей, сводный — границы расчётного периода
+// Диапазон дат текущего табеля — ВСЕГДА из полей «Дата с/по» (оба режима).
+// Если поля пусты — откат на границы расчётного периода. Исправляет баг подмены
+// произвольного диапазона расчётным периодом (сводный режим раньше игнорировал даты).
 function _tsRange(){
-  if(_tsMode==='detail'){return {from:(document.getElementById('tsFrom')||{}).value||'',to:(document.getElementById('tsTo')||{}).value||''};}
+  const f=(document.getElementById('tsFrom')||{}).value||'';
+  const t=(document.getElementById('tsTo')||{}).value||'';
+  if(f&&t)return {from:f,to:t};
   const dts=getPeriodDates(curYear,curEM);return {from:dk(dts[0]),to:dk(dts[dts.length-1])};
+}
+// Читаемый заголовок периода: если диапазон совпадает с границами расчётного периода —
+// человекочитаемая подпись «21 июня — 20 июля»; иначе — точные даты «дд.мм.гггг–дд.мм.гггг».
+function _tsPeriodMain(from,to){
+  const dts=getPeriodDates(curYear,curEM);
+  const pf=dk(dts[0]),pt=dk(dts[dts.length-1]);
+  if(from===pf&&to===pt)return periodLabel(curYear,curEM).main;
+  const f=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;};
+  return `${f(from)} — ${f(to)}`;
 }
 // Отмеченная техника, принадлежащая объекту (точный состав табеля)
 function _tsObjEquipIds(objId){
@@ -3764,12 +3869,16 @@ function canViewTimesheet(objId){
 // Может ли текущий пользователь утвердить КОНКРЕТНОЕ утверждение (точная техника).
 // Совпадает с Firestore-правилом: диспетчеру нужна пересечение equipmentIds с назначенной техникой
 // (пустой список назначений = без ограничений).
+// Модель адресного получателя: диспетчер видит/утверждает табель, только если он назначенный
+// получатель (assignedDispatcherUid). Для СТАРЫХ табелей без этого поля — fallback по пересечению
+// назначенной техники (обратная совместимость). Совпадает с Firestore-правилом dispCanReach().
 function canApproveApproval(a){
   const r=currentUser?.role;
   if(r==='admin'||r==='owner')return true;
   if(r==='dispatcher'){
+    if(a.assignedDispatcherUid)return a.assignedDispatcherUid===currentUser.uid;
     const ids=dispatcherEquipIds();
-    if(!ids.length)return false; // пустой список назначений = НЕТ доступа к согласованию
+    if(!ids.length)return false; // старый документ + пустой список назначений = НЕТ доступа
     return (a.equipmentIds||[]).some(id=>ids.includes(id));
   }
   return false;
@@ -3797,18 +3906,88 @@ function _tsScope(objId){
 }
 // ── Ядро операций согласования (принимают точную область: objId + equipIds + from + to) ──
 function _tsCurDoc(objId,equipIds,from,to){return getTsApprovalByKey(_tsApprovalKey(objId,equipIds,from,to))||{};}
-async function _tsSend(objId,equipIds,from,to){
+// Снимок табеля на момент утверждения (для постоянного архива — печатается из него, не из live-смен)
+function _tsBuildSnapshot(objId,equipIds,from,to,data){
+  const o=cfg.objects.find(x=>x.id===objId);
+  return {objectId:objId,objectName:o?o.name:'',equipmentIds:equipIds,periodFrom:from,periodTo:to,
+    data:data||[],builtAt:new Date().toISOString()};
+}
+// Отправка на согласование адресно конкретному диспетчеру (disp={uid,name}).
+// Повторная отправка ранее утверждённого табеля НЕ трогает старый snapshot: он архивируется
+// в revisions[], создаётся новая версия (revision+1) со статусом «на согласовании».
+async function _tsSend(objId,equipIds,from,to,disp){
   const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();const who=currentUser.name||currentUser.email;
+  const wasApproved=(cur.status==='approved');
+  const revisions=[...(cur.revisions||[])];
+  let revision=cur.revision||1;
+  if(wasApproved){
+    // архивируем текущую утверждённую версию целиком (snapshot остаётся неизменным)
+    revisions.push({revision,status:'approved',approvedByUid:cur.approvedByUid||'',approvedByName:cur.approvedByName||'',
+      approvedByRole:cur.approvedByRole||'',approvedAt:cur.approvedAt||'',approvalComment:cur.approvalComment||'',
+      approvedSnapshot:cur.approvedSnapshot||null,sentByName:cur.sentByName||'',sentByUid:cur.sentByUid||'',sentAt:cur.sentAt||'',
+      assignedDispatcherUid:cur.assignedDispatcherUid||'',assignedDispatcherName:cur.assignedDispatcherName||'',contentSig:cur.contentSig||null});
+    revision=revision+1;
+  }
   await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,
-    status:'pending',rejectionComment:'',rejectedBy:'',rejectedAt:'',sentByName:who,sentByUid:currentUser.uid,sentAt:now,
-    history:[...(cur.history||[]),_tsHistEntry('sent',`Отправлено на согласование (${from}–${to})`)]});
+    status:'pending',revision,revisions,
+    assignedDispatcherUid:disp?disp.uid:(cur.assignedDispatcherUid||''),assignedDispatcherName:disp?disp.name:(cur.assignedDispatcherName||''),
+    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
+    approvedSnapshot:wasApproved?null:(cur.approvedSnapshot||null),contentSig:null,
+    rejectionComment:'',rejectedBy:'',rejectedByUid:'',rejectedAt:'',sentByName:who,sentByUid:currentUser.uid,sentAt:now,
+    history:[...(cur.history||[]),_tsHistEntry('sent',`Отправлено диспетчеру ${disp?disp.name:'—'} (${from}–${to})${wasApproved?' · повторное согласование, версия '+revision:''}`)]});
 }
 async function _tsApprove(objId,equipIds,from,to,comment){
   const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
+  // формируем и сохраняем snapshot табеля на момент утверждения (для архива и печати)
+  let snapshot=null;
+  try{const data=await buildEquipDetailed(equipIds,from,to);snapshot=_tsBuildSnapshot(objId,equipIds,from,to,data);}catch(e){}
   await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'approved',
     approvedByUid:currentUser.uid,approvedByName:currentUser.name||currentUser.email,approvedByRole:ROLE_LABELS[currentUser.role]||currentUser.role,
-    approvedAt:now,approvalComment:comment||'',contentSig:objectTimesheetSig(objId,equipIds,from,to),rejectionComment:'',
+    approvedAt:now,approvalComment:comment||'',contentSig:objectTimesheetSig(objId,equipIds,from,to),approvedSnapshot:snapshot,rejectionComment:'',
     history:[...(cur.history||[]),_tsHistEntry('approved',comment||'')]});
+}
+// ── Загрузка диспетчеров и определение закреплённого получателя ──
+async function loadDispatchers(){
+  try{const snap=await db.collection('users').where('role','==','dispatcher').get();
+    return snap.docs.map(d=>({uid:d.id,name:d.data().name||d.data().email||'—',assignedEquipmentIds:d.data().assignedEquipmentIds||[]}));
+  }catch(e){return [];}
+}
+function _assignedDispatchers(dispatchers,equipIds){
+  const set=new Set(equipIds||[]);
+  return dispatchers.filter(d=>(d.assignedEquipmentIds||[]).some(id=>set.has(id)));
+}
+// Модальное окно выбора ответственного диспетчера перед отправкой на согласование
+let _tsSendScope=null;
+async function openTsSendModal(objId){
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отправить на согласование может Admin или Owner');return;}
+  const s=_tsScope(objId);if(!s)return;
+  _tsSendScope={objId,equipIds:s.equipIds,from:s.from,to:s.to};
+  const o=cfg.objects.find(x=>x.id===objId);
+  document.getElementById('tsSendObj').textContent=o?o.name:'—';
+  document.getElementById('tsSendEquip').textContent=cfg.equipment.filter(e=>s.equipIds.includes(e.id)).map(e=>e.name).join(', ')||'—';
+  document.getElementById('tsSendPeriod').textContent=_tsFmtDate(s.from)+'–'+_tsFmtDate(s.to);
+  const sel=document.getElementById('tsSendDispatcher'),hint=document.getElementById('tsSendHint');
+  sel.innerHTML='<option value="">Загрузка…</option>';hint.textContent='';hint.style.color='var(--muted)';
+  openMo('moTsSend');
+  const dispatchers=await loadDispatchers();
+  sel._dispatchers=dispatchers;
+  if(!dispatchers.length){sel.innerHTML='<option value="">— нет диспетчеров —</option>';hint.textContent='Нет пользователей с ролью «Диспетчер». Создайте диспетчера в Настройках.';return;}
+  const assigned=_assignedDispatchers(dispatchers,s.equipIds);
+  const aset=new Set(assigned.map(d=>d.uid));
+  sel.innerHTML='<option value="">— выберите диспетчера —</option>'+dispatchers.map(d=>`<option value="${d.uid}">${_tsEsc(d.name)}${aset.has(d.uid)?' (закреплён за техникой)':''}</option>`).join('');
+  const distinct=[...aset];
+  if(distinct.length===1){sel.value=distinct[0];hint.textContent='Диспетчер выбран автоматически (закреплён за этой техникой). Можно изменить.';}
+  else if(distinct.length>1){hint.textContent='У техники разные закреплённые диспетчеры — выберите получателя вручную.';hint.style.color='var(--yellow)';}
+  else{hint.textContent='За этой техникой не закреплён диспетчер — выберите получателя вручную.';}
+}
+function confirmTsSend(){
+  const sel=document.getElementById('tsSendDispatcher'),uid=sel.value;
+  if(!uid){alert('Выберите ответственного диспетчера');return;}
+  const disp=(sel._dispatchers||[]).find(d=>d.uid===uid);
+  if(!disp){alert('Диспетчер не найден');return;}
+  const sc=_tsSendScope;if(!sc)return;
+  closeMo('moTsSend');
+  _tsSend(sc.objId,sc.equipIds,sc.from,sc.to,{uid:disp.uid,name:disp.name}).then(()=>renderTimesheetApproval());
 }
 async function _tsReject(objId,equipIds,from,to,comment){
   const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
@@ -3824,10 +4003,9 @@ async function _tsCancel(objId,equipIds,from,to){
     history:[...(cur.history||[]),_tsHistEntry('cancelled','Утверждение отменено, отправлено на повторное согласование')]});
 }
 // ── Обёртки из окна формирования табеля (область берётся из DOM через _tsScope) ──
+// Отправка теперь адресная — открывает окно выбора ответственного диспетчера
 async function sendTimesheetForApproval(objId){
-  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отправить на согласование может Admin или Owner');return;}
-  const s=_tsScope(objId);if(!s)return;
-  await _tsSend(objId,s.equipIds,s.from,s.to);renderTimesheetApproval();
+  return openTsSendModal(objId);
 }
 async function approveTimesheet(objId){
   if(!canApproveTimesheet(objId)){alert('Нет прав на утверждение этого табеля');return;}
@@ -3910,24 +4088,36 @@ function renderTsInbox(){
   }
   list.innerHTML=h;
 }
-// Открыть точный сохранённый табель (детализация по дням) для проверки перед утверждением
+// Найти утверждение: сначала в текущем периоде (live), затем в загруженном архиве
+function _tsFindApproval(id){return getTsApprovalByKey(id)||(_tsArchive||[]).find(a=>a._docId===id)||null;}
+// Открыть точный сохранённый табель (детализация по дням) для проверки / просмотра из архива.
+// Для утверждённого — строится из snapshot (не перерисовывается live-сменами).
 async function openTsReview(key){
-  const a=getTsApprovalByKey(key);if(!a){alert('Табель не найден');return;}
+  const a=_tsFindApproval(key);if(!a){alert('Табель не найден');return;}
   if(!canViewTimesheet(a.objectId)){alert('Нет доступа к этому табелю');return;}
   _tsReviewKey=key;
   const o=cfg.objects.find(x=>x.id===a.objectId);
   const st=tsEffStatus(a);
-  document.getElementById('tsReviewTitle').textContent='Табель — '+(o?o.name:'—');
-  document.getElementById('tsReviewSub').textContent=`Период: ${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'} · Статус: ${TS_STATUS[st]||st}`;
+  const isLive=!!getTsApprovalByKey(key); // действия доступны только для текущего периода
+  document.getElementById('tsReviewTitle').textContent='Табель — '+(o?o.name:(a.objectName||'—'));
+  document.getElementById('tsReviewSub').textContent=`Период: ${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'} · Статус: ${TS_STATUS[st]||st}${(a.revision||1)>1?' · версия '+a.revision:''}`;
   document.getElementById('tsReviewBody').innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Загрузка табеля…</div>';
   const acts=document.getElementById('tsReviewActs');
   acts.innerHTML='<button class="btn btn-secondary" onclick="closeMo(\'moTsReview\')">Назад</button>';
-  if(canApproveApproval(a)&&(st==='pending'||st==='stale')){
+  if(isLive&&canApproveApproval(a)&&st==='pending'){
     acts.innerHTML+=`<button class="btn btn-primary" style="background:var(--green);border-color:var(--green)" onclick="reviewApprove()">✓ Утвердить</button>
       <button class="btn btn-primary" style="background:var(--red);border-color:var(--red)" onclick="reviewReject()">Отклонить</button>`;
+  }else if(isLive&&st==='stale'){
+    acts.innerHTML+=`<span style="color:var(--accent);font-size:12px;align-self:center">Табель изменён после утверждения — требуется повторная отправка Admin/Owner</span>`;
   }
   openMo('moTsReview');
-  const data=await buildEquipDetailed(a.equipmentIds||[],a.periodFrom,a.periodTo);
+  // утверждённый архивный табель — из snapshot; иначе — live за диапазон
+  let data;
+  if(st==='approved'&&a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
+    data=a.approvedSnapshot.data;
+  }else{
+    data=await buildEquipDetailed(a.equipmentIds||[],a.periodFrom,a.periodTo);
+  }
   if(_tsReviewKey!==key)return;
   document.getElementById('tsReviewBody').innerHTML=_tsReviewTableHTML(data);
 }
@@ -3973,6 +4163,105 @@ async function reviewReject(){
   closeMo('moTsReview');renderTsInbox();
 }
 
+// ═══════════════════════════════════════════════
+// АРХИВ ТАБЕЛЕЙ (постоянный, за все периоды)
+// ═══════════════════════════════════════════════
+let _tsArchive=[];
+// Загрузка всех согласований по ролям (с учётом Firestore Rules).
+async function loadAllApprovals(){
+  const r=currentUser?.role;const out={};
+  if(r==='admin'||r==='owner'){
+    try{const snap=await db.collection('timesheetApprovals').get();
+      snap.docs.forEach(d=>out[d.id]={...d.data(),_docId:d.id});}catch(e){fbErr(e);}
+  }else if(r==='dispatcher'){
+    // адресные (новые) — по assignedDispatcherUid
+    try{const s1=await db.collection('timesheetApprovals').where('assignedDispatcherUid','==',currentUser.uid).get();
+      s1.docs.forEach(d=>out[d.id]={...d.data(),_docId:d.id});}catch(e){}
+    // старые (без явного получателя) — по пересечению техники, best-effort
+    const ids=dispatcherEquipIds();
+    if(ids.length){
+      const chunks=[];for(let i=0;i<ids.length;i+=30)chunks.push(ids.slice(i,i+30));
+      for(const chunk of chunks){
+        try{const s2=await db.collection('timesheetApprovals').where('equipmentIds','array-contains-any',chunk).get();
+          s2.docs.forEach(d=>{const x=d.data();if(!x.assignedDispatcherUid)out[d.id]={...x,_docId:d.id};});}catch(e){}
+      }
+    }
+  }
+  return Object.values(out).filter(a=>a&&a.objectId);
+}
+async function openTsArchive(){
+  const r=currentUser?.role;
+  if(!(r==='admin'||r==='owner'||r==='dispatcher')){alert('Нет доступа к архиву табелей');return;}
+  document.getElementById('tsArchList').innerHTML='<div style="color:var(--muted);padding:16px">Загрузка архива…</div>';
+  document.getElementById('tsArchSub').textContent='Загрузка…';
+  openMo('moTsArchive');
+  _tsArchive=await loadAllApprovals();
+  // наполняем фильтры из загруженных данных
+  const objs=[...new Set(_tsArchive.map(a=>a.objectId))].map(id=>cfg.objects.find(o=>o.id===id)).filter(Boolean);
+  document.getElementById('tsArchObj').innerHTML='<option value="">Все объекты</option>'+objs.map(o=>`<option value="${o.id}">${_tsEsc(o.name)}</option>`).join('');
+  const eqIds=[...new Set(_tsArchive.flatMap(a=>a.equipmentIds||[]))];
+  document.getElementById('tsArchEquip').innerHTML='<option value="">Вся техника</option>'+eqIds.map(id=>{const e=cfg.equipment.find(x=>x.id===id);return `<option value="${id}">${_tsEsc(e?e.name:id)}</option>`;}).join('');
+  const disps=[...new Map(_tsArchive.filter(a=>a.assignedDispatcherUid).map(a=>[a.assignedDispatcherUid,a.assignedDispatcherName||a.assignedDispatcherUid])).entries()];
+  document.getElementById('tsArchDisp').innerHTML='<option value="">Все диспетчеры</option>'+disps.map(([uid,nm])=>`<option value="${uid}">${_tsEsc(nm)}</option>`).join('');
+  renderTsArchive();
+}
+function renderTsArchive(){
+  const fObj=document.getElementById('tsArchObj').value,fEq=document.getElementById('tsArchEquip').value;
+  const fDisp=document.getElementById('tsArchDisp').value,fSt=document.getElementById('tsArchStatus').value;
+  let rows=_tsArchive.map(a=>({a,st:tsEffStatus(a)}));
+  if(fObj)rows=rows.filter(x=>x.a.objectId===fObj);
+  if(fEq)rows=rows.filter(x=>(x.a.equipmentIds||[]).includes(fEq));
+  if(fDisp)rows=rows.filter(x=>x.a.assignedDispatcherUid===fDisp);
+  if(fSt)rows=rows.filter(x=>x.st===fSt);
+  rows.sort((p,q)=>(q.a.approvedAt||q.a.sentAt||'').localeCompare(p.a.approvedAt||p.a.sentAt||''));
+  document.getElementById('tsArchSub').textContent=`Табелей: ${rows.length}`;
+  const list=document.getElementById('tsArchList');
+  if(!rows.length){list.innerHTML='<div class="empty" style="padding:20px">Нет табелей по выбранным фильтрам</div>';return;}
+  let h='';
+  for(const {a,st} of rows){
+    const o=cfg.objects.find(x=>x.id===a.objectId);
+    const col=TS_STATUS_COLOR[st]||'var(--muted)';
+    const eqNames=cfg.equipment.filter(e=>(a.equipmentIds||[]).includes(e.id)).map(e=>e.name).join(', ')||(a.equipmentIds||[]).join(', ')||'—';
+    const rev=(a.revision||1);
+    h+=`<div class="c-card" style="margin-bottom:10px"><div class="c-card-body" style="font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <b style="font-size:14px">${_tsEsc(o?o.name:(a.objectName||'—'))}</b>
+        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${TS_STATUS[st]||st}${rev>1?' · вер.'+rev:''}</span>
+      </div>
+      <div style="margin-top:5px;color:var(--muted)">Период: <b style="color:var(--text)">${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'}</b></div>
+      <div style="margin-top:3px;color:var(--muted)">Техника: <span style="color:var(--text)">${_tsEsc(eqNames)}</span></div>
+      ${a.sentByName?`<div style="margin-top:3px;color:var(--muted)">Отправил: ${_tsEsc(a.sentByName)}${a.sentAt?' · '+_tsDT(a.sentAt):''}</div>`:''}
+      ${a.assignedDispatcherName?`<div style="margin-top:2px;color:var(--muted)">Получатель: <span style="color:var(--text)">${_tsEsc(a.assignedDispatcherName)}</span></div>`:''}
+      ${st==='approved'&&a.approvedByName?`<div style="margin-top:2px;color:var(--green)">✓ Утвердил: ${_tsEsc(a.approvedByName)}${a.approvedAt?' · '+_tsDT(a.approvedAt):''}</div>`:''}
+      ${st==='rejected'&&a.rejectedBy?`<div style="margin-top:2px;color:var(--red)">Отклонил: ${_tsEsc(a.rejectedBy)}${a.rejectionComment?' · «'+_tsEsc(a.rejectionComment)+'»':''}</div>`:''}
+      ${st==='stale'?`<div style="margin-top:2px;color:var(--accent)">Изменён после утверждения — требуется повторное согласование</div>`:''}
+    </div>
+    <div class="c-card-foot" style="flex-wrap:wrap;gap:6px">
+      <button class="btn btn-primary btn-sm" onclick="openTsReview('${a._docId}')">Открыть</button>
+      <button class="btn btn-secondary btn-sm" onclick="archivePrint('${a._docId}','pdf')">📄 PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="archivePrint('${a._docId}','excel')">📊 Excel</button>
+    </div></div>`;
+  }
+  list.innerHTML=h;
+}
+// Печать/выгрузка табеля из архива: утверждённый — из snapshot; иначе — live за диапазон
+async function _tsPrintApproval(a,fmt){
+  const from=a.periodFrom,to=a.periodTo;
+  let data;
+  if((a.status==='approved')&&a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
+    data=a.approvedSnapshot.data;
+  }else{
+    data=await buildEquipDetailed(a.equipmentIds||[],from,to);
+  }
+  const approvals={};approvals[a.objectId]={status:(a.status||'draft'),doc:a};
+  _tsOutput(detailedTimesheetHTML(data,from,to,approvals),fmt,'спецтехника');
+}
+function archivePrint(docId,fmt){
+  const a=(_tsArchive||[]).find(x=>x._docId===docId);
+  if(!a){alert('Табель не найден');return;}
+  _tsPrintApproval(a,fmt);
+}
+
 // Экранирование для вставки в HTML табеля
 function _tsEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -3998,7 +4287,16 @@ function tsSetMode(m){
   _tsMode=m;
   document.getElementById('tsModeSum').className='btn btn-sm '+(m==='summary'?'btn-primary':'btn-secondary');
   document.getElementById('tsModeDet').className='btn btn-sm '+(m==='detail'?'btn-primary':'btn-secondary');
-  document.getElementById('tsDateRow').style.display=m==='detail'?'':'none';
+  // Диапазон дат применяется в ОБОИХ режимах (исправление бага с подменой на расчётный период)
+  renderTimesheetApproval();
+}
+// Сбросить диапазон дат на границы текущего расчётного периода (21→20)
+function tsResetRange(){
+  const dts=getPeriodDates(curYear,curEM);
+  const f=document.getElementById('tsFrom'),t=document.getElementById('tsTo');
+  if(f)f.value=dk(dts[0]);
+  if(t)t.value=dk(dts[dts.length-1]);
+  renderTimesheetApproval();
 }
 
 // Отмеченные объекты
@@ -4014,7 +4312,7 @@ function renderTimesheetEquipList(){
   let h='';
   for(const oid of objIds){
     const o=cfg.objects.find(x=>x.id===oid);if(!o)continue;
-    const eqs=cfg.equipment.filter(e=>e.objectId===oid);
+    const eqs=cfg.equipment.filter(e=>e.objectId===oid&&canSeeEquip(e.id));
     h+=`<div style="margin-bottom:4px"><div style="font-weight:700;font-size:12px;color:var(--accent);border-bottom:1px solid var(--border);padding:4px 0;margin-bottom:4px">${_tsEsc(o.name)}</div>`;
     if(!eqs.length){h+='<div style="color:var(--muted);font-size:11px;padding:2px 0 8px">Нет техники</div></div>';continue;}
     for(const e of eqs){
@@ -4077,7 +4375,7 @@ function renderTimesheetApproval(){
     }
     const acts=[];
     if(isMgr&&(status==='draft'||status==='rejected'||status==='stale'))acts.push(`<button class="btn btn-sm btn-primary" onclick="sendTimesheetForApproval('${oid}')">На согласование</button>`);
-    if(canApproveTimesheet(oid)&&(status==='pending'||status==='stale'))acts.push(`<button class="btn btn-sm" style="background:rgba(34,211,160,.15);color:var(--green)" onclick="approveTimesheet('${oid}')">✓ Утвердить</button>`);
+    if(canApproveTimesheet(oid)&&status==='pending')acts.push(`<button class="btn btn-sm" style="background:rgba(34,211,160,.15);color:var(--green)" onclick="approveTimesheet('${oid}')">✓ Утвердить</button>`);
     if(canApproveTimesheet(oid)&&status==='pending')acts.push(`<button class="btn btn-sm" style="background:var(--red-soft);color:var(--red)" onclick="rejectTimesheet('${oid}')">Отклонить</button>`);
     if(isMgr&&status==='approved')acts.push(`<button class="btn btn-sm btn-secondary" onclick="cancelTimesheetApproval('${oid}')">Отменить утверждение</button>`);
     if(doc&&(doc.history||[]).length)acts.push(`<button class="btn btn-sm btn-secondary" onclick="showTsHistory('${oid}')">История</button>`);
@@ -4127,14 +4425,15 @@ function _tsPrintScopes(objIds){
 function tsToggleAll(v){document.querySelectorAll('#tsEquipList .ts-equip').forEach(c=>c.checked=v);}
 
 // Строки по технике одного объекта (только данные техники — без зарплат и комментариев).
-function _tsEquipRows(objId,equipIds,monthDays){
+function _tsEquipRows(objId,equipIds,monthDays,from,to){
   const SERVICE_TYPES=TS_SERVICES.map(s=>s[0]);
   let pool=cfg.equipment.filter(e=>e.objectId===objId);
   if(Array.isArray(equipIds)&&equipIds.length)pool=pool.filter(e=>equipIds.includes(e.id));
   const rows=[];
   for(const e of pool){
     let days=0,nights=0;
-    for(const cell of Object.values(pd.shifts[e.id]||{})){
+    for(const[date,cell] of Object.entries(pd.shifts[e.id]||{})){
+      if(from&&date<from)continue;if(to&&date>to)continue; // строго внутри диапазона
       const t=cell.type||0;
       if(cell.status==='pending'||cell.status==='rejected')continue;
       if(t===1||t===3)days++;
@@ -4143,6 +4442,8 @@ function _tsEquipRows(objId,equipIds,monthDays){
     const svc={};SERVICE_TYPES.forEach(k=>svc[k]=0);
     for(const it of (pd.incomeItems||[])){
       if(it.equipmentId!==e.id)continue;
+      if(it.status==='cancelled')continue;
+      if(from&&it.date<from)continue;if(to&&it.date>to)continue;
       if(!SERVICE_TYPES.includes(it.type))continue;
       svc[it.type]+=(it.qty||1);
     }
@@ -4157,16 +4458,16 @@ function _tsEquipRows(objId,equipIds,monthDays){
 
 // Собирает данные табеля по выбранным объектам (один/несколько/все) и технике.
 // Возвращает группы {obj, rows} — общий табель с группировкой по объектам.
-function buildTimesheetData(objIds,equipIds,monthDays){
+function buildTimesheetData(objIds,equipIds,monthDays,from,to){
   monthDays=monthDays||{};
   const ids=Array.isArray(objIds)?objIds:[objIds];
   const groups=[];
   for(const oid of ids){
     const o=cfg.objects.find(x=>x.id===oid);if(!o)continue;
-    const rows=_tsEquipRows(oid,equipIds,monthDays);
+    const rows=_tsEquipRows(oid,equipIds,monthDays,from,to);
     if(rows.length)groups.push({obj:o,rows});
   }
-  return{company:cfg.settings.companyName||'ТОО',periodMain:periodLabel(curYear,curEM).main,genDate:fmtFullDate(todayISO()),groups};
+  return{company:cfg.settings.companyName||'ТОО',periodMain:_tsPeriodMain(from,to),genDate:fmtFullDate(todayISO()),groups};
 }
 
 // Формирует HTML-документ табеля для ЗАКАЗЧИКА (PDF / Excel).
@@ -4458,12 +4759,14 @@ async function exportTimesheet(fmt){
     _tsOutput(detailedTimesheetHTML(data,from,to,approvals),fmt,'спецтехника');
     return;
   }
-  // Сводный табель (по расчётному периоду)
+  // Сводный табель — теперь строго в рамках выбранного диапазона дат (а не всего периода)
   const objIds=tsCheckedObjects();
   if(!objIds.length){alert('Выберите хотя бы один объект');return;}
+  const {from:sFrom,to:sTo}=_tsRange();
+  if(sFrom&&sTo&&sFrom>sTo){alert('«Дата с» не может быть позже «Дата по»');return;}
   const monthDays={};
   document.querySelectorAll('#tsEquipList .ts-days').forEach(inp=>{monthDays[inp.dataset.eq]=+inp.value||0;});
-  const d=buildTimesheetData(objIds,equipIds,monthDays);
+  const d=buildTimesheetData(objIds,equipIds,monthDays,sFrom,sTo);
   if(!d||!d.groups.length){alert('Нет данных для табеля по выбранным объектам и технике');return;}
   const fname=d.groups.length===1?d.groups[0].obj.name:'сводный';
   // Блок утверждения — по точным табелям объектов, попавших в документ
