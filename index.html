@@ -740,6 +740,12 @@ body{padding-left:var(--sidebar-w)}
     <div class="set-row"><span class="set-label">Название компании</span>
       <input class="set-val" type="text" id="sCompany" style="width:200px;text-align:left" onchange="saveSetting('companyName',this.value)"></div>
   </div>
+  <div class="set-group" id="orgsSection" style="display:none">
+    <h3>Организации / реквизиты</h3>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Организации, от имени которых формируются табели: наименование, руководитель, печать.</div>
+    <div id="orgsList" style="margin-bottom:14px"></div>
+    <button class="btn btn-primary btn-sm" onclick="openOrgModal()">+ Добавить организацию</button>
+  </div>
   <div class="set-group" id="usersSection" style="display:none">
     <h3>Пользователи</h3>
     <div id="usersList" style="margin-bottom:14px"></div>
@@ -935,6 +941,8 @@ body{padding-left:var(--sidebar-w)}
       <button class="btn btn-sm btn-primary" id="tsModeSum" onclick="tsSetMode('summary')">Сводный табель</button>
       <button class="btn btn-sm btn-secondary" id="tsModeDet" onclick="tsSetMode('detail')">Детализированный по дням</button>
     </div>
+    <div class="fg" id="tsOrgRow"><label class="fl">Организация (от чьего имени табель)</label>
+      <select class="fi" id="tsOrg"></select></div>
     <div id="tsDateRow">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
         <label class="fl" style="margin:0">Период табеля (диапазон дат)</label>
@@ -1000,13 +1008,17 @@ body{padding-left:var(--sidebar-w)}
 <div class="mo hidden" id="moTsSend" onclick="closeMoCheck('moTsSend',event)">
   <div class="mo-box">
     <div class="mo-title">Отправить табель на согласование</div>
-    <div class="mo-sub">Выберите ответственного диспетчера</div>
+    <div class="mo-sub">Выберите одного или нескольких получателей</div>
     <div class="fg"><label class="fl">Объект</label><div id="tsSendObj" style="font-weight:600"></div></div>
     <div class="fg"><label class="fl">Техника</label><div id="tsSendEquip" style="font-size:13px;color:var(--muted)"></div></div>
     <div class="fg"><label class="fl">Период</label><div id="tsSendPeriod" style="font-weight:600"></div></div>
-    <div class="fg"><label class="fl">Ответственный диспетчер</label>
-      <select class="fi" id="tsSendDispatcher"></select>
+    <div class="fg"><label class="fl">Получатели <span id="tsSendCount" style="color:var(--muted);font-weight:400"></span></label>
+      <div id="tsSendList" style="max-height:170px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
       <div id="tsSendHint" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div class="fg" id="tsSendModeRow"><label class="fl">Порядок согласования</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer"><input type="radio" name="tsSendMode" value="any" checked> Достаточно одного подтверждения</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:3px 0;cursor:pointer"><input type="radio" name="tsSendMode" value="all"> Нужно подтверждение всех</label>
     </div>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moTsSend')">Отмена</button>
@@ -1031,6 +1043,35 @@ body{padding-left:var(--sidebar-w)}
     <div id="tsArchList" style="max-height:440px;overflow-y:auto"></div>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moTsArchive')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ОРГАНИЗАЦИЯ / РЕКВИЗИТЫ -->
+<div class="mo hidden" id="moOrg" onclick="closeMoCheck('moOrg',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="moOrgTitle">Организация</div>
+    <input type="hidden" id="orgId">
+    <div class="fg"><label class="fl">Полное наименование</label><input class="fi" id="orgName" placeholder="Индивидуальный предприниматель «Негметжан»"></div>
+    <div class="fg"><label class="fl">Краткое наименование</label><input class="fi" id="orgShortName" placeholder="ИП «Негметжан»"></div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Тип</label>
+        <select class="fi" id="orgType"><option value="ip">ИП</option><option value="too">ТОО</option><option value="other">Другое</option></select></div>
+      <div class="fg"><label class="fl">БИН / ИИН</label><input class="fi" id="orgBinIin" placeholder="000000000000"></div>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">ФИО руководителя</label><input class="fi" id="orgDirectorName" placeholder="Негметжан И.М."></div>
+      <div class="fg"><label class="fl">Должность руководителя</label><input class="fi" id="orgDirectorPosition" placeholder="Директор / Руководитель"></div>
+    </div>
+    <div class="fg"><label class="fl">Печать (PNG/JPG, лучше PNG с прозрачным фоном)</label>
+      <input type="file" id="orgStampFile" accept="image/png,image/jpeg" style="font-size:12px" onchange="onOrgStampSelected(event)">
+      <div id="orgStampPreview" style="margin-top:8px"></div>
+    </div>
+    <div class="fg"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="orgShowStamp"> Выводить печать в документах</label></div>
+    <div class="fg"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="orgIsPrimary"> Основная организация (по умолчанию)</label></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moOrg')">Отмена</button>
+      <button class="btn btn-primary" onclick="saveOrg()">Сохранить</button>
     </div>
   </div>
 </div>
@@ -1433,7 +1474,7 @@ function initFirebase() {
 // ═══════════════════════════════════════════════
 let currentUser = null; // {uid, email, name, role, workerId}
 let _regName = null;   // имя из формы регистрации, передаётся в onAuthStateChanged
-let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[] };
+let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[], organizations:[] };
 let pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[], tsApprovals:{} };
 let curYear, curEM;
 (function(){
@@ -1444,6 +1485,10 @@ let curYear, curEM;
   else { curEM = m; }
 })();
 let _cfgUnsubs = [], _pdUnsubs = [], _renderTimer = null;
+// Персональные согласования диспетчера — НЕ зависят от выбранного расчётного периода.
+// Загружаются постоянным слушателем по assignedDispatcherUid (см. listenConfig), чтобы
+// «Ожидают согласования» были видны даже после смены периода на основном экране.
+let myApprovals = [];
 
 // ═══════════════════════════════════════════════
 // AUTH
@@ -1548,6 +1593,27 @@ function listenConfig() {
     cfg.partners = snap.docs.map(d=>({id:d.id,...d.data()}));
     scheduleRender();
   },()=>{}));
+  // Организации / реквизиты (наименование, руководитель, печать — data URI). Читают все вошедшие.
+  _cfgUnsubs.push(db.collection('organizations').onSnapshot(snap=>{
+    cfg.organizations = snap.docs.map(d=>({id:d.id,...d.data()}));
+    scheduleRender();
+  },()=>{}));
+  // Диспетчер: постоянные (не зависящие от периода) слушатели согласований — за все периоды.
+  //  A) адресные лично ему (assignedDispatcherUid == uid) — покрывает старые одиночные документы;
+  //  B) все документы ГРУПП, где он получатель (recipientUids array-contains uid) — включая
+  //     sibling-документы других получателей, чтобы КЛИЕНТ знал фактический статус всей группы
+  //     (режим 'any': если утвердил другой — заявка перестаёт «висеть»). Только ЧТЕНИЕ; изменять
+  //     чужие документы диспетчер не может (Firestore Rules). Оба слияются в myApprovals.
+  if(currentUser?.role==='dispatcher'&&currentUser?.uid){
+    let _maAddr={},_maGroup={};
+    const _maFlush=()=>{const m={..._maGroup,..._maAddr};myApprovals=Object.values(m);scheduleRender();};
+    _cfgUnsubs.push(db.collection('timesheetApprovals').where('assignedDispatcherUid','==',currentUser.uid).onSnapshot(snap=>{
+      _maAddr={};snap.docs.forEach(d=>_maAddr[d.id]={...d.data(),_docId:d.id});_maFlush();
+    },()=>{}));
+    _cfgUnsubs.push(db.collection('timesheetApprovals').where('recipientUids','array-contains',currentUser.uid).onSnapshot(snap=>{
+      _maGroup={};snap.docs.forEach(d=>_maGroup[d.id]={...d.data(),_docId:d.id});_maFlush();
+    },()=>{}));
+  }
 }
 
 function listenPeriod(year, month) {
@@ -1592,25 +1658,20 @@ function listenPeriod(year, month) {
       scheduleRender();
     },()=>{}));
   }else if(_tsRole==='dispatcher'){
-    // Адресная модель: L1 — табели, назначенные лично этому диспетчеру (assignedDispatcherUid).
-    //                  L2 — СТАРЫЕ табели без явного получателя (fallback по назначенной технике).
-    // Оба источника сливаются в pd.tsApprovals; при общей технике L2 может не пройти правила —
-    // тогда молча остаются только адресные (L1). Ничего не ломается.
-    const uid=currentUser?.uid;
-    let _tsAddr={},_tsLeg={};
-    const _tsFlush=()=>{pd.tsApprovals={..._tsLeg,..._tsAddr};scheduleRender();};
-    _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).where('assignedDispatcherUid','==',uid).onSnapshot(snap=>{
-      _tsAddr={};snap.docs.forEach(d=>_tsAddr[d.id]={...d.data(),_docId:d.id});_tsFlush();
-    },()=>{}));
+    // Адресные табели диспетчера грузятся ПОСТОЯННЫМ слушателем myApprovals (см. listenConfig),
+    // независимо от периода — новый композитный индекс не нужен. Здесь остаётся только L2 —
+    // СТАРЫЕ табели без явного получателя (fallback по назначенной технике, текущий период;
+    // использует уже существующий индекс period+equipmentIds). При общей технике L2 может не
+    // пройти правила — тогда молча пусто, адресные всё равно приходят из myApprovals.
     const ids=(currentUser?.assignedEquipmentIds||[]);
     if(ids.length){
       const chunks=[];for(let i=0;i<ids.length;i+=30)chunks.push(ids.slice(i,i+30));
       const chunkRes=chunks.map(()=>[]);
       chunks.forEach((chunk,ci)=>{
         _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).where('equipmentIds','array-contains-any',chunk).onSnapshot(snap=>{
-          // только старые документы без явного получателя (адресные приходят из L1)
           chunkRes[ci]=snap.docs.map(d=>({...d.data(),_docId:d.id})).filter(x=>!x.assignedDispatcherUid);
-          _tsLeg={};for(const cr of chunkRes)for(const a of cr)_tsLeg[a._docId]=a;_tsFlush();
+          pd.tsApprovals={};for(const cr of chunkRes)for(const a of cr)pd.tsApprovals[a._docId]=a;
+          scheduleRender();
         },()=>{}));
       });
     }
@@ -1694,6 +1755,8 @@ async function fbSaveObj(o)      { const{id,...d}=o; try{await db.collection('ob
 async function fbDelObj(id)      { try{await db.collection('objects').doc(id).delete();}catch(e){fbErr(e);} }
 async function fbSavePart(p)     { const{id,...d}=p; try{await db.collection('partners').doc(id).set(d);}catch(e){fbErr(e);} }
 async function fbDelPart(id)     { try{await db.collection('partners').doc(id).delete();}catch(e){fbErr(e);} }
+async function fbSaveOrg(o)       { const{id,...d}=o; try{await db.collection('organizations').doc(id).set(d);}catch(e){fbErr(e);} }
+async function fbDelOrg(id)       { try{await db.collection('organizations').doc(id).delete();}catch(e){fbErr(e);} }
 async function fbSaveShift(equipId,date,shiftData) {
   const ref = db.collection('shifts').doc(equipId+'_'+date);
   const pk = curPK();
@@ -3232,8 +3295,8 @@ function _dispatcherDash(){
   h+=`<div class="c-card" style="cursor:pointer;margin-bottom:16px;${tsPend>0?'border:1px solid var(--yellow)':''}" onclick="openTsInbox('pending')">
     <div class="c-card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
       <div>
-        <div style="font-size:15px;font-weight:700">📋 Табели на согласование${tsPend>0?` <span style="background:var(--yellow);color:#000;border-radius:10px;padding:1px 9px;font-size:13px;margin-left:4px">${tsPend}</span>`:''}</div>
-        <div style="color:var(--muted);font-size:12px;margin-top:3px">${tsPend>0?`Ожидают: ${tsPend} — нажмите, чтобы проверить и утвердить`:'Нет табелей на согласование'}</div>
+        <div style="font-size:15px;font-weight:700">📋 Ожидают согласования${tsPend>0?` <span style="background:var(--yellow);color:#000;border-radius:10px;padding:1px 9px;font-size:13px;margin-left:4px">${tsPend}</span>`:''}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">${tsPend>0?`${tsPend} — нажмите, чтобы проверить и утвердить (видно независимо от периода)`:'Нет табелей, ожидающих согласования'}</div>
       </div>
       <div style="font-size:22px;color:var(--muted)">›</div>
     </div>
@@ -3835,15 +3898,57 @@ function objectTimesheetSig(objId,equipIds,from,to){
   }
   return parts.join('|');
 }
-function getTsApprovalByKey(key){return (pd.tsApprovals||{})[key]||null;}
-// Эффективный статус табеля (по точным рамкам): если утверждён, но контент изменился — 'stale'
+function getTsApprovalByKey(key){return (pd.tsApprovals||{})[key]||(myApprovals||[]).find(a=>a._docId===key)||null;}
+// Объединённая карта всех видимых документов согласования (текущий период + персональные диспетчера).
+function _tsAllApprovalsMap(){
+  const m={};
+  for(const k in (pd.tsApprovals||{})){const a=pd.tsApprovals[k];if(a)m[a._docId||k]=a;}
+  for(const a of (myApprovals||[])){if(a&&a._docId&&!m[a._docId])m[a._docId]=a;}
+  return m;
+}
+// Все документы ГРУППЫ согласования одного табеля (objId+equipIds+from+to).
+// Групповая модель: один отправленный табель → по документу на каждого получателя,
+// связанных общим approvalGroupId (= базовый ключ области). Старые одиночные документы
+// (без approvalGroupId, id == базовому ключу) поддерживаются как группа из одного (обратная совместимость).
+function _tsGroupDocs(objId,equipIds,from,to){
+  const gid=_tsApprovalKey(objId,equipIds,from,to);
+  const map=_tsAllApprovalsMap();const docs=[];
+  for(const k in map){const a=map[k];if(!a)continue;
+    if(a.approvalGroupId===gid)docs.push(a);
+    else if((a._docId===gid)&&!a.approvalGroupId)docs.push(a); // legacy одиночный
+  }
+  return {gid,docs};
+}
+// Агрегированный статус группы. Режимы: 'any' (достаточно одного), 'all' (нужны все).
+function _tsGroupStatus(objId,equipIds,from,to){
+  const {gid,docs}=_tsGroupDocs(objId,equipIds,from,to);
+  if(!docs.length)return{status:'draft',mode:'any',docs:[],approvedDoc:null,approvedCount:0,activeCount:0,gid};
+  const mode=docs[0].approvalMode||'any';
+  const active=docs.filter(d=>d.status!=='cancelled');
+  const evs=active.map(d=>({d,st:tsEffStatus(d)}));
+  const approved=evs.filter(x=>x.st==='approved');
+  const rejected=evs.filter(x=>x.st==='rejected');
+  const stale=evs.filter(x=>x.st==='stale');
+  let status;
+  if(mode==='all'){
+    if(rejected.length)status='rejected';
+    else if(stale.length)status='stale';
+    else if(approved.length&&approved.length===active.length)status='approved';
+    else if(approved.length)status='pending'; // частично (X из N)
+    else status='pending';
+  }else{ // any
+    if(approved.length)status='approved';
+    else if(stale.length)status='stale';
+    else if(rejected.length&&rejected.length===active.length)status='rejected';
+    else status='pending';
+  }
+  const approvedDoc=(approved[0]||stale[0]||{}).d||null;
+  return{status,mode,docs,approvedDoc,approvedCount:approved.length,activeCount:active.length,gid};
+}
+// Эффективный статус табеля по области = статус его ГРУППЫ (обёртка совместимости).
 function tsApprovalStatus(objId,equipIds,from,to){
-  const key=_tsApprovalKey(objId,equipIds,from,to);
-  const a=getTsApprovalByKey(key);
-  if(!a)return{status:'draft',doc:null,key};
-  let status=a.status||'draft';
-  if(status==='approved'&&a.contentSig!=null&&a.contentSig!==objectTimesheetSig(objId,equipIds,from,to))status='stale';
-  return{status,doc:a,key};
+  const g=_tsGroupStatus(objId,equipIds,from,to);
+  return{status:g.status,doc:g.approvedDoc||(g.docs[0]||null),key:g.gid,group:g};
 }
 // Кто может утверждать табель объекта: admin/owner — любой; dispatcher — только по своей
 // НАЗНАЧЕННОЙ технике. Для согласования пустой assignedEquipmentIds = НЕТ доступа
@@ -3883,12 +3988,23 @@ function canApproveApproval(a){
   }
   return false;
 }
+// Приблизительный размер документа в байтах (UTF-8) — для контроля лимита Firestore (~1 MiB).
+function _docByteSize(obj){try{return new TextEncoder().encode(JSON.stringify(obj)).length;}catch(e){return JSON.stringify(obj).length;}}
+// Безопасный порог < 1 MiB, чтобы не работать вплотную к лимиту (запас на служебные накладные Firestore).
+const TS_DOC_LIMIT=900*1024;
 async function fbSaveTsApproval(doc){
   const{_docId,...d}=doc;
   const id=_docId||_tsApprovalKey(d.objectId,d.equipmentIds||[],d.periodFrom,d.periodTo);
   const per=d.period||curPK(); // сохраняем исходный период документа (не перезаписываем при утверждении)
-  pd.tsApprovals=pd.tsApprovals||{};pd.tsApprovals[id]={...d,period:per,_docId:id}; // оптимистично (ключ = id)
-  try{await db.collection('timesheetApprovals').doc(id).set({...d,period:per});}catch(e){fbErr(e);}
+  const payload={...d,period:per};
+  // Контроль размера ДО записи: не пишем документ, приближающийся к лимиту Firestore.
+  const sz=_docByteSize(payload);
+  if(sz>TS_DOC_LIMIT){
+    alert('Документ табеля слишком большой: ~'+Math.round(sz/1024)+' КБ (безопасный лимит ~'+Math.round(TS_DOC_LIMIT/1024)+' КБ).\n\nУменьшите изображение печати организации (Настройки → Организации) или сократите диапазон/объём табеля. Документ НЕ сохранён.');
+    return false;
+  }
+  pd.tsApprovals=pd.tsApprovals||{};pd.tsApprovals[id]={...payload,_docId:id}; // оптимистично (ключ = id)
+  try{await db.collection('timesheetApprovals').doc(id).set(payload);return true;}catch(e){fbErr(e);return false;}
 }
 // Базовый объект утверждения — точные рамки табеля
 function _tsApprovalBase(objId,equipIds,from,to){
@@ -3912,39 +4028,100 @@ function _tsBuildSnapshot(objId,equipIds,from,to,data){
   return {objectId:objId,objectName:o?o.name:'',equipmentIds:equipIds,periodFrom:from,periodTo:to,
     data:data||[],builtAt:new Date().toISOString()};
 }
-// Отправка на согласование адресно конкретному диспетчеру (disp={uid,name}).
-// Повторная отправка ранее утверждённого табеля НЕ трогает старый snapshot: он архивируется
-// в revisions[], создаётся новая версия (revision+1) со статусом «на согласовании».
-async function _tsSend(objId,equipIds,from,to,disp){
-  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();const who=currentUser.name||currentUser.email;
-  const wasApproved=(cur.status==='approved');
-  const revisions=[...(cur.revisions||[])];
-  let revision=cur.revision||1;
-  if(wasApproved){
-    // архивируем текущую утверждённую версию целиком (snapshot остаётся неизменным)
-    revisions.push({revision,status:'approved',approvedByUid:cur.approvedByUid||'',approvedByName:cur.approvedByName||'',
-      approvedByRole:cur.approvedByRole||'',approvedAt:cur.approvedAt||'',approvalComment:cur.approvalComment||'',
-      approvedSnapshot:cur.approvedSnapshot||null,sentByName:cur.sentByName||'',sentByUid:cur.sentByUid||'',sentAt:cur.sentAt||'',
-      assignedDispatcherUid:cur.assignedDispatcherUid||'',assignedDispatcherName:cur.assignedDispatcherName||'',contentSig:cur.contentSig||null});
-    revision=revision+1;
-  }
-  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,
-    status:'pending',revision,revisions,
-    assignedDispatcherUid:disp?disp.uid:(cur.assignedDispatcherUid||''),assignedDispatcherName:disp?disp.name:(cur.assignedDispatcherName||''),
-    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
-    approvedSnapshot:wasApproved?null:(cur.approvedSnapshot||null),contentSig:null,
-    rejectionComment:'',rejectedBy:'',rejectedByUid:'',rejectedAt:'',sentByName:who,sentByUid:currentUser.uid,sentAt:now,
-    history:[...(cur.history||[]),_tsHistEntry('sent',`Отправлено диспетчеру ${disp?disp.name:'—'} (${from}–${to})${wasApproved?' · повторное согласование, версия '+revision:''}`)]});
-}
-async function _tsApprove(objId,equipIds,from,to,comment){
-  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
-  // формируем и сохраняем snapshot табеля на момент утверждения (для архива и печати)
+// Снимок табеля строится ОДИН раз при отправке и одинаков для всех получателей группы
+// (гарантирует идентичную утверждённую версию у всех согласующих; печать архива — из него).
+// Групповая отправка: один табель → по документу timesheetApprovals на каждого получателя,
+// связанных общим approvalGroupId. Диспетчер видит/меняет ТОЛЬКО свой документ (Firestore Rules).
+async function _tsSendGroup(objId,equipIds,from,to,recipients,mode,org){
+  const gid=_tsApprovalKey(objId,equipIds,from,to);
+  const now=new Date().toISOString();const who=currentUser.name||currentUser.email;
   let snapshot=null;
   try{const data=await buildEquipDetailed(equipIds,from,to);snapshot=_tsBuildSnapshot(objId,equipIds,from,to,data);}catch(e){}
-  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'approved',
+  const contentSig=objectTimesheetSig(objId,equipIds,from,to);
+  // Неизменяемый снимок реквизитов организации (наименование, руководитель, ПЕЧАТЬ как data URI) —
+  // одинаков у всех получателей группы; архив печатается из него, а не из текущих настроек.
+  const organizationSnapshot=_orgSnapshot(org);
+  // версия: если группа уже была утверждена — повышаем номер (повторное согласование)
+  const prev=_tsGroupDocs(objId,equipIds,from,to).docs;
+  let revision=1;for(const d of prev)revision=Math.max(revision,(d.revision||1));
+  if(prev.some(d=>tsEffStatus(d)==='approved'))revision+=1;
+  const recips=recipients.map(r=>({uid:r.uid,name:r.name}));
+  const recipientUids=recips.map(r=>r.uid); // параллельный массив uid — для правил чтения и слушателя группы
+  const base={objectId:objId,period:curPK(),periodFrom:from,periodTo:to,equipmentIds:equipIds,
+    approvalGroupId:gid,approvalMode:mode,groupRecipients:recips,recipientUids,
+    organizationSnapshot,sentByName:who,sentByUid:currentUser.uid,sentAt:now,revision,approvedSnapshot:snapshot,contentSig};
+  // Контроль размера ДО записи любого документа группы (снимок табеля + снимок реквизитов + печать).
+  // Проверяем «пробный» документ (у всех получателей размер практически одинаков) — если велик,
+  // не отправляем НИЧЕГО, чтобы не создать частичную группу.
+  const probe={...base,assignedDispatcherUid:(recips[0]||{}).uid||'',assignedDispatcherName:(recips[0]||{}).name||'',
+    status:'pending',approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
+    rejectedBy:'',rejectedByUid:'',rejectedAt:'',rejectionComment:'',revisions:[],period:curPK(),
+    history:[_tsHistEntry('sent','Отправлено: '+((recips[0]||{}).name||'')+' ('+from+'–'+to+')')]};
+  const psz=_docByteSize(probe);
+  if(psz>TS_DOC_LIMIT){
+    alert('Табель вместе со снимком и печатью превышает безопасный размер документа: ~'+Math.round(psz/1024)+' КБ (лимит ~'+Math.round(TS_DOC_LIMIT/1024)+' КБ).\n\nУменьшите изображение печати организации (Настройки → Организации → печать) или сократите диапазон дат / состав техники табеля. Табель НЕ отправлен.');
+    return;
+  }
+  for(const r of recips){
+    const id=gid+'_'+r.uid;const cur=getTsApprovalByKey(id)||{};
+    // повторное согласование: прежняя утверждённая версия сохраняется в revisions[] (snapshot не теряется)
+    const revisions=[...(cur.revisions||[])];
+    if(tsEffStatus(cur)==='approved'){
+      revisions.push({revision:cur.revision||1,status:'approved',approvedByUid:cur.approvedByUid||'',approvedByName:cur.approvedByName||'',
+        approvedAt:cur.approvedAt||'',approvalComment:cur.approvalComment||'',approvedSnapshot:cur.approvedSnapshot||null,contentSig:cur.contentSig||null});
+    }
+    await fbSaveTsApproval({_docId:id,...base,revisions,
+      assignedDispatcherUid:r.uid,assignedDispatcherName:r.name,status:'pending',
+      approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
+      rejectedBy:'',rejectedByUid:'',rejectedAt:'',rejectionComment:'',
+      history:[...(cur.history||[]),_tsHistEntry('sent',`Отправлено: ${r.name} (${from}–${to}) · режим: ${mode==='all'?'нужны все':'достаточно одного'}${revision>1?' · версия '+revision:''}`)]});
+  }
+  // старый одиночный legacy-документ этой области (id==gid) — гасим, чтобы не дублировался
+  const legacy=getTsApprovalByKey(gid);
+  if(legacy&&!legacy.approvalGroupId&&legacy.status!=='cancelled'){
+    await fbSaveTsApproval({_docId:gid,...legacy,status:'cancelled',
+      history:[...(legacy.history||[]),_tsHistEntry('cancelled','Заменён групповой отправкой')]});
+  }
+}
+// Утвердить/отклонить СВОЙ документ (диспетчер) — область и snapshot неизменны.
+async function _tsApproveDoc(a,comment){
+  const now=new Date().toISOString();
+  await fbSaveTsApproval({...a,status:'approved',
     approvedByUid:currentUser.uid,approvedByName:currentUser.name||currentUser.email,approvedByRole:ROLE_LABELS[currentUser.role]||currentUser.role,
-    approvedAt:now,approvalComment:comment||'',contentSig:objectTimesheetSig(objId,equipIds,from,to),approvedSnapshot:snapshot,rejectionComment:'',
-    history:[...(cur.history||[]),_tsHistEntry('approved',comment||'')]});
+    approvedAt:now,approvalComment:comment||'',
+    history:[...(a.history||[]),_tsHistEntry('approved',comment||'')]});
+  await _tsCleanupAnyGroup(a);
+}
+async function _tsRejectDoc(a,comment){
+  const now=new Date().toISOString();
+  await fbSaveTsApproval({...a,status:'rejected',
+    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
+    rejectedBy:currentUser.name||currentUser.email,rejectedByUid:currentUser.uid,rejectedAt:now,rejectionComment:comment,
+    history:[...(a.history||[]),_tsHistEntry('rejected',comment)]});
+}
+// Режим 'any': когда один утвердил — остальные ожидающие документы группы отменяются.
+// Гасить чужие документы может ТОЛЬКО Admin/Owner (у диспетчера нет прав — попытка вызвала бы
+// ошибку). Диспетчеру это и не нужно: его клиент видит статус всей группы (recipientUids) и сам
+// скрывает уже согласованную заявку. Owner дочищает при открытии «Входящих» (_tsAutoCleanupAnyGroups).
+async function _tsCleanupAnyGroup(a){
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner'))return;
+  if((a.approvalMode||'any')!=='any'||!a.approvalGroupId)return;
+  const map=_tsAllApprovalsMap();
+  for(const k in map){const d=map[k];
+    if(!d||d.approvalGroupId!==a.approvalGroupId||d._docId===a._docId)continue;
+    if(d.status!=='pending')continue;
+    try{await fbSaveTsApproval({...d,status:'cancelled',
+      history:[...(d.history||[]),_tsHistEntry('cancelled','Табель утверждён другим получателем')]});}catch(e){}
+  }
+}
+// Отмена всей группы (Admin/Owner) — все документы группы → cancelled.
+async function _tsCancelGroup(objId,equipIds,from,to){
+  const {docs}=_tsGroupDocs(objId,equipIds,from,to);
+  for(const d of docs){
+    if(d.status==='cancelled')continue;
+    await fbSaveTsApproval({...d,status:'cancelled',
+      history:[...(d.history||[]),_tsHistEntry('cancelled','Согласование отменено (Admin/Owner)')]});
+  }
 }
 // ── Загрузка диспетчеров и определение закреплённого получателя ──
 async function loadDispatchers(){
@@ -3956,130 +4133,180 @@ function _assignedDispatchers(dispatchers,equipIds){
   const set=new Set(equipIds||[]);
   return dispatchers.filter(d=>(d.assignedEquipmentIds||[]).some(id=>set.has(id)));
 }
-// Модальное окно выбора ответственного диспетчера перед отправкой на согласование
-let _tsSendScope=null;
+// Модальное окно отправки — мультивыбор получателей + режим согласования (any/all)
+let _tsSendScope=null,_tsSendDispatchers=[];
 async function openTsSendModal(objId){
   if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отправить на согласование может Admin или Owner');return;}
   const s=_tsScope(objId);if(!s)return;
-  _tsSendScope={objId,equipIds:s.equipIds,from:s.from,to:s.to};
+  _tsSendScope={objId,equipIds:s.equipIds,from:s.from,to:s.to,org:_tsSelectedOrg()};
   const o=cfg.objects.find(x=>x.id===objId);
   document.getElementById('tsSendObj').textContent=o?o.name:'—';
   document.getElementById('tsSendEquip').textContent=cfg.equipment.filter(e=>s.equipIds.includes(e.id)).map(e=>e.name).join(', ')||'—';
   document.getElementById('tsSendPeriod').textContent=_tsFmtDate(s.from)+'–'+_tsFmtDate(s.to);
-  const sel=document.getElementById('tsSendDispatcher'),hint=document.getElementById('tsSendHint');
-  sel.innerHTML='<option value="">Загрузка…</option>';hint.textContent='';hint.style.color='var(--muted)';
+  const list=document.getElementById('tsSendList'),hint=document.getElementById('tsSendHint');
+  list.innerHTML='<div style="color:var(--muted);font-size:12px">Загрузка диспетчеров…</div>';hint.textContent='';
+  document.getElementById('tsSendCount').textContent='';
   openMo('moTsSend');
-  const dispatchers=await loadDispatchers();
-  sel._dispatchers=dispatchers;
-  if(!dispatchers.length){sel.innerHTML='<option value="">— нет диспетчеров —</option>';hint.textContent='Нет пользователей с ролью «Диспетчер». Создайте диспетчера в Настройках.';return;}
-  const assigned=_assignedDispatchers(dispatchers,s.equipIds);
-  const aset=new Set(assigned.map(d=>d.uid));
-  sel.innerHTML='<option value="">— выберите диспетчера —</option>'+dispatchers.map(d=>`<option value="${d.uid}">${_tsEsc(d.name)}${aset.has(d.uid)?' (закреплён за техникой)':''}</option>`).join('');
-  const distinct=[...aset];
-  if(distinct.length===1){sel.value=distinct[0];hint.textContent='Диспетчер выбран автоматически (закреплён за этой техникой). Можно изменить.';}
-  else if(distinct.length>1){hint.textContent='У техники разные закреплённые диспетчеры — выберите получателя вручную.';hint.style.color='var(--yellow)';}
-  else{hint.textContent='За этой техникой не закреплён диспетчер — выберите получателя вручную.';}
+  const dispatchers=await loadDispatchers();_tsSendDispatchers=dispatchers;
+  if(!dispatchers.length){list.innerHTML='<div style="color:var(--muted);font-size:12px">Нет пользователей с ролью «Диспетчер». Создайте диспетчера в Настройках.</div>';return;}
+  const assigned=_assignedDispatchers(dispatchers,s.equipIds);const aset=new Set(assigned.map(d=>d.uid));
+  list.innerHTML=dispatchers.map(d=>`<label style="display:flex;align-items:center;gap:8px;padding:4px 0;cursor:pointer">
+    <input type="checkbox" class="ts-send-disp" value="${d.uid}" data-name="${_tsEsc(d.name)}" ${aset.has(d.uid)?'checked':''} onchange="_tsSendSync()">
+    <span>${_tsEsc(d.name)}${aset.has(d.uid)?' <span style="color:var(--green);font-size:11px">(закреплён)</span>':''}</span></label>`).join('');
+  hint.textContent=aset.size?'Отмечены закреплённые за техникой диспетчеры. Можно изменить.':'За этой техникой нет закреплённого диспетчера — выберите получателей вручную.';
+  _tsSendSync();
 }
-function confirmTsSend(){
-  const sel=document.getElementById('tsSendDispatcher'),uid=sel.value;
-  if(!uid){alert('Выберите ответственного диспетчера');return;}
-  const disp=(sel._dispatchers||[]).find(d=>d.uid===uid);
-  if(!disp){alert('Диспетчер не найден');return;}
+function _tsSendSync(){
+  const checked=[...document.querySelectorAll('#tsSendList .ts-send-disp:checked')];
+  document.getElementById('tsSendCount').textContent=checked.length?`· выбрано: ${checked.length}`:'';
+  document.getElementById('tsSendModeRow').style.display=checked.length>1?'':'none';
+}
+async function confirmTsSend(){
+  const checked=[...document.querySelectorAll('#tsSendList .ts-send-disp:checked')];
+  if(!checked.length){alert('Выберите хотя бы одного получателя');return;}
+  const recipients=checked.map(c=>({uid:c.value,name:c.dataset.name||''}));
+  let mode='any';if(recipients.length>1)mode=(document.querySelector('input[name=tsSendMode]:checked')||{}).value||'any';
   const sc=_tsSendScope;if(!sc)return;
+  const org=sc.org||_tsSelectedOrg(); // организация зафиксирована при открытии окна отправки
   closeMo('moTsSend');
-  _tsSend(sc.objId,sc.equipIds,sc.from,sc.to,{uid:disp.uid,name:disp.name}).then(()=>renderTimesheetApproval());
+  await _tsSendGroup(sc.objId,sc.equipIds,sc.from,sc.to,recipients,mode,org);
+  renderTimesheetApproval();
 }
-async function _tsReject(objId,equipIds,from,to,comment){
-  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
-  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'rejected',
-    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
-    rejectedBy:currentUser.name||currentUser.email,rejectedByUid:currentUser.uid,rejectedAt:now,rejectionComment:comment,
-    history:[...(cur.history||[]),_tsHistEntry('rejected',comment)]});
-}
-async function _tsCancel(objId,equipIds,from,to){
-  const cur=_tsCurDoc(objId,equipIds,from,to);
-  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'pending',
-    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',contentSig:null,
-    history:[...(cur.history||[]),_tsHistEntry('cancelled','Утверждение отменено, отправлено на повторное согласование')]});
-}
-// ── Обёртки из окна формирования табеля (область берётся из DOM через _tsScope) ──
-// Отправка теперь адресная — открывает окно выбора ответственного диспетчера
-async function sendTimesheetForApproval(objId){
-  return openTsSendModal(objId);
-}
-async function approveTimesheet(objId){
-  if(!canApproveTimesheet(objId)){alert('Нет прав на утверждение этого табеля');return;}
-  const s=_tsScope(objId);if(!s)return;
-  const comment=prompt('Комментарий к утверждению (необязательно):','')||'';
-  await _tsApprove(objId,s.equipIds,s.from,s.to,comment);renderTimesheetApproval();
-}
-async function rejectTimesheet(objId){
-  if(!canApproveTimesheet(objId)){alert('Нет прав');return;}
-  const s=_tsScope(objId);if(!s)return;
-  const comment=prompt('Причина отклонения (обязательно):','');
-  if(comment===null)return;
-  if(!comment.trim()){alert('Причина отклонения обязательна');return;}
-  await _tsReject(objId,s.equipIds,s.from,s.to,comment.trim());renderTimesheetApproval();
-}
+// ── Обёртки из окна формирования табеля ──
+async function sendTimesheetForApproval(objId){return openTsSendModal(objId);}
 async function cancelTimesheetApproval(objId){
-  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отменить утверждение может Admin или Owner');return;}
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отменить согласование может Admin или Owner');return;}
   const s=_tsScope(objId);if(!s)return;
-  if(!confirm('Отменить утверждение и вернуть табель на согласование?'))return;
-  await _tsCancel(objId,s.equipIds,s.from,s.to);renderTimesheetApproval();
+  if(!confirm('Отменить согласование этого табеля целиком?'))return;
+  await _tsCancelGroup(objId,s.equipIds,s.from,s.to);renderTimesheetApproval();
 }
 
 // ── Входящие табели на согласование (для Dispatcher; Owner/Admin видят все состояния) ──
+// «stale» вычисляется только для документов ТЕКУЩЕГО периода (pd.shifts загружены именно за него).
+// Для табелей прошлых периодов (период-независимые «Входящие») live-подпись не считается —
+// доверяем сохранённому статусу, иначе прошлые утверждённые ошибочно помечались бы как stale.
 function tsEffStatus(a){
   let s=a.status||'draft';
-  if(s==='approved'&&a.contentSig!=null&&a.contentSig!==objectTimesheetSig(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo))s='stale';
+  if(s==='approved'&&a.contentSig!=null&&(a.period||curPK())===curPK()
+     &&a.contentSig!==objectTimesheetSig(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo))s='stale';
   return s;
 }
-// Список утверждений, видимых текущему пользователю (dispatcher — только свои объекты)
-function tsVisibleApprovals(){
-  const r=currentUser?.role;
-  const out=[];
-  for(const key in (pd.tsApprovals||{})){
-    const a=pd.tsApprovals[key];if(!a||!a.objectId)continue;
-    if(r==='dispatcher'){if(!canApproveApproval(a))continue;}
-    else if(!(r==='admin'||r==='owner'))continue;
-    out.push(a);
-  }
-  return out;
+// Документ входит в группы, где текущий диспетчер — получатель (для агрегации статуса всей группы,
+// включая sibling-документы других получателей — только чтение). Плюс адресный/legacy fallback.
+function _tsVisibleToDispatcher(a){
+  const uid=currentUser?.uid;
+  if(a.assignedDispatcherUid===uid)return true;
+  if((a.recipientUids||[]).includes(uid))return true;
+  if(!a.assignedDispatcherUid&&!a.approvalGroupId){const ids=dispatcherEquipIds();return ids.length&&(a.equipmentIds||[]).some(id=>ids.includes(id));}
+  return false;
 }
-// Кол-во ожидающих согласования (для счётчика/уведомления)
-function tsPendingCount(){return tsVisibleApprovals().filter(a=>tsEffStatus(a)==='pending').length;}
+// Все видимые документы согласования. Dispatcher — свои + sibling-и его групп за ВСЕ периоды
+// (myApprovals, не зависит от периода) + старые legacy текущего периода. Admin/Owner — текущий период.
+function tsVisibleApprovals(){
+  const r=currentUser?.role;const out=[];const seen=new Set();
+  const push=a=>{if(!a||!a.objectId||!a._docId||seen.has(a._docId))return;seen.add(a._docId);out.push(a);};
+  if(r==='admin'||r==='owner'){for(const k in (pd.tsApprovals||{}))push(pd.tsApprovals[k]);}
+  else if(r==='dispatcher'){
+    for(const a of (myApprovals||[]))if(_tsVisibleToDispatcher(a))push(a);
+    for(const k in (pd.tsApprovals||{})){const a=pd.tsApprovals[k];if(a&&!a.assignedDispatcherUid&&_tsVisibleToDispatcher(a))push(a);}
+  }
+  return out.filter(a=>a.status!=='cancelled');
+}
+// Документ группы 'any', утверждённый КЕМ-ТО (для гашения повторного согласования на клиенте).
+function _tsGroupResolvedBy(a){
+  if((a.approvalMode||'any')!=='any'||!a.approvalGroupId)return null;
+  const gid=a.approvalGroupId;
+  const map=_tsAllApprovalsMap();
+  for(const k in map){const d=map[k];if(d&&d.approvalGroupId===gid&&tsEffStatus(d)==='approved')return d;}
+  return null;
+}
+// Можно ли текущему пользователю реально действовать (утвердить/отклонить) по документу a:
+// его собственный документ, он в статусе pending, и группа 'any' ещё не утверждена кем-то другим.
+function _tsActionable(a){
+  if(!a||!canApproveApproval(a))return false;
+  if(tsEffStatus(a)!=='pending')return false;
+  if(_tsGroupResolvedBy(a))return false;
+  return true;
+}
+// Агрегированный статус набора документов одной группы согласования.
+function _tsAggregate(docs){
+  const active=docs.filter(d=>d.status!=='cancelled');
+  const mode=(docs[0]||{}).approvalMode||'any';
+  const evs=active.map(d=>({d,st:tsEffStatus(d)}));
+  const approved=evs.filter(x=>x.st==='approved'),rejected=evs.filter(x=>x.st==='rejected'),stale=evs.filter(x=>x.st==='stale');
+  let status;
+  if(mode==='all')status=rejected.length?'rejected':(stale.length?'stale':((approved.length&&approved.length===active.length)?'approved':'pending'));
+  else status=approved.length?'approved':(stale.length?'stale':((rejected.length&&rejected.length===active.length)?'rejected':'pending'));
+  return{mode,status,active,approvedCount:approved.length,total:active.length,evs};
+}
+// Группировка видимых документов по approvalGroupId (legacy — по _docId).
+function _tsVisibleGroups(){
+  const docs=tsVisibleApprovals();const byGid={};
+  for(const a of docs){const gid=a.approvalGroupId||a._docId;(byGid[gid]=byGid[gid]||[]).push(a);}
+  return Object.entries(byGid).map(([gid,ds])=>({gid,docs:ds,agg:_tsAggregate(ds)}));
+}
+// Кол-во групп, ожидающих согласования (для счётчика/уведомления)
+function tsPendingCount(){return _tsVisibleGroups().filter(g=>g.agg.status==='pending').length;}
 
 let _tsInboxTab='pending',_tsReviewKey=null;
-function openTsInbox(tab){_tsInboxTab=tab||'pending';renderTsInbox();openMo('moTsInbox');}
+function openTsInbox(tab){_tsInboxTab=tab||'pending';_tsAutoCleanupAnyGroups();renderTsInbox();openMo('moTsInbox');}
+// Owner/Admin: дочистка групп режима 'any' — если один получатель утвердил, остальные ожидающие
+// документы группы гасятся (диспетчер сам это сделать не может — нет прав на чужие документы).
+async function _tsAutoCleanupAnyGroups(){
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner'))return;
+  const byGid={};
+  for(const k in (pd.tsApprovals||{})){const a=pd.tsApprovals[k];if(!a||!a.approvalGroupId)continue;(byGid[a.approvalGroupId]=byGid[a.approvalGroupId]||[]).push(a);}
+  for(const gid in byGid){
+    const docs=byGid[gid];if((docs[0].approvalMode||'any')!=='any')continue;
+    if(!docs.some(d=>tsEffStatus(d)==='approved'))continue;
+    for(const d of docs){if(d.status==='pending'){
+      try{await fbSaveTsApproval({...d,status:'cancelled',history:[...(d.history||[]),_tsHistEntry('cancelled','Табель утверждён другим получателем')]});}catch(e){}
+    }}
+  }
+}
 function renderTsInbox(){
   const wrap=document.getElementById('tsInboxTabs'),list=document.getElementById('tsInboxList');
   if(!wrap||!list)return;
-  const all=tsVisibleApprovals().map(a=>({a,st:tsEffStatus(a)}));
+  const isMgr=currentUser?.role==='admin'||currentUser?.role==='owner';
+  const groups=_tsVisibleGroups();
   const counts={pending:0,approved:0,rejected:0};
-  for(const x of all){if(x.st==='pending')counts.pending++;else if(x.st==='approved')counts.approved++;else if(x.st==='rejected')counts.rejected++;}
-  const tabs=[['pending','Ожидают',counts.pending],['approved','Утверждённые',counts.approved],['rejected','Отклонённые',counts.rejected],['all','Все',all.length]];
+  for(const g of groups){const s=g.agg.status;if(s==='pending')counts.pending++;else if(s==='approved')counts.approved++;else if(s==='rejected')counts.rejected++;}
+  const tabs=[['pending','Ожидают',counts.pending],['approved','Утверждённые',counts.approved],['rejected','Отклонённые',counts.rejected],['all','Все',groups.length]];
   wrap.innerHTML=tabs.map(([k,l,n])=>`<button class="btn btn-sm ${_tsInboxTab===k?'btn-primary':'btn-secondary'}" onclick="_tsInboxTab='${k}';renderTsInbox()">${l} ${n}</button>`).join('');
   document.getElementById('tsInboxSub').textContent='Входящие табели техники · ожидают: '+counts.pending;
-  let rows=all.filter(x=>_tsInboxTab==='all'||x.st===_tsInboxTab);
-  // ожидающие — сверху, свежие — первыми
-  rows.sort((p,q)=>(q.a.sentAt||q.a.approvedAt||'').localeCompare(p.a.sentAt||p.a.approvedAt||''));
+  let rows=groups.filter(g=>_tsInboxTab==='all'||g.agg.status===_tsInboxTab);
+  rows.sort((p,q)=>((q.docs[0]||{}).sentAt||'').localeCompare((p.docs[0]||{}).sentAt||''));
   if(!rows.length){list.innerHTML='<div class="empty" style="padding:20px">Нет табелей на согласование</div>';return;}
   let h='';
-  for(const {a,st} of rows){
+  for(const g of rows){
+    const a=g.docs.find(d=>d.assignedDispatcherUid===currentUser?.uid)||g.agg.active[0]||g.docs[0];
+    const st=g.agg.status;
     const o=cfg.objects.find(x=>x.id===a.objectId);
     const col=TS_STATUS_COLOR[st]||'var(--muted)';
     const eqs=cfg.equipment.filter(e=>(a.equipmentIds||[]).includes(e.id));
     const eqList=eqs.map(e=>`<span style="display:inline-block;background:var(--card2);border:1px solid var(--border-2);border-radius:5px;padding:1px 6px;margin:2px 3px 0 0;font-size:11px">${_tsEsc(e.name)}${e.serial?' · '+_tsEsc(e.serial):''}</span>`).join('')||'—';
+    // общий статус: для 'all' показываем «X из N»
+    const stLabel=(g.agg.mode==='all'&&(st==='pending'||st==='approved'))?`${TS_STATUS[st]||st} · ${g.agg.approvedCount} из ${g.agg.total}`:(TS_STATUS[st]||st);
+    // разбивка по получателям (видит Owner/Admin; диспетчер видит только себя)
+    let recip='';
+    if(isMgr&&g.docs.length>1){
+      recip='<div style="margin-top:6px;color:var(--muted)">Получатели:</div>'+g.agg.evs.map(x=>{
+        const c=TS_STATUS_COLOR[x.st]||'var(--muted)';
+        const extra=x.st==='rejected'&&x.d.rejectionComment?` — «${_tsEsc(x.d.rejectionComment)}»`:'';
+        return `<div style="font-size:11px;margin-top:2px"><b>${_tsEsc(x.d.assignedDispatcherName||'—')}</b> — <span style="color:${c}">${TS_STATUS[x.st]||x.st}</span>${extra}</div>`;
+      }).join('');
+    }
     h+=`<div class="c-card" style="margin-bottom:10px"><div class="c-card-body" style="font-size:12px">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
         <b style="font-size:14px">${_tsEsc(o?o.name:'—')}</b>
-        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${TS_STATUS[st]||st}</span>
+        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${stLabel}</span>
       </div>
-      <div style="margin-top:6px;color:var(--muted)">Период: <b style="color:var(--text)">${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'}</b></div>
+      <div style="margin-top:6px;color:var(--muted)">Период: <b style="color:var(--text)">${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'}</b>${(a.revision||1)>1?' · версия '+a.revision:''}</div>
       <div style="margin-top:4px;color:var(--muted)">Техника:</div><div>${eqList}</div>
       ${a.sentByName?`<div style="margin-top:6px;color:var(--muted)">Отправил: ${_tsEsc(a.sentByName)} · ${a.sentAt?_tsDT(a.sentAt):''}</div>`:''}
-      ${st==='approved'&&a.approvedByName?`<div style="margin-top:2px;color:var(--green)">✓ Утвердил: ${_tsEsc(a.approvedByName)} · ${a.approvedAt?_tsDT(a.approvedAt):''}</div>`:''}
-      ${st==='rejected'&&a.rejectedBy?`<div style="margin-top:2px;color:var(--red)">Отклонил: ${_tsEsc(a.rejectedBy)}${a.rejectionComment?' · «'+_tsEsc(a.rejectionComment)+'»':''}</div>`:''}
+      ${recip}
+      ${(()=>{const rb=st==='approved'&&g.agg.mode==='any'?_tsGroupResolvedBy(a):null;if(!rb)return '';const byOther=rb.assignedDispatcherUid!==currentUser?.uid;return `<div style="margin-top:2px;color:var(--green)">✓ ${byOther&&!isMgr?'Согласовано другим диспетчером':'Утвердил'}: ${_tsEsc(rb.approvedByName||rb.assignedDispatcherName||'—')}${rb.approvedAt?' · '+_tsDT(rb.approvedAt):''}</div>`;})()}
+      ${st==='rejected'&&!isMgr&&a.rejectedBy?`<div style="margin-top:2px;color:var(--red)">Отклонил: ${_tsEsc(a.rejectedBy)}${a.rejectionComment?' · «'+_tsEsc(a.rejectionComment)+'»':''}</div>`:''}
       ${st==='stale'?`<div style="margin-top:2px;color:var(--accent)">Изменён после утверждения</div>`:''}
     </div>
     <div class="c-card-foot">
@@ -4100,13 +4327,19 @@ async function openTsReview(key){
   const st=tsEffStatus(a);
   const isLive=!!getTsApprovalByKey(key); // действия доступны только для текущего периода
   document.getElementById('tsReviewTitle').textContent='Табель — '+(o?o.name:(a.objectName||'—'));
-  document.getElementById('tsReviewSub').textContent=`Период: ${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'} · Статус: ${TS_STATUS[st]||st}${(a.revision||1)>1?' · версия '+a.revision:''}`;
+  const os=a.organizationSnapshot;
+  const orgLine=os?` · ${_tsEsc(os.shortName||os.name||'')}${os.directorName?', '+_tsEsc(os.directorPosition||'рук.')+' '+_tsEsc(os.directorName):''}`:'';
+  document.getElementById('tsReviewSub').textContent=`Период: ${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'} · Статус: ${TS_STATUS[st]||st}${(a.revision||1)>1?' · версия '+a.revision:''}${orgLine}`;
   document.getElementById('tsReviewBody').innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Загрузка табеля…</div>';
   const acts=document.getElementById('tsReviewActs');
-  acts.innerHTML='<button class="btn btn-secondary" onclick="closeMo(\'moTsReview\')">Назад</button>';
-  if(isLive&&canApproveApproval(a)&&st==='pending'){
+  acts.innerHTML='<button class="btn btn-secondary" onclick="closeMo(\'moTsReview\')">Назад</button>'+
+    '<button class="btn btn-secondary" onclick="reviewPrint(\'pdf\')">📄 PDF</button>';
+  const resolvedBy=_tsGroupResolvedBy(a); // группа 'any' уже утверждена кем-то
+  if(_tsActionable(a)){
     acts.innerHTML+=`<button class="btn btn-primary" style="background:var(--green);border-color:var(--green)" onclick="reviewApprove()">✓ Утвердить</button>
       <button class="btn btn-primary" style="background:var(--red);border-color:var(--red)" onclick="reviewReject()">Отклонить</button>`;
+  }else if(resolvedBy&&resolvedBy.assignedDispatcherUid!==currentUser?.uid){
+    acts.innerHTML+=`<span style="color:var(--green);font-size:12px;align-self:center">✓ Согласовано другим диспетчером: ${_tsEsc(resolvedBy.approvedByName||resolvedBy.assignedDispatcherName||'—')}${resolvedBy.approvedAt?' · '+_tsDT(resolvedBy.approvedAt):''}</span>`;
   }else if(isLive&&st==='stale'){
     acts.innerHTML+=`<span style="color:var(--accent);font-size:12px;align-self:center">Табель изменён после утверждения — требуется повторная отправка Admin/Owner</span>`;
   }
@@ -4146,20 +4379,33 @@ function _tsReviewTableHTML(data){
   }
   return h;
 }
+// Печать открытого в проверке табеля (с реквизитами/печатью из organizationSnapshot)
+function reviewPrint(fmt){
+  const a=_tsFindApproval(_tsReviewKey);if(!a){alert('Табель не найден');return;}
+  _tsPrintApproval(a,fmt);
+}
 async function reviewApprove(){
   const a=getTsApprovalByKey(_tsReviewKey);if(!a)return;
-  if(!canApproveApproval(a)){alert('Нет прав на утверждение этого табеля');return;}
+  if(!_tsActionable(a)){
+    if(_tsGroupResolvedBy(a))alert('Табель уже согласован другим диспетчером — повторное согласование не требуется');
+    else alert('Нет прав на утверждение этого табеля');
+    return;
+  }
   const comment=prompt('Комментарий к утверждению (необязательно):','')||'';
-  await _tsApprove(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo,comment);
+  await _tsApproveDoc(a,comment); // утверждает ТОЛЬКО свой документ группы
   closeMo('moTsReview');renderTsInbox();
 }
 async function reviewReject(){
   const a=getTsApprovalByKey(_tsReviewKey);if(!a)return;
-  if(!canApproveApproval(a)){alert('Нет прав');return;}
+  if(!_tsActionable(a)){
+    if(_tsGroupResolvedBy(a))alert('Табель уже согласован другим диспетчером');
+    else alert('Нет прав');
+    return;
+  }
   const comment=prompt('Причина отклонения (обязательно):','');
   if(comment===null)return;
   if(!comment.trim()){alert('Причина отклонения обязательна');return;}
-  await _tsReject(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo,comment.trim());
+  await _tsRejectDoc(a,comment.trim());
   closeMo('moTsReview');renderTsInbox();
 }
 
@@ -4208,7 +4454,7 @@ async function openTsArchive(){
 function renderTsArchive(){
   const fObj=document.getElementById('tsArchObj').value,fEq=document.getElementById('tsArchEquip').value;
   const fDisp=document.getElementById('tsArchDisp').value,fSt=document.getElementById('tsArchStatus').value;
-  let rows=_tsArchive.map(a=>({a,st:tsEffStatus(a)}));
+  let rows=_tsArchive.filter(a=>a.status!=='cancelled').map(a=>({a,st:tsEffStatus(a)}));
   if(fObj)rows=rows.filter(x=>x.a.objectId===fObj);
   if(fEq)rows=rows.filter(x=>(x.a.equipmentIds||[]).includes(fEq));
   if(fDisp)rows=rows.filter(x=>x.a.assignedDispatcherUid===fDisp);
@@ -4230,6 +4476,7 @@ function renderTsArchive(){
       </div>
       <div style="margin-top:5px;color:var(--muted)">Период: <b style="color:var(--text)">${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'}</b></div>
       <div style="margin-top:3px;color:var(--muted)">Техника: <span style="color:var(--text)">${_tsEsc(eqNames)}</span></div>
+      ${a.organizationSnapshot?`<div style="margin-top:3px;color:var(--muted)">Организация: <span style="color:var(--text)">${_tsEsc(a.organizationSnapshot.shortName||a.organizationSnapshot.name||'—')}</span>${a.organizationSnapshot.directorName?` · ${_tsEsc(a.organizationSnapshot.directorPosition||'Рук.')}: ${_tsEsc(a.organizationSnapshot.directorName)}`:''}</div>`:''}
       ${a.sentByName?`<div style="margin-top:3px;color:var(--muted)">Отправил: ${_tsEsc(a.sentByName)}${a.sentAt?' · '+_tsDT(a.sentAt):''}</div>`:''}
       ${a.assignedDispatcherName?`<div style="margin-top:2px;color:var(--muted)">Получатель: <span style="color:var(--text)">${_tsEsc(a.assignedDispatcherName)}</span></div>`:''}
       ${st==='approved'&&a.approvedByName?`<div style="margin-top:2px;color:var(--green)">✓ Утвердил: ${_tsEsc(a.approvedByName)}${a.approvedAt?' · '+_tsDT(a.approvedAt):''}</div>`:''}
@@ -4254,7 +4501,10 @@ async function _tsPrintApproval(a,fmt){
     data=await buildEquipDetailed(a.equipmentIds||[],from,to);
   }
   const approvals={};approvals[a.objectId]={status:(a.status||'draft'),doc:a};
-  _tsOutput(detailedTimesheetHTML(data,from,to,approvals),fmt,'спецтехника');
+  // Реквизиты — из НЕИЗМЕНЯЕМОГО снимка организации (не из текущих настроек). Excel — без печати.
+  let orgSnap=a.organizationSnapshot||null;
+  if(orgSnap&&fmt==='excel')orgSnap={...orgSnap,stamp:'',showStampInDocuments:false};
+  _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgSnap),fmt,'спецтехника');
 }
 function archivePrint(docId,fmt){
   const a=(_tsArchive||[]).find(x=>x._docId===docId);
@@ -4279,9 +4529,23 @@ function openTimesheetModal(objId){
   document.getElementById('tsFrom').value=dk(dts[0]);
   document.getElementById('tsTo').value=dk(dts[dts.length-1]);
   document.getElementById('tsPeriodSub').textContent='Период: '+periodLabel(curYear,curEM).main;
+  // Организация: если одна — выбирается автоматически; если несколько — выбор; если нет — строка скрыта
+  const orgSel=document.getElementById('tsOrg'),orgRow=document.getElementById('tsOrgRow');
+  const orgs=orgList();
+  if(orgs.length){
+    orgRow.style.display=orgs.length>1?'':'none';
+    const prim=primaryOrg();
+    orgSel.innerHTML=orgs.map(o=>`<option value="${o.id}"${prim&&o.id===prim.id?' selected':''}>${_tsEsc(o.shortName||o.name)}</option>`).join('');
+  }else{orgRow.style.display='none';orgSel.innerHTML='';}
   tsSetMode('summary');
   renderTimesheetEquipList();
   openMo('moTimesheet');
+}
+// Организация, выбранная в окне формирования табеля (или основная)
+function _tsSelectedOrg(){
+  const sel=document.getElementById('tsOrg');
+  const id=sel&&sel.value;
+  return (id&&orgById(id))||primaryOrg()||null;
 }
 function tsSetMode(m){
   _tsMode=m;
@@ -4352,33 +4616,39 @@ function renderTimesheetApproval(){
     const o=cfg.objects.find(x=>x.id===oid);if(!o)continue;
     if(!canViewTimesheet(oid)){h+=`<div style="padding:6px 0;border-bottom:1px solid var(--border-2);font-size:12px;color:var(--muted)">${_tsEsc(o.name)} — нет доступа к согласованию</div>`;continue;}
     const equipIds=_tsObjEquipIds(oid);
-    const {status,doc}=tsApprovalStatus(oid,equipIds,from,to);
+    const g=_tsGroupStatus(oid,equipIds,from,to);
+    const status=g.status;
     const col=TS_STATUS_COLOR[status]||'var(--muted)';
     const eqNames=cfg.equipment.filter(e=>equipIds.includes(e.id)).map(e=>e.name).join(', ')||'—';
+    const stLabel=(g.mode==='all'&&(status==='pending'||status==='approved'))?`${TS_STATUS[status]||status} · ${g.approvedCount} из ${g.activeCount}`:(TS_STATUS[status]||status);
     h+=`<div style="padding:8px 0;border-bottom:1px solid var(--border-2)">
       <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
         <b style="font-size:13px">${_tsEsc(o.name)}</b>
-        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${TS_STATUS[status]||status}</span>
+        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${stLabel}</span>
       </div>
       <div style="font-size:11px;color:var(--muted);margin-top:3px">Период: <b style="color:var(--text)">${from&&to?_tsFmtDate(from)+'–'+_tsFmtDate(to):'—'}</b> · Техника: ${_tsEsc(eqNames)}</div>`;
     if(!equipIds.length){h+='<div style="font-size:11px;color:var(--yellow);margin-top:4px">Не выбрана техника этого объекта</div>';}
-    if(status==='approved'&&doc){
-      h+=`<div style="font-size:11px;color:var(--muted);margin-top:4px">✓ Утвердил: <b style="color:var(--text)">${_tsEsc(doc.approvedByName||'—')}</b> · ${_tsEsc(doc.approvedByRole||'')} · ${doc.approvedAt?_tsDT(doc.approvedAt):''}${doc.approvalComment?' · «'+_tsEsc(doc.approvalComment)+'»':''}</div>`;
-    }else if(status==='rejected'&&doc){
-      h+=`<div style="font-size:11px;color:var(--red);margin-top:4px">Отклонил: ${_tsEsc(doc.rejectedBy||'—')} · ${doc.rejectedAt?_tsDT(doc.rejectedAt):''}${doc.rejectionComment?' · Причина: «'+_tsEsc(doc.rejectionComment)+'»':''}</div>`;
-    }else if(status==='stale'){
-      h+=`<div style="font-size:11px;color:var(--accent);margin-top:4px">Табель изменён после утверждения — требуется повторное согласование.</div>`;
-    }else if(status==='pending'){
-      h+=`<div style="font-size:11px;color:var(--yellow);margin-top:4px">Ожидает согласования.</div>`;
+    // разбивка по получателям группы (кто согласовал / кто отклонил)
+    if(g.docs.length){
+      const active=g.docs.filter(d=>d.status!=='cancelled');
+      if(active.length){
+        h+='<div style="font-size:11px;color:var(--muted);margin-top:4px">Получатели:</div>';
+        for(const d of active){
+          const dst=tsEffStatus(d);const c=TS_STATUS_COLOR[dst]||'var(--muted)';
+          const extra=dst==='rejected'&&d.rejectionComment?` · «${_tsEsc(d.rejectionComment)}»`:(dst==='approved'&&d.approvedAt?' · '+_tsDT(d.approvedAt):'');
+          h+=`<div style="font-size:11px;margin-top:1px"><b>${_tsEsc(d.assignedDispatcherName||'—')}</b> — <span style="color:${c}">${TS_STATUS[dst]||dst}</span>${extra}</div>`;
+        }
+      }
     }else{
       h+=`<div style="font-size:11px;color:var(--muted);margin-top:4px">Не отправлен на согласование.</div>`;
     }
+    if(status==='stale')h+=`<div style="font-size:11px;color:var(--accent);margin-top:4px">Табель изменён после утверждения — отправьте повторно (новая версия).</div>`;
     const acts=[];
+    // Отправка/повторная отправка — Admin/Owner. Утверждение/отклонение — в «Входящих» у получателя.
     if(isMgr&&(status==='draft'||status==='rejected'||status==='stale'))acts.push(`<button class="btn btn-sm btn-primary" onclick="sendTimesheetForApproval('${oid}')">На согласование</button>`);
-    if(canApproveTimesheet(oid)&&status==='pending')acts.push(`<button class="btn btn-sm" style="background:rgba(34,211,160,.15);color:var(--green)" onclick="approveTimesheet('${oid}')">✓ Утвердить</button>`);
-    if(canApproveTimesheet(oid)&&status==='pending')acts.push(`<button class="btn btn-sm" style="background:var(--red-soft);color:var(--red)" onclick="rejectTimesheet('${oid}')">Отклонить</button>`);
-    if(isMgr&&status==='approved')acts.push(`<button class="btn btn-sm btn-secondary" onclick="cancelTimesheetApproval('${oid}')">Отменить утверждение</button>`);
-    if(doc&&(doc.history||[]).length)acts.push(`<button class="btn btn-sm btn-secondary" onclick="showTsHistory('${oid}')">История</button>`);
+    if(isMgr&&(status==='pending'||status==='approved'))acts.push(`<button class="btn btn-sm btn-primary" onclick="sendTimesheetForApproval('${oid}')">Изменить получателей / повторно</button>`);
+    if(isMgr&&status!=='draft'&&g.docs.length)acts.push(`<button class="btn btn-sm btn-secondary" onclick="cancelTimesheetApproval('${oid}')">Отменить согласование</button>`);
+    if(g.docs.some(d=>(d.history||[]).length))acts.push(`<button class="btn btn-sm btn-secondary" onclick="showTsHistory('${oid}')">История</button>`);
     if(acts.length)h+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${acts.join('')}</div>`;
     h+='</div>';
   }
@@ -4386,10 +4656,13 @@ function renderTimesheetApproval(){
 }
 function showTsHistory(objId){
   const equipIds=_tsObjEquipIds(objId);const{from,to}=_tsRange();
-  const a=getTsApprovalByKey(_tsApprovalKey(objId,equipIds,from,to));
-  if(!a||!(a.history||[]).length){alert('История согласований пуста');return;}
-  const A={sent:'Отправлено на согласование',approved:'Утверждено',rejected:'Отклонено',cancelled:'Утверждение отменено'};
-  const lines=a.history.map(h=>`${_tsDT(h.at)} · ${h.by} (${h.byRole||''}) · ${A[h.action]||h.action}${h.comment?': '+h.comment:''}`);
+  const {docs}=_tsGroupDocs(objId,equipIds,from,to);
+  const A={sent:'Отправлено на согласование',approved:'Утверждено',rejected:'Отклонено',cancelled:'Отменено'};
+  const events=[];
+  for(const d of docs)for(const h of (d.history||[]))events.push({...h,who:d.assignedDispatcherName||''});
+  if(!events.length){alert('История согласований пуста');return;}
+  events.sort((p,q)=>(p.at||'').localeCompare(q.at||''));
+  const lines=events.map(h=>`${_tsDT(h.at)} · ${h.by} (${h.byRole||''}) · ${A[h.action]||h.action}${h.who?' → '+h.who:''}${h.comment?': '+h.comment:''}`);
   alert('История согласований — '+oName(objId)+`\n(${_tsFmtDate(from)}–${_tsFmtDate(to)})\n\n`+lines.join('\n'));
 }
 
@@ -4474,7 +4747,25 @@ function buildTimesheetData(objIds,equipIds,monthDays,from,to){
 // ВАЖНО: только учёт работы техники — без зарплат, окладов, авансов, фактически
 // отработанных дней работников и БЕЗ комментариев/служебных заметок.
 // Группировка: объект → техника → «вид работ / количество». Нулевые строки скрыты.
-function timesheetHTML(d,approvalHTML){
+// Блок подписи руководителя + печать организации для печатных форм (PDF).
+// Печать (data URI) позиционируется у линии подписи, пропорции сохраняются, ФИО не перекрывается.
+function _orgSignHTML(org){
+  if(!org||(!org.name&&!org.shortName&&!org.directorName))return '';
+  const name=org.shortName||org.name||'';
+  const pos=org.directorPosition||'Руководитель';
+  const dir=org.directorName||'';
+  const bin=org.binIin?` &nbsp;·&nbsp; БИН/ИИН: ${_tsEsc(org.binIin)}`:'';
+  const showStamp=!!(org.showStampInDocuments&&org.stamp);
+  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:0;bottom:-10px;max-height:120px;max-width:200px;width:auto;height:auto;object-fit:contain;opacity:.95;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
+  return `<div style="margin-top:20px;position:relative;min-height:${showStamp?'130px':'auto'};page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+    <div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
+    <div style="margin-top:12px;position:relative;display:inline-block;padding-right:210px">
+      <span style="font-size:13px">${_tsEsc(pos)}: <b>${_tsEsc(dir||'____________________')}</b> &nbsp;______________________</span>
+      ${stampImg}
+    </div>
+  </div>`;
+}
+function timesheetHTML(d,approvalHTML,org){
   let body='';
   for(const g of d.groups){
     let eqBlocks='';
@@ -4536,6 +4827,7 @@ function timesheetHTML(d,approvalHTML){
     <div class="sc">Подпись заказчика ____________________</div>
     <div class="si">Подпись исполнителя ____________________</div>
   </div>
+  ${_orgSignHTML(org)}
   </body></html>`;
 }
 
@@ -4614,7 +4906,7 @@ async function buildEquipDetailed(equipIds,fromISO,toISO){
 
 // HTML детализированного табеля СПЕЦ.ТЕХНИКИ по дням — официальная печатная форма (A4 landscape).
 // Меняется ТОЛЬКО оформление и подготовка данных для этой формы. approvals = карта objId → {status,doc}.
-function detailedTimesheetHTML(data,fromISO,toISO,approvals){
+function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
   approvals=approvals||{};
   const fmtD=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;};
   const period=`${fmtD(fromISO)}–${fmtD(toISO)}`;
@@ -4696,6 +4988,7 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals){
           <div>Дата и время подтверждения: ${podtverdilDT}</div>
         </div>
       </div>
+      ${_orgSignHTML(org)}
     </section>`;
   }
   if(!sections)sections='<div style="padding:20px;color:#777">Нет данных за выбранный диапазон.</div>';
@@ -4745,6 +5038,7 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals){
 async function exportTimesheet(fmt){
   const equipIds=[...document.querySelectorAll('#tsEquipList .ts-equip:checked')].map(c=>c.value);
   if(!equipIds.length){alert('Выберите хотя бы одну единицу техники');return;}
+  const org=_tsSelectedOrg(); // организация для реквизитов/печати (live-формирование)
   if(_tsMode==='detail'){
     const from=document.getElementById('tsFrom').value,to=document.getElementById('tsTo').value;
     if(!from||!to){alert('Укажите диапазон дат (с / по)');return;}
@@ -4756,7 +5050,10 @@ async function exportTimesheet(fmt){
     for(const s of _tsPrintScopes([...new Set(data.map(x=>x.objId).filter(Boolean))])){
       approvals[s.objId]=tsApprovalStatus(s.objId,s.equipIds,s.from,s.to);
     }
-    _tsOutput(detailedTimesheetHTML(data,from,to,approvals),fmt,'спецтехника');
+    // Excel: только текстовые реквизиты (без изображения печати — .xls-таблица не гарантирует img);
+    // PDF: полные реквизиты + печать.
+    const orgPrint=_orgForFmt(org,fmt);
+    _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgPrint),fmt,'спецтехника');
     return;
   }
   // Сводный табель — теперь строго в рамках выбранного диапазона дат (а не всего периода)
@@ -4771,7 +5068,14 @@ async function exportTimesheet(fmt){
   const fname=d.groups.length===1?d.groups[0].obj.name:'сводный';
   // Блок утверждения — по точным табелям объектов, попавших в документ
   const approvalHTML=_tsApprovalPrintHTML(_tsPrintScopes(d.groups.map(g=>g.obj.id)));
-  _tsOutput(timesheetHTML(d,approvalHTML),fmt,fname);
+  _tsOutput(timesheetHTML(d,approvalHTML,_orgForFmt(org,fmt)),fmt,fname);
+}
+// Реквизиты для формата: Excel — без изображения печати (текст), PDF — с печатью.
+function _orgForFmt(org,fmt){
+  const snap=_orgSnapshot(org);
+  if(!snap)return null;
+  if(fmt==='excel')return {...snap,stamp:'',showStampInDocuments:false};
+  return snap;
 }
 
 function openObjModal(id){
@@ -5866,9 +6170,157 @@ function renderSettings(){
   const note=document.getElementById('settingsViewOnlyNote');
   if(note)note.style.display=editable?'none':'';
   renderMobileInstall();
+  const os=document.getElementById('orgsSection');
+  if(os)os.style.display=canManageOrgs()?'':'none';
+  if(canManageOrgs())renderOrgs();
   const us=document.getElementById('usersSection');
   if(us)us.style.display=can('manage_users')?'':'none';
   if(can('manage_users')) renderUsersList();
+}
+
+// ═══════════════════════════════════════════════
+// ОРГАНИЗАЦИИ / РЕКВИЗИТЫ (наименование, руководитель, печать)
+// ═══════════════════════════════════════════════
+const ORG_TYPES={ip:'ИП',too:'ТОО',other:'Другое'};
+// Организациями управляют Admin и Owner (соответствует Firestore-правилу write=isAdmin||isOwner)
+function canManageOrgs(){return currentUser?.role==='admin'||currentUser?.role==='owner';}
+function orgList(){return cfg.organizations||[];}
+function orgById(id){return orgList().find(o=>o.id===id)||null;}
+// Основная организация: помеченная isPrimary, иначе первая
+function primaryOrg(){const l=orgList();return l.find(o=>o.isPrimary)||l[0]||null;}
+// Неизменяемый снимок реквизитов организации (включая data URI печати) — для табеля/архива
+function _orgSnapshot(org){
+  if(!org)return null;
+  return{organizationId:org.id||'',name:org.name||'',shortName:org.shortName||org.name||'',type:org.type||'',
+    binIin:org.binIin||'',directorName:org.directorName||'',directorPosition:org.directorPosition||'',
+    stamp:org.stamp||'',showStampInDocuments:!!org.showStampInDocuments};
+}
+function renderOrgs(){
+  const el=document.getElementById('orgsList');if(!el)return;
+  const l=orgList();
+  if(!l.length){el.innerHTML='<div style="color:var(--muted);font-size:12px">Организаций пока нет. Добавьте первую — она станет основной.</div>';return;}
+  let h='';
+  for(const o of l){
+    h+=`<div class="c-card" style="margin-bottom:8px"><div class="c-card-body" style="font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <b style="font-size:14px">${_tsEsc(o.shortName||o.name||'—')}</b>
+        <span style="display:flex;gap:6px;align-items:center">${o.isPrimary?'<span class="tag" style="border:1px solid var(--green);color:var(--green);background:transparent">Основная</span>':''}<span class="badge-type t-ip">${ORG_TYPES[o.type]||o.type||'—'}</span></span>
+      </div>
+      ${o.name&&o.name!==o.shortName?`<div style="color:var(--muted);margin-top:3px">${_tsEsc(o.name)}</div>`:''}
+      ${o.binIin?`<div style="color:var(--muted);margin-top:2px">БИН/ИИН: ${_tsEsc(o.binIin)}</div>`:''}
+      <div style="margin-top:3px">${_tsEsc(o.directorPosition||'Руководитель')}: <b>${_tsEsc(o.directorName||'—')}</b></div>
+      <div style="margin-top:6px;display:flex;align-items:center;gap:10px">
+        ${o.stamp?`<img src="${o.stamp}" alt="печать" style="max-height:56px;max-width:110px;object-fit:contain;border:1px solid var(--border-2);border-radius:6px;padding:2px;background:#fff">`:'<span style="color:var(--muted);font-size:11px">Печать не загружена</span>'}
+        <span style="font-size:11px;color:${o.showStampInDocuments?'var(--green)':'var(--muted)'}">${o.stamp?(o.showStampInDocuments?'✓ выводится в документах':'скрыта в документах'):''}</span>
+      </div>
+    </div>
+    <div class="c-card-foot" style="flex-wrap:wrap;gap:6px">
+      <button class="btn btn-secondary btn-sm" onclick="openOrgModal('${o.id}')">✏ Изменить</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteOrg('${o.id}')">✕ Удалить</button>
+    </div></div>`;
+  }
+  el.innerHTML=h;
+}
+let _orgStampBuf=null; // '' = удалить, null = не менять, dataURI = новая
+function openOrgModal(id){
+  if(!canManageOrgs()){alert('Недостаточно прав');return;}
+  const o=id?orgById(id):null;
+  _orgStampBuf=null;
+  document.getElementById('moOrgTitle').textContent=o?'Редактировать организацию':'Новая организация';
+  document.getElementById('orgId').value=o?o.id:'';
+  document.getElementById('orgName').value=o?o.name||'':'';
+  document.getElementById('orgShortName').value=o?o.shortName||'':'';
+  document.getElementById('orgType').value=o?o.type||'ip':'ip';
+  document.getElementById('orgBinIin').value=o?o.binIin||'':'';
+  document.getElementById('orgDirectorName').value=o?o.directorName||'':'';
+  document.getElementById('orgDirectorPosition').value=o?o.directorPosition||'':'Директор';
+  document.getElementById('orgShowStamp').checked=o?!!o.showStampInDocuments:true;
+  document.getElementById('orgIsPrimary').checked=o?!!o.isPrimary:(orgList().length===0);
+  document.getElementById('orgStampFile').value='';
+  _orgRenderStampPreview(o?o.stamp||'':'');
+  openMo('moOrg');
+}
+function _orgRenderStampPreview(dataUri){
+  const box=document.getElementById('orgStampPreview');
+  if(dataUri){
+    box.innerHTML=`<div style="display:flex;align-items:center;gap:10px">
+      <img src="${dataUri}" style="max-height:80px;max-width:160px;object-fit:contain;border:1px solid var(--border-2);border-radius:6px;padding:3px;background:#fff">
+      <button type="button" class="btn btn-danger btn-sm" onclick="removeOrgStamp()">Удалить печать</button></div>`;
+  }else{
+    box.innerHTML='<span style="color:var(--muted);font-size:11px">Печать не загружена</span>';
+  }
+}
+function removeOrgStamp(){_orgStampBuf='';document.getElementById('orgStampFile').value='';_orgRenderStampPreview('');}
+// Максимальный размер data URI печати (символы base64 ≈ 4/3 от байтов → ~250 000 симв ≈ ~185 КБ).
+// Печать хранится в КАЖДОМ документе группы, поэтому держим её компактной, сохраняя читаемость.
+const STAMP_MAX_LEN=250000;
+// Загрузка печати: агрессивно, но с сохранением читаемости оптимизируем (PNG — с прозрачностью, пока
+// помещается; иначе — уменьшение размера, в крайнем случае JPEG). data URI хранится в Firestore.
+function onOrgStampSelected(ev){
+  const file=ev.target.files&&ev.target.files[0];if(!file)return;
+  if(!/^image\/(png|jpe?g)$/.test(file.type)){alert('Только PNG или JPG');return;}
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=()=>{
+      const isPng=file.type==='image/png';
+      const render=(dim,asPng,q)=>{
+        let w=img.width,h=img.height;
+        if(w>dim||h>dim){const k=dim/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
+        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+        cv.getContext('2d').drawImage(img,0,0,w,h);
+        return asPng?cv.toDataURL('image/png'):cv.toDataURL('image/jpeg',q);
+      };
+      let uri;
+      if(isPng){
+        // сначала пробуем сохранить прозрачность (PNG), постепенно уменьшая разрешение
+        uri=render(500,true);
+        if(uri.length>STAMP_MAX_LEN)uri=render(400,true);
+        if(uri.length>STAMP_MAX_LEN)uri=render(320,true);
+        // если PNG всё ещё велик — переходим на JPEG (теряется прозрачность, но помещается)
+        if(uri.length>STAMP_MAX_LEN)uri=render(500,false,0.82);
+        if(uri.length>STAMP_MAX_LEN)uri=render(420,false,0.7);
+      }else{
+        uri=render(560,false,0.85);
+        if(uri.length>STAMP_MAX_LEN)uri=render(480,false,0.72);
+        if(uri.length>STAMP_MAX_LEN)uri=render(400,false,0.6);
+      }
+      if(uri.length>STAMP_MAX_LEN){alert('Печать слишком большая даже после сжатия (~'+Math.round(uri.length/1024)+' КБ). Используйте более простое изображение меньшего разрешения.');return;}
+      _orgStampBuf=uri;_orgRenderStampPreview(uri);
+    };
+    img.onerror=()=>alert('Не удалось прочитать изображение');
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+function saveOrg(){
+  if(!canManageOrgs()){alert('Недостаточно прав');return;}
+  const id=document.getElementById('orgId').value;
+  const existing=id?orgById(id):null;
+  const name=document.getElementById('orgName').value.trim();
+  const shortName=document.getElementById('orgShortName').value.trim();
+  if(!name&&!shortName){alert('Введите наименование организации');return;}
+  // печать: buf==='' удалить, null оставить прежнюю, иначе новая
+  let stamp=existing?existing.stamp||'':'';
+  if(_orgStampBuf==='')stamp='';else if(_orgStampBuf)stamp=_orgStampBuf;
+  const isPrimary=document.getElementById('orgIsPrimary').checked;
+  const obj={id:id||uuid(),name:name||shortName,shortName:shortName||name,
+    type:document.getElementById('orgType').value||'ip',
+    binIin:document.getElementById('orgBinIin').value.trim(),
+    directorName:document.getElementById('orgDirectorName').value.trim(),
+    directorPosition:document.getElementById('orgDirectorPosition').value.trim()||'Руководитель',
+    stamp,showStampInDocuments:document.getElementById('orgShowStamp').checked,isPrimary};
+  closeMo('moOrg');
+  fbSaveOrg(obj).then(()=>{
+    // основная организация — единственная: снимаем флаг у остальных
+    if(isPrimary){for(const o of orgList()){if(o.id!==obj.id&&o.isPrimary)fbSaveOrg({...o,isPrimary:false});}}
+  });
+}
+function deleteOrg(id){
+  if(!canManageOrgs()){alert('Недостаточно прав');return;}
+  const o=orgById(id);if(!o)return;
+  if(!confirm(`Удалить организацию «${o.shortName||o.name}»? Уже сформированные табели сохранят свои реквизиты (snapshot).`))return;
+  fbDelOrg(id);
 }
 
 // ═══════════════════════════════════════════════
