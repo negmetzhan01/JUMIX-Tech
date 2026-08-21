@@ -197,7 +197,7 @@ body{padding-left:var(--sidebar-w)}
 .mo-box.wide{max-width:620px}
 .mo-title{font-size:19px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px}
 .mo-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
-.mo-acts{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.mo-acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px;justify-content:flex-end}
 /* SHIFT MODAL OPTS */
 .shift-opts{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px}
 .sopt{background:var(--card);border:2px solid var(--border);color:var(--text-2);border-radius:11px;padding:12px 4px;cursor:pointer;text-align:center;font-size:11px;font-weight:600;font-family:inherit;transition:.15s;line-height:1.3}
@@ -4344,9 +4344,10 @@ async function openTsReview(key){
     acts.innerHTML+=`<span style="color:var(--accent);font-size:12px;align-self:center">Табель изменён после утверждения — требуется повторная отправка Admin/Owner</span>`;
   }
   openMo('moTsReview');
-  // утверждённый архивный табель — из snapshot; иначе — live за диапазон
+  // Показываем ИМЕННО отправленную версию (approvedSnapshot формируется при отправке — pending тоже);
+  // live только для старых табелей без снимка.
   let data;
-  if(st==='approved'&&a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
+  if(a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
     data=a.approvedSnapshot.data;
   }else{
     data=await buildEquipDetailed(a.equipmentIds||[],a.periodFrom,a.periodTo);
@@ -4494,8 +4495,11 @@ function renderTsArchive(){
 // Печать/выгрузка табеля из архива: утверждённый — из snapshot; иначе — live за диапазон
 async function _tsPrintApproval(a,fmt){
   const from=a.periodFrom,to=a.periodTo;
+  // Всегда печатаем ИМЕННО отправленную версию: approvedSnapshot формируется при отправке и
+  // одинаков у всех получателей (pending/approved/rejected). Live-смены после отправки его не меняют.
+  // Fallback на live — только для старых табелей без снимка (обратная совместимость).
   let data;
-  if((a.status==='approved')&&a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
+  if(a.approvedSnapshot&&Array.isArray(a.approvedSnapshot.data)&&a.approvedSnapshot.data.length){
     data=a.approvedSnapshot.data;
   }else{
     data=await buildEquipDetailed(a.equipmentIds||[],from,to);
@@ -4943,6 +4947,8 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
       </div>`;
     }else if(ap.status==='pending'){
       apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">СТАТУС: На согласовании</div></div>`;
+    }else if(ap.status==='rejected'){
+      apprBlock=`<div class="apprv apprv-rej"><div class="apprv-title">СТАТУС: Отклонён</div>${doc&&doc.rejectedBy?`<div>Отклонил: <b>${_tsEsc(doc.rejectedBy)}</b></div>`:''}${doc&&doc.rejectedAt?`<div>Дата и время: ${_tsDT(doc.rejectedAt)}</div>`:''}${doc&&doc.rejectionComment?`<div>Причина: «${_tsEsc(doc.rejectionComment)}»</div>`:''}</div>`;
     }else if(ap.status==='stale'){
       apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">Изменён после утверждения</div></div>`;
     }
@@ -5010,6 +5016,7 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
     .apprv{border:1px solid #16a34a;border-left:4px solid #16a34a;border-radius:5px;background:#f0fdf4;
       padding:7px 11px;font-size:11px;min-width:270px}
     .apprv-wait{border-color:#d97706;border-left-color:#d97706;background:#fffbeb}
+    .apprv-rej{border-color:#dc2626;border-left-color:#dc2626;background:#fef2f2}
     .apprv-title{font-weight:800;margin-bottom:4px}
     .apprv div{padding:1px 0}
     table.wt{border-collapse:collapse;width:100%;font-size:10.5px;table-layout:fixed}
