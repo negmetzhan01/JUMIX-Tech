@@ -4751,25 +4751,30 @@ function buildTimesheetData(objIds,equipIds,monthDays,from,to){
 // ВАЖНО: только учёт работы техники — без зарплат, окладов, авансов, фактически
 // отработанных дней работников и БЕЗ комментариев/служебных заметок.
 // Группировка: объект → техника → «вид работ / количество». Нулевые строки скрыты.
-// Блок подписи руководителя + печать организации для печатных форм (PDF).
-// Печать (data URI) позиционируется у линии подписи, пропорции сохраняются, ФИО не перекрывается.
-function _orgSignHTML(org){
+// Блок ИСПОЛНИТЕЛЯ: реквизиты организации + руководитель + печать. По смыслу — сторона исполнителя
+// уже подписала и поставила печать в момент отправки на согласование (Owner/Admin «Отправить»).
+// Печать (data URI) — ~40 мм по A4, без фона/рамки/тени; слегка накрывает линию подписи, пропорции
+// сохраняются. Возвращает ВНУТРЕННЕЕ содержимое (без внешней обёртки) — для колонки подписи.
+function _orgExecutorHTML(org){
   if(!org||(!org.name&&!org.shortName&&!org.directorName))return '';
   const name=org.shortName||org.name||'';
   const pos=org.directorPosition||'Руководитель';
   const dir=org.directorName||'';
   const bin=org.binIin?` &nbsp;·&nbsp; БИН/ИИН: ${_tsEsc(org.binIin)}`:'';
   const showStamp=!!(org.showStampInDocuments&&org.stamp);
-  // Печать в документе — реальный размер ~40 мм по A4, без фона/рамки/тени; слегка накрывает линию
-  // подписи, пропорции сохраняются (object-fit:contain, width:auto). Только само изображение печати.
-  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:6mm;bottom:-8mm;height:40mm;width:auto;max-width:52mm;object-fit:contain;background:transparent;border:0;box-shadow:none;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
-  return `<div style="margin-top:20px;position:relative;min-height:${showStamp?'44mm':'auto'};page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact">
-    <div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
+  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:2mm;bottom:-9mm;height:40mm;width:auto;max-width:52mm;object-fit:contain;background:transparent;border:0;box-shadow:none;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
+  return `<div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
     <div style="margin-top:12px;position:relative;display:inline-block;padding-right:56mm">
       <span style="font-size:13px">${_tsEsc(pos)}: <b>${_tsEsc(dir||'____________________')}</b> &nbsp;______________________</span>
       ${stampImg}
-    </div>
-  </div>`;
+    </div>`;
+}
+// Полноширинный блок исполнителя (для сводной формы) — оборачивает содержимое.
+function _orgSignHTML(org){
+  const inner=_orgExecutorHTML(org);
+  if(!inner)return '';
+  const showStamp=!!(org&&org.showStampInDocuments&&org.stamp);
+  return `<div style="margin-top:20px;position:relative;min-height:${showStamp?'44mm':'auto'};page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact">${inner}</div>`;
 }
 function timesheetHTML(d,approvalHTML,org){
   let body='';
@@ -4954,9 +4959,10 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
     }else if(ap.status==='stale'){
       apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">Изменён после утверждения</div></div>`;
     }
-    // подписи: Составил (Owner) слева, Подтвердил (Dispatcher) справа
-    const sostavil=doc&&doc.sentByName?_tsEsc(doc.sentByName):'____________________';
-    const sostavilDate=doc&&doc.sentAt?fmtD(doc.sentAt.split('T')[0]):'________________';
+    // Подписи: СЛЕВА — исполнитель (организация + руководитель + печать; уже подписал при отправке).
+    //          СПРАВА — Подтвердил (Dispatcher); заполняется после согласования.
+    const orgExec=_orgExecutorHTML(org);
+    const showStampExec=!!(org&&org.showStampInDocuments&&org.stamp);
     const podtverdil=(ap.status==='approved'&&doc)?_tsEsc(doc.approvedByName||'—'):'____________________';
     const podtverdilDT=(ap.status==='approved'&&doc&&doc.approvedAt)?_tsDT(doc.approvedAt):'________________';
     sections+=`<section class="eqform">
@@ -4987,16 +4993,12 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
         <tbody>${rowsH}${totRow}</tbody>
       </table>
       <div class="sign">
-        <div class="sc">
-          <div>Составил (Owner): <b>${sostavil}</b></div>
-          <div>Дата составления: ${sostavilDate}</div>
-        </div>
+        <div class="sc" style="position:relative;min-height:${showStampExec?'44mm':'auto'}">${orgExec||'<div style="color:#777">Исполнитель</div>'}</div>
         <div class="si">
           <div>Подтвердил (Dispatcher): <b>${podtverdil}</b></div>
           <div>Дата и время подтверждения: ${podtverdilDT}</div>
         </div>
       </div>
-      ${_orgSignHTML(org)}
     </section>`;
   }
   if(!sections)sections='<div style="padding:20px;color:#777">Нет данных за выбранный диапазон.</div>';
