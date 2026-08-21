@@ -639,7 +639,7 @@ body{padding-left:var(--sidebar-w)}
 
 <!-- ═══════════ РАБОТНИКИ ═══════════ -->
 <div id="pane-workers" class="tab-pane">
-  <div class="ph"><h2>Работники</h2><button class="btn btn-primary" onclick="openWorkerModal()">+ Добавить</button></div>
+  <div class="ph"><h2>Работники</h2><div style="display:flex;gap:8px"><button class="btn btn-secondary" id="workerTimesheetBtn" onclick="openWorkerTimesheetModal()">📄 Табель работников</button><button class="btn btn-primary" onclick="openWorkerModal()">+ Добавить</button></div></div>
   <div id="pendingAdvancesPanel" style="display:none;margin-bottom:14px"></div>
   <div class="tbl-wrap"><table>
     <thead><tr><th>Имя</th><th>Тип</th><th>Техника</th><th class="tr">ЗП/мес</th><th class="tr">За ночи</th><th class="tr">Подмены</th><th class="tr">Итого нач.</th><th class="tr">Выплачено</th><th class="tr" style="color:var(--red)">Остаток</th><th></th></tr></thead>
@@ -656,7 +656,7 @@ body{padding-left:var(--sidebar-w)}
 
 <!-- ═══════════ ОБЪЕКТЫ ═══════════ -->
 <div id="pane-objects" class="tab-pane">
-  <div class="ph"><h2>Объекты</h2><button class="btn btn-primary" onclick="openObjModal()">+ Добавить</button></div>
+  <div class="ph"><h2>Объекты</h2><div style="display:flex;gap:8px"><button class="btn btn-secondary" id="objTimesheetBtn" onclick="openTimesheetModal()">📄 Табель / согласование</button><button class="btn btn-primary" id="objAddBtn" onclick="openObjModal()">+ Добавить</button></div></div>
   <div class="cards-grid" id="objCards"></div>
 </div>
 
@@ -839,11 +839,19 @@ body{padding-left:var(--sidebar-w)}
         <div style="color:var(--muted);font-size:11px;margin-top:3px">Начисление партнёру. Если пусто — берётся «Стоимость аренды/мес». Дней аренды = фактические дни техники на объекте.</div></div>
     </div>
     <div class="divider"></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы дохода (без НДС)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы за смену (дневная / ночная / почасовая аренда)</div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Тариф за день ₸</label><input class="fi" type="number" id="eqDayRate" placeholder="напр. 250000"></div>
+      <div class="fg"><label class="fl">Тариф за ночь ₸</label><input class="fi" type="number" id="eqNightRate" placeholder="напр. 300000"></div>
+      <div class="fg"><label class="fl">Тариф за час ₸</label><input class="fi" type="number" id="eqHourlyRate" placeholder="0"></div>
+    </div>
+    <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Доход считается по фактическим сменам: дневные × тариф/день + ночные × тариф/ночь. Если заполнено — заменяет расчёт по месячному тарифу для этих смен.</div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Месячная аренда и доп. услуги (без НДС)</div>
     <div class="frow frow-3">
       <div class="fg"><label class="fl">Месяц ₸</label><input class="fi" type="number" id="eqRMonth" placeholder="3000000"></div>
-      <div class="fg"><label class="fl">Ночь/мес ₸</label><input class="fi" type="number" id="eqRNight" placeholder="1300000"></div>
-      <div class="fg"><label class="fl">День ₸</label><input class="fi" type="number" id="eqRDay" placeholder="0"></div>
+      <div class="fg"><label class="fl">Ночь/мес ₸ (старый)</label><input class="fi" type="number" id="eqRNight" placeholder="1300000"></div>
+      <div class="fg"><label class="fl">День ₸ (старый)</label><input class="fi" type="number" id="eqRDay" placeholder="0"></div>
     </div>
     <div class="frow frow-3">
       <div class="fg"><label class="fl">Секция ₸</label><input class="fi" type="number" id="eqRSection" placeholder="134000"></div>
@@ -858,6 +866,47 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moEquip')">Отмена</button>
       <button class="btn btn-primary" onclick="saveEquip()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ТАБЕЛЬ РАБОТНИКОВ (внутренний) -->
+<div class="mo hidden" id="moWorkerTimesheet" onclick="closeMoCheck('moWorkerTimesheet',event)">
+  <div class="mo-box wide">
+    <div class="mo-title">Табель работников</div>
+    <div class="mo-sub" id="wtsSub">Внутренний отчёт</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="wtsPreset('period')">Текущий период</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="wtsPreset('prev')">Предыдущий период</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="wtsPreset('month')">Текущий месяц</button>
+    </div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">Дата с</label><input class="fi" type="date" id="wtsFrom" onchange="renderWorkerTimesheetPreview()"></div>
+      <div class="fg"><label class="fl">Дата по</label><input class="fi" type="date" id="wtsTo" onchange="renderWorkerTimesheetPreview()"></div>
+    </div>
+    <div class="fg"><label class="fl">Что показывать в табеле</label>
+      <div id="wtsCats" style="display:flex;flex-wrap:wrap;gap:8px 14px;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
+    </div>
+    <div class="frow frow-3">
+      <div class="fg"><label class="fl">Работники</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('worker',true)">Все</button><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('worker',false)">Снять</button></div>
+        <div id="wtsWorkers" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px"></div></div>
+      <div class="fg"><label class="fl">Техника</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('equip',true)">Вся</button><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('equip',false)">Снять</button></div>
+        <div id="wtsEquip" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px"></div></div>
+      <div class="fg"><label class="fl">Объекты</label>
+        <div style="display:flex;gap:6px;margin-bottom:6px"><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('object',true)">Все</button><button type="button" class="btn btn-secondary btn-sm" onclick="wtsToggle('object',false)">Снять</button></div>
+        <div id="wtsObjects" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:6px"></div></div>
+    </div>
+    <div style="display:flex;gap:6px;margin:6px 0 10px">
+      <button class="btn btn-sm btn-primary" id="wtsModeSum" onclick="wtsSetMode('summary')">Сводный табель</button>
+      <button class="btn btn-sm btn-secondary" id="wtsModeDet" onclick="wtsSetMode('detail')">Детализация</button>
+    </div>
+    <div id="wtsPreview" style="max-height:340px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moWorkerTimesheet')">Закрыть</button>
+      <button class="btn btn-primary" onclick="exportWorkerTimesheet('pdf')">📄 PDF</button>
+      <button class="btn btn-primary" onclick="exportWorkerTimesheet('excel')">📊 Excel</button>
     </div>
   </div>
 </div>
@@ -880,8 +929,16 @@ body{padding-left:var(--sidebar-w)}
 <!-- ТАБЕЛЬ: МОДАЛ ФОРМИРОВАНИЯ -->
 <div class="mo hidden" id="moTimesheet" onclick="closeMoCheck('moTimesheet',event)">
   <div class="mo-box wide">
-    <div class="mo-title">Формирование табеля</div>
+    <div class="mo-title">Формирование табеля техники</div>
     <div class="mo-sub" id="tsPeriodSub">Период</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">
+      <button class="btn btn-sm btn-primary" id="tsModeSum" onclick="tsSetMode('summary')">Сводный табель</button>
+      <button class="btn btn-sm btn-secondary" id="tsModeDet" onclick="tsSetMode('detail')">Детализированный по дням</button>
+    </div>
+    <div class="frow frow-2" id="tsDateRow" style="display:none">
+      <div class="fg"><label class="fl">Дата с</label><input class="fi" type="date" id="tsFrom"></div>
+      <div class="fg"><label class="fl">Дата по</label><input class="fi" type="date" id="tsTo"></div>
+    </div>
     <div class="fg"><label class="fl">Объекты (один, несколько или все)</label>
       <div style="display:flex;gap:8px;margin-bottom:8px">
         <button type="button" class="btn btn-secondary btn-sm" onclick="tsToggleAllObjects(true)">Все объекты</button>
@@ -896,10 +953,38 @@ body{padding-left:var(--sidebar-w)}
       </div>
       <div id="tsEquipList" style="max-height:300px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:8px"></div>
     </div>
+    <div class="fg"><label class="fl">Согласование табеля (за расчётный период)</label>
+      <div id="tsApprovalBox" style="border:1px solid var(--border);border-radius:8px;padding:8px"></div>
+    </div>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moTimesheet')">Отмена</button>
       <button class="btn btn-primary" onclick="exportTimesheet('pdf')">📄 PDF</button>
       <button class="btn btn-primary" onclick="exportTimesheet('excel')">📊 Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ТАБЕЛИ НА СОГЛАСОВАНИЕ (входящие) -->
+<div class="mo hidden" id="moTsInbox" onclick="closeMoCheck('moTsInbox',event)">
+  <div class="mo-box wide">
+    <div class="mo-title">Табели на согласование</div>
+    <div class="mo-sub" id="tsInboxSub">Входящие табели техники</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px" id="tsInboxTabs"></div>
+    <div id="tsInboxList" style="max-height:440px;overflow-y:auto"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moTsInbox')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПРОСМОТР ТАБЕЛЯ ПЕРЕД УТВЕРЖДЕНИЕМ -->
+<div class="mo hidden" id="moTsReview" onclick="closeMoCheck('moTsReview',event)">
+  <div class="mo-box wide">
+    <div class="mo-title" id="tsReviewTitle">Проверка табеля</div>
+    <div class="mo-sub" id="tsReviewSub"></div>
+    <div id="tsReviewBody" style="max-height:400px;overflow:auto;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:12px"></div>
+    <div class="mo-acts" id="tsReviewActs">
+      <button class="btn btn-secondary" onclick="closeMo('moTsReview')">Назад</button>
     </div>
   </div>
 </div>
@@ -1066,6 +1151,10 @@ body{padding-left:var(--sidebar-w)}
     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;font-size:13px">
       <input type="checkbox" id="inRecurring" style="width:16px;height:16px;accent-color:var(--green)">
       <span>Постоянная статья <span style="color:var(--muted);font-size:11px">(переносить на следующий период)</span></span>
+    </label>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-top:8px;font-size:13px">
+      <input type="checkbox" id="inNoVat" style="width:16px;height:16px;accent-color:var(--yellow)">
+      <span>Без НДС <span style="color:var(--muted);font-size:11px">(НДС = 0, итог = сумма без НДС)</span></span>
     </label>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moIncome')">Отмена</button>
@@ -1299,7 +1388,7 @@ function initFirebase() {
 let currentUser = null; // {uid, email, name, role, workerId}
 let _regName = null;   // имя из формы регистрации, передаётся в onAuthStateChanged
 let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[] };
-let pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[] };
+let pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[], tsApprovals:{} };
 let curYear, curEM;
 (function(){
   const now = new Date();
@@ -1417,7 +1506,7 @@ function listenConfig() {
 
 function listenPeriod(year, month) {
   _pdUnsubs.forEach(fn=>fn()); _pdUnsubs=[];
-  pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[] };
+  pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[], tsApprovals:{} };
   const pk = `${year}_${pad(month)}`;
   _pdUnsubs.push(db.collection('shifts').where('period','==',pk).onSnapshot(snap=>{
     pd.shifts = {};
@@ -1443,6 +1532,33 @@ function listenPeriod(year, month) {
     pd.partnerEntries = snap.docs.map(d=>({...d.data(),_docId:d.id}));
     scheduleRender();
   },()=>{}));
+  // Согласование/утверждение табелей техники (ключ = точный табель: объект+техника+даты).
+  // Доступ по ролям соответствует Firestore Rules:
+  //  • Admin/Owner — читают все табели периода;
+  //  • Dispatcher — только табели со своей назначенной техникой (запрос array-contains-any,
+  //    чанки по 30 из-за лимита Firestore); пустой assignedEquipmentIds = НЕТ доступа;
+  //  • остальные роли — не подписываются вовсе.
+  const _tsRole=currentUser?.role;
+  if(_tsRole==='admin'||_tsRole==='owner'){
+    _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).onSnapshot(snap=>{
+      pd.tsApprovals = {};
+      snap.docs.forEach(d=>{ pd.tsApprovals[d.id]={...d.data(),_docId:d.id}; });
+      scheduleRender();
+    },()=>{}));
+  }else if(_tsRole==='dispatcher'){
+    const ids=(currentUser?.assignedEquipmentIds||[]);
+    if(ids.length){
+      const chunks=[];for(let i=0;i<ids.length;i+=30)chunks.push(ids.slice(i,i+30));
+      const chunkRes=chunks.map(()=>[]);
+      chunks.forEach((chunk,ci)=>{
+        _pdUnsubs.push(db.collection('timesheetApprovals').where('period','==',pk).where('equipmentIds','array-contains-any',chunk).onSnapshot(snap=>{
+          chunkRes[ci]=snap.docs.map(d=>({...d.data(),_docId:d.id}));
+          pd.tsApprovals={};for(const cr of chunkRes)for(const a of cr)pd.tsApprovals[a._docId]=a;
+          scheduleRender();
+        },()=>{}));
+      });
+    }
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -1465,6 +1581,25 @@ function equipMonthlyIncome(e){
   if(!monthly)return 0;
   return Math.round(monthly*equipDays(e)/periodDayCount());
 }
+// Разбивка дохода техники от ЗАКАЗЧИКА за текущий период (без НДС).
+// Поддерживает одновременно: месячную аренду (rates.monthly × дни/период),
+// дневную (rates.dayRate × дневные смены), ночную (rates.nightRate × ночные смены).
+// Обратная совместимость: если новые dayRate/nightRate не заданы, ночные считаются
+// по старому rates.nightly ÷ дней периода (как раньше).
+function equipIncomeRows(e){
+  const n=periodDayCount();
+  const cs=pd.shifts[e.id]||{};
+  let days=0,nights=0;
+  for(const cell of Object.values(cs)){const t=cell.type||0;if(cell.status==='pending'||cell.status==='rejected')continue;if(t===1||t===3)days++;if(t===2||t===3)nights++;}
+  const r=e.rates||{};
+  const rows=[];let monthSum=0,daySum=0,nightSum=0;
+  if((r.monthly||0)>0){monthSum=equipMonthlyIncome(e);rows.push({service:'Месячная аренда',qty:equipDays(e),rate:r.monthly,sum:monthSum,kind:'month'});}
+  if((r.dayRate||0)>0&&days>0){daySum=days*r.dayRate;rows.push({service:'Дневные смены',qty:days,rate:r.dayRate,sum:daySum,kind:'day'});}
+  if((r.nightRate||0)>0&&nights>0){nightSum=nights*r.nightRate;rows.push({service:'Ночные смены',qty:nights,rate:r.nightRate,sum:nightSum,kind:'night'});}
+  else if((r.nightly||0)>0&&nights>0){const per=Math.round(r.nightly/n);nightSum=nights*per;rows.push({service:'Ночные смены (мес.)',qty:nights,rate:per,sum:nightSum,kind:'night'});}
+  return{rows,days,nights,monthSum,daySum,nightSum,noVatTotal:rows.reduce((s,x)=>s+x.sum,0)};
+}
+
 // Фактические дни аренды техники у партнёра за период.
 // rentalDaysByPeriod[pk] (если задано) иначе — фактические дни нахождения техники на объекте.
 function equipRentalDays(e,pk){
@@ -2029,6 +2164,8 @@ function renderWorkers(){
   const role = currentUser?.role;
   const addBtn = document.querySelector('#pane-workers .ph .btn-primary');
   if(addBtn) addBtn.style.display = role==='admin' ? '' : 'none';
+  const tsBtn=document.getElementById('workerTimesheetBtn');
+  if(tsBtn)tsBtn.style.display = role==='worker' ? 'none' : '';
   const _wc=document.getElementById('workerCards');if(_wc)_wc.innerHTML='';
   if(can('manage_payments'))renderPendingAdvances();
   else{const pp=document.getElementById('pendingAdvancesPanel');if(pp)pp.style.display='none';}
@@ -2383,6 +2520,187 @@ function saveWorker(){
 function deleteWorker(id){
   if(!confirm('Удалить работника?'))return;
   fbDelWorker(id);
+}
+
+// ═══════════════════════════════════════════════
+// ТАБЕЛЬ РАБОТНИКОВ (внутренний отчёт — отдельно от табеля заказчика по технике)
+// ═══════════════════════════════════════════════
+let _wtsMode='summary',_wtsCatsInit=false,_wtsLast=null;
+// Категории отображения табеля работников
+const WTS_CATS=[['day','Дневные смены'],['night','Ночные смены'],['over','Переработки'],['sub','Подмены'],['extra','Доп. смены'],['equip','Техника'],['object','Объект']];
+function openWorkerTimesheetModal(){
+  _wtsMode='summary';_wtsCatsInit=false;
+  const chk=(cls,arr,lbl)=>arr.map(x=>`<label style="display:flex;align-items:center;gap:7px;padding:3px 0;cursor:pointer;font-size:12px"><input type="checkbox" class="${cls}" value="${x.id}" checked onchange="renderWorkerTimesheetPreview()"> ${_tsEsc(lbl(x))}</label>`).join('');
+  document.getElementById('wtsWorkers').innerHTML=chk('wts-w',cfg.workers,w=>w.name)||'<div style="color:var(--muted);font-size:12px">Нет работников</div>';
+  document.getElementById('wtsEquip').innerHTML=chk('wts-e',cfg.equipment,e=>e.name)||'<div style="color:var(--muted);font-size:12px">Нет техники</div>';
+  document.getElementById('wtsObjects').innerHTML=chk('wts-o',cfg.objects,o=>o.name)||'<div style="color:var(--muted);font-size:12px">Нет объектов</div>';
+  document.getElementById('wtsCats').innerHTML=WTS_CATS.map(([k,l])=>`<label style="display:inline-flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;white-space:nowrap"><input type="checkbox" class="wts-c" value="${k}" checked onchange="renderWorkerTimesheetPreview()"> ${l}</label>`).join('');
+  // диапазон по умолчанию = расчётный период
+  const d=getPeriodDates(curYear,curEM);
+  document.getElementById('wtsFrom').value=dk(d[0]);
+  document.getElementById('wtsTo').value=dk(d[d.length-1]);
+  document.getElementById('wtsSub').textContent='Внутренний отчёт · фактически отработанные смены (зарплата не выводится)';
+  wtsSetMode('summary');
+  openMo('moWorkerTimesheet');
+}
+function wtsToggle(kind,v){const cls={worker:'wts-w',equip:'wts-e',object:'wts-o'}[kind];document.querySelectorAll('#moWorkerTimesheet .'+cls).forEach(c=>c.checked=v);renderWorkerTimesheetPreview();}
+function wtsSetMode(m){_wtsMode=m;document.getElementById('wtsModeSum').className='btn btn-sm '+(m==='summary'?'btn-primary':'btn-secondary');document.getElementById('wtsModeDet').className='btn btn-sm '+(m==='detail'?'btn-primary':'btn-secondary');renderWorkerTimesheetPreview();}
+function _wtsChecked(cls){return [...document.querySelectorAll('#moWorkerTimesheet .'+cls+':checked')].map(c=>c.value);}
+function _wtsCat(k){const el=document.querySelector('#wtsCats .wts-c[value="'+k+'"]');return el?el.checked:true;}
+function wtsPreset(kind){
+  let from,to;
+  if(kind==='prev'){let py=curYear,pe=curEM-1;if(pe<1){pe=12;py--;}const d=getPeriodDates(py,pe);from=dk(d[0]);to=dk(d[d.length-1]);}
+  else if(kind==='month'){const now=new Date(),y=now.getFullYear(),m=now.getMonth()+1;from=`${y}-${pad(m)}-01`;to=`${y}-${pad(m)}-${pad(new Date(y,m,0).getDate())}`;}
+  else{const d=getPeriodDates(curYear,curEM);from=dk(d[0]);to=dk(d[d.length-1]);}
+  document.getElementById('wtsFrom').value=from;document.getElementById('wtsTo').value=to;
+  renderWorkerTimesheetPreview();
+}
+
+// Считает фактически отработанные смены работников за произвольный диапазон дат.
+// Источник — реальные записи смен (shifts) в диапазоне. Один cell (equipId+date) = 1 смена техники;
+// смена работника не удваивается при подмене (в cell один workerId). Партнёры (p_*) исключены.
+async function buildWorkerTimesheet(wIds,eIds,oIds,fromISO,toISO){
+  const cells=[];
+  try{
+    const snap=await db.collection('shifts').where('date','>=',fromISO).where('date','<=',toISO).get();
+    snap.forEach(doc=>cells.push(doc.data()));
+  }catch(err){
+    for(const[eid,cs] of Object.entries(pd.shifts||{})){for(const[date,c] of Object.entries(cs)){if(date>=fromISO&&date<=toISO)cells.push({equipId:eid,date,...c});}}
+  }
+  const stats={},detail=[];
+  const ensure=wid=>stats[wid]=stats[wid]||{days:0,nights:0,over:0,subs:0,extra:0,byEquip:{},objs:new Set()};
+  for(const x of cells){
+    const t=x.type||0;if(!t)continue;
+    if(x.status==='pending'||x.status==='rejected')continue;
+    const e=cfg.equipment.find(eq=>eq.id===x.equipId);if(!e)continue;
+    if(eIds.length&&!eIds.includes(e.id))continue;
+    if(oIds.length&&!(e.objectId&&oIds.includes(e.objectId)))continue;
+    const primary=e.primaryWorkerId;
+    let wid;
+    if(!x.workerId)wid=primary;
+    else if(String(x.workerId).startsWith('p_'))continue;
+    else wid=x.workerId;
+    if(!wid)continue;
+    if(wIds.length&&!wIds.includes(wid))continue;
+    const w=cfg.workers.find(y=>y.id===wid);if(!w)continue;
+    const st=ensure(wid);
+    const be=st.byEquip[e.id]=st.byEquip[e.id]||{days:0,nights:0,over:0,subs:0,objId:e.objectId};
+    const isSub=wid!==primary,isExtra=w.equipmentId&&e.id!==w.equipmentId;
+    const objN=oName(e.objectId),eqN=e.name;
+    st.objs.add(e.objectId||'');
+    if(t===1||t===3){st.days++;be.days++;detail.push({date:x.date,worker:w.name,equip:eqN,obj:objN,type:'День'});}
+    if(t===2||t===3){st.nights++;be.nights++;detail.push({date:x.date,worker:w.name,equip:eqN,obj:objN,type:'Ночь'});}
+    if(t===4){st.over++;be.over++;detail.push({date:x.date,worker:w.name,equip:eqN,obj:objN,type:'Переработка'});}
+    if(isSub){st.subs++;be.subs++;}
+    if(isExtra)st.extra++;
+  }
+  const list=[];
+  for(const w of cfg.workers){
+    if(wIds.length&&!wIds.includes(w.id))continue;
+    const st=stats[w.id];if(!st)continue;
+    list.push({worker:w,...st,objNames:[...st.objs].filter(Boolean).map(oName)});
+  }
+  list.sort((a,b)=>(b.days+b.nights+b.over)-(a.days+a.nights+a.over));
+  detail.sort((a,b)=>(a.date||'').localeCompare(b.date||'')||a.worker.localeCompare(b.worker));
+  return {list,detail};
+}
+
+// Таблица табеля работников (сводный / детализированный по датам). Пустые/невыбранные колонки скрыты.
+function workerTimesheetTableHTML(list,detail,mode){
+  const show=k=>_wtsCat(k);
+  const fmtD=iso=>{const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;};
+  if(mode==='detail'){
+    const rows=detail.filter(r=>(r.type==='День'&&show('day'))||(r.type==='Ночь'&&show('night'))||(r.type==='Переработка'&&show('over')));
+    if(!rows.length)return '<div style="color:#888;padding:8px">Нет смен за выбранный период</div>';
+    let h='<table class="wts-tbl"><tr><th>Дата</th><th>Работник</th>';
+    if(show('equip'))h+='<th>Техника</th>';
+    if(show('object'))h+='<th>Объект</th>';
+    h+='<th>Тип смены</th></tr>';
+    for(const r of rows){
+      h+=`<tr><td>${fmtD(r.date)}</td><td>${_tsEsc(r.worker)}</td>`;
+      if(show('equip'))h+=`<td>${_tsEsc(r.equip)}</td>`;
+      if(show('object'))h+=`<td>${_tsEsc(r.obj)}</td>`;
+      h+=`<td>${r.type}</td></tr>`;
+    }
+    return h+'</table>';
+  }
+  if(!list.length)return '<div style="color:#888;padding:8px">Нет смен за выбранный период</div>';
+  const cols=[['day','Дн.'],['night','Ноч.'],['over','Перераб.'],['sub','Подмены'],['extra','Доп.']].filter(([k])=>show(k));
+  const val=(r,k)=>({day:r.days,night:r.nights,over:r.over,sub:r.subs,extra:r.extra}[k]);
+  let h='<table class="wts-tbl"><tr><th class="c">№</th><th>ФИО</th>';
+  for(const[,l] of cols)h+=`<th class="c">${l}</th>`;
+  h+='<th class="c">Итого</th>';
+  if(show('equip'))h+='<th>Техника</th>';
+  if(show('object'))h+='<th>Объекты</th>';
+  h+='</tr>';
+  let i=1;const T={day:0,night:0,over:0,sub:0,extra:0};
+  for(const r of list){
+    const tot=r.days+r.nights+r.over;
+    T.day+=r.days;T.night+=r.nights;T.over+=r.over;T.sub+=r.subs;T.extra+=r.extra;
+    h+=`<tr><td class="c">${i++}</td><td>${_tsEsc(r.worker.name)}</td>`;
+    for(const[k] of cols)h+=`<td class="c">${val(r,k)}</td>`;
+    h+=`<td class="c" style="font-weight:700">${tot}</td>`;
+    if(show('equip'))h+=`<td>${_tsEsc([...new Set(Object.keys(r.byEquip).map(eqName))].join(', '))}</td>`;
+    if(show('object'))h+=`<td>${_tsEsc(r.objNames.join(', '))}</td>`;
+    h+='</tr>';
+  }
+  h+='<tr class="tot"><td></td><td>ИТОГО</td>';
+  for(const[k] of cols)h+=`<td class="c">${T[k]}</td>`;
+  h+=`<td class="c">${T.day+T.night+T.over}</td>`;
+  if(show('equip'))h+='<td></td>';
+  if(show('object'))h+='<td></td>';
+  return h+'</tr></table>';
+}
+async function renderWorkerTimesheetPreview(){
+  const from=document.getElementById('wtsFrom').value,to=document.getElementById('wtsTo').value;
+  const pre=document.getElementById('wtsPreview');if(!pre)return;
+  if(!from||!to||from>to){pre.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Укажите корректный диапазон дат</div>';return;}
+  pre.innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Загрузка…</div>';
+  const res=await buildWorkerTimesheet(_wtsChecked('wts-w'),_wtsChecked('wts-e'),_wtsChecked('wts-o'),from,to);
+  _wtsLast={...res,from,to};
+  // авто-включение только непустых категорий (один раз после открытия)
+  if(!_wtsCatsInit){
+    const tot={day:0,night:0,over:0,sub:0,extra:0};
+    for(const r of res.list){tot.day+=r.days;tot.night+=r.nights;tot.over+=r.over;tot.sub+=r.subs;tot.extra+=r.extra;}
+    const set=(k,v)=>{const el=document.querySelector('#wtsCats .wts-c[value="'+k+'"]');if(el)el.checked=v;};
+    set('day',tot.day>0);set('night',tot.night>0);set('over',tot.over>0);set('sub',tot.sub>0);set('extra',tot.extra>0);
+    set('equip',res.list.length>0);set('object',res.list.length>0);
+    _wtsCatsInit=true;
+  }
+  const style='<style>.wts-tbl{border-collapse:collapse;width:100%;font-size:12px}.wts-tbl th,.wts-tbl td{border:1px solid var(--border);padding:5px 7px;text-align:left}.wts-tbl th{background:var(--card2)}.wts-tbl .c{text-align:center}.wts-tbl tr.tot{font-weight:700;background:var(--card2)}</style>';
+  pre.innerHTML=style+workerTimesheetTableHTML(res.list,res.detail,_wtsMode);
+}
+async function exportWorkerTimesheet(fmt){
+  const from=document.getElementById('wtsFrom').value,to=document.getElementById('wtsTo').value;
+  if(!from||!to||from>to){alert('Укажите корректный диапазон дат');return;}
+  const res=(_wtsLast&&_wtsLast.from===from&&_wtsLast.to===to)?_wtsLast:await buildWorkerTimesheet(_wtsChecked('wts-w'),_wtsChecked('wts-e'),_wtsChecked('wts-o'),from,to);
+  const empty=_wtsMode==='detail'?!res.detail.length:!res.list.length;
+  if(empty){alert('Нет смен за выбранный период по фильтрам');return;}
+  const fmtD=iso=>{const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;};
+  const doc=`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Табель работников</title>
+  <style>
+    @page{size:A4 ${_wtsMode==='summary'?'landscape':'portrait'};margin:12mm}
+    body{font-family:Arial,sans-serif;color:#000;padding:16px;font-size:12px}
+    h1{font-size:16px;margin:0 0 6px;text-align:center}
+    .meta{margin-bottom:12px;font-size:12px}
+    .wts-tbl{border-collapse:collapse;width:100%;font-size:11px;margin-bottom:8px}
+    .wts-tbl th,.wts-tbl td{border:1px solid #555;padding:4px 6px;text-align:left}
+    .wts-tbl th{background:#e8e8e8}.wts-tbl .c{text-align:center}.wts-tbl tr.tot{font-weight:bold;background:#f0f0f0}
+    @media print{body{padding:0}}
+  </style></head><body>
+  <h1>ТАБЕЛЬ УЧЁТА РАБОЧЕГО ВРЕМЕНИ (ВНУТРЕННИЙ)</h1>
+  <div class="meta"><b>Период:</b> с ${fmtD(from)} по ${fmtD(to)} &nbsp;·&nbsp; <b>Режим:</b> ${_wtsMode==='detail'?'Детализация по датам':'Сводный'} &nbsp;·&nbsp; <b>Дата формирования:</b> ${_tsEsc(fmtFullDate(todayISO()))}</div>
+  ${workerTimesheetTableHTML(res.list,res.detail,_wtsMode)}
+  </body></html>`;
+  if(fmt==='pdf'){
+    const w=window.open('','_blank');if(!w){alert('Разрешите всплывающие окна');return;}
+    w.document.write(doc);w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(e){}},400);
+  }else{
+    const blob=new Blob(['﻿'+doc],{type:'application/vnd.ms-excel'});
+    const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;
+    a.download=`Табель_работников_${curYear}_${pad(curEM)}.xls`;
+    document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
+  }
 }
 
 // PAYMENTS
@@ -2756,8 +3074,17 @@ function _adminDash(){
   const activeObjs=new Set(cfg.equipment.map(e=>e.objectId).filter(Boolean)).size;
   let payAccrued=0,payPaid=0,payrollDebt=0;
   for(const w of cfg.workers){const ec=calcWorkerEarnings(w);payAccrued+=ec.totalAccrued;payPaid+=ec.pays;if(ec.balance>0)payrollDebt+=ec.balance;}
+  const tsPend=tsPendingCount();
   let h='';
   h+=`<div class="dash-section-title">Обзор</div>`;
+  h+=`<div class="c-card" style="cursor:pointer;margin-bottom:16px" onclick="openTsInbox('all')">
+    <div class="c-card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:15px;font-weight:700">📋 Согласование табелей${tsPend>0?` <span style="background:var(--yellow);color:#000;border-radius:10px;padding:1px 9px;font-size:13px;margin-left:4px">${tsPend}</span>`:''}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">${tsPend>0?`На согласовании: ${tsPend}`:'Черновики / утверждённые / отклонённые — нажмите для просмотра'}</div>
+      </div><div style="font-size:22px;color:var(--muted)">›</div>
+    </div>
+  </div>`;
   h+=`<div class="kpi-row" style="margin-bottom:16px">
     <div class="kpi bl"><div class="kl">Техника</div><div class="kv bl">${cfg.equipment.length}</div><div class="ks">в работе</div></div>
     <div class="kpi gn"><div class="kl">Работники</div><div class="kv gn">${cfg.workers.length}</div><div class="ks">всего</div></div>
@@ -2809,7 +3136,18 @@ function _dispatcherDash(){
       if(!cell.status||cell.status==='approved')if(cell.type===2||cell.type===3)totalNights++;
     }
   }
+  const tsPend=tsPendingCount();
   let h='';
+  // Карточка «Табели на согласование» (кликабельная, со счётчиком ожидающих)
+  h+=`<div class="c-card" style="cursor:pointer;margin-bottom:16px;${tsPend>0?'border:1px solid var(--yellow)':''}" onclick="openTsInbox('pending')">
+    <div class="c-card-body" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div>
+        <div style="font-size:15px;font-weight:700">📋 Табели на согласование${tsPend>0?` <span style="background:var(--yellow);color:#000;border-radius:10px;padding:1px 9px;font-size:13px;margin-left:4px">${tsPend}</span>`:''}</div>
+        <div style="color:var(--muted);font-size:12px;margin-top:3px">${tsPend>0?`Ожидают: ${tsPend} — нажмите, чтобы проверить и утвердить`:'Нет табелей на согласование'}</div>
+      </div>
+      <div style="font-size:22px;color:var(--muted)">›</div>
+    </div>
+  </div>`;
   h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
     <div class="kpi bl"><div class="kl">Ночей в периоде</div><div class="kv bl">${totalNights}</div><div class="ks">подтверждено</div></div>
     <div class="kpi ${pendingRequests>0?'yw':'gn'}"><div class="kl">Заявок</div><div class="kv ${pendingRequests>0?'yw':'gn'}">${pendingRequests}</div><div class="ks">ожидают</div></div>
@@ -3258,6 +3596,9 @@ function openEquipModal(id){
   document.getElementById('eqRMonth').value=r.monthly||0;
   document.getElementById('eqRNight').value=r.nightly||0;
   document.getElementById('eqRDay').value=r.daily||0;
+  document.getElementById('eqDayRate').value=r.dayRate||'';
+  document.getElementById('eqNightRate').value=r.nightRate||'';
+  document.getElementById('eqHourlyRate').value=r.hourlyRate||'';
   document.getElementById('eqRSection').value=r.section||0;
   document.getElementById('eqRWall').value=r.wall||0;
   document.getElementById('eqRAnchor').value=r.anchor||0;
@@ -3292,6 +3633,9 @@ function saveEquip(){
       monthly:+document.getElementById('eqRMonth').value||0,
       nightly:+document.getElementById('eqRNight').value||0,
       daily:+document.getElementById('eqRDay').value||0,
+      dayRate:+document.getElementById('eqDayRate').value||0,
+      nightRate:+document.getElementById('eqNightRate').value||0,
+      hourlyRate:+document.getElementById('eqHourlyRate').value||0,
       section:+document.getElementById('eqRSection').value||0,
       wall:+document.getElementById('eqRWall').value||0,
       anchor:+document.getElementById('eqRAnchor').value||0,
@@ -3318,6 +3662,8 @@ function deleteEquip(id){
 // OBJECTS TAB
 // ═══════════════════════════════════════════════
 function renderObjects(){
+  const addBtn=document.getElementById('objAddBtn');
+  if(addBtn)addBtn.style.display=(currentUser?.role==='admin')?'':'none';
   let h='';
   for(const o of cfg.objects){
     const eqs=cfg.equipment.filter(e=>e.objectId===o.id);
@@ -3345,18 +3691,314 @@ function renderObjects(){
 // Типы дополнительных услуг для колонок табеля (соответствуют INC_TYPES)
 const TS_SERVICES=[['section','Наращ. секций'],['wall','Крепл. к зданию'],['anchor','Анкеры'],['transport','Перевозка'],['install','Монтаж'],['dismantle','Демонтаж'],['other','Прочие услуги']];
 
+// ═══════════════════════════════════════════════
+// СОГЛАСОВАНИЕ / УТВЕРЖДЕНИЕ ТАБЕЛЯ ТЕХНИКИ (отдельная сущность — смены не меняет)
+// ═══════════════════════════════════════════════
+const TS_STATUS={draft:'Черновик',pending:'На согласовании',approved:'Утверждён',rejected:'Отклонён',stale:'Изменён после утверждения'};
+const TS_STATUS_COLOR={draft:'var(--muted)',pending:'var(--yellow)',approved:'var(--green)',rejected:'var(--red)',stale:'var(--accent)'};
+// Стабильный ключ утверждения = objectId + equipmentIds + periodFrom + periodTo.
+// Один и тот же сформированный табель (объект+техника+даты) → один документ утверждения.
+function _tsHashStr(s){let h=0;for(let i=0;i<s.length;i++){h=(h*31+s.charCodeAt(i))|0;}return (h>>>0).toString(36);}
+function _tsApprovalKey(objId,equipIds,from,to){
+  const eq=[...(equipIds||[])].sort().join(',');
+  return objId+'_'+_tsHashStr(objId+'|'+(from||'')+'|'+(to||'')+'|'+eq);
+}
+// Диапазон дат текущего табеля: детализированный — из полей, сводный — границы расчётного периода
+function _tsRange(){
+  if(_tsMode==='detail'){return {from:(document.getElementById('tsFrom')||{}).value||'',to:(document.getElementById('tsTo')||{}).value||''};}
+  const dts=getPeriodDates(curYear,curEM);return {from:dk(dts[0]),to:dk(dts[dts.length-1])};
+}
+// Отмеченная техника, принадлежащая объекту (точный состав табеля)
+function _tsObjEquipIds(objId){
+  const checked=new Set([...document.querySelectorAll('#tsEquipList .ts-equip:checked')].map(c=>c.value));
+  return cfg.equipment.filter(e=>e.objectId===objId&&checked.has(e.id)).map(e=>e.id).sort();
+}
+// Подпись контента табеля (для обнаружения изменений после утверждения) — в точных рамках табеля
+function objectTimesheetSig(objId,equipIds,from,to){
+  const set=new Set(equipIds||[]);
+  const eqs=cfg.equipment.filter(e=>e.objectId===objId&&set.has(e.id)).sort((a,b)=>a.id.localeCompare(b.id));
+  const parts=[];
+  for(const e of eqs){
+    let d=0,n=0,o=0;const cs=pd.shifts[e.id]||{};
+    for(const[date,c] of Object.entries(cs)){
+      if(from&&date<from)continue;if(to&&date>to)continue;
+      const t=c.type||0;if(c.status==='pending'||c.status==='rejected')continue;
+      if(t===1||t===3)d++;if(t===2||t===3)n++;if(t===4)o++;
+    }
+    const svc={};for(const it of (pd.incomeItems||[])){if(it.equipmentId===e.id&&it.status!=='cancelled'&&it.type){if(from&&it.date<from)continue;if(to&&it.date>to)continue;svc[it.type]=(svc[it.type]||0)+(it.qty||1);}}
+    parts.push(e.id+':'+d+','+n+','+o+':'+JSON.stringify(svc));
+  }
+  return parts.join('|');
+}
+function getTsApprovalByKey(key){return (pd.tsApprovals||{})[key]||null;}
+// Эффективный статус табеля (по точным рамкам): если утверждён, но контент изменился — 'stale'
+function tsApprovalStatus(objId,equipIds,from,to){
+  const key=_tsApprovalKey(objId,equipIds,from,to);
+  const a=getTsApprovalByKey(key);
+  if(!a)return{status:'draft',doc:null,key};
+  let status=a.status||'draft';
+  if(status==='approved'&&a.contentSig!=null&&a.contentSig!==objectTimesheetSig(objId,equipIds,from,to))status='stale';
+  return{status,doc:a,key};
+}
+// Кто может утверждать табель объекта: admin/owner — любой; dispatcher — только по своей
+// НАЗНАЧЕННОЙ технике. Для согласования пустой assignedEquipmentIds = НЕТ доступа
+// (в отличие от общей видимости смен, где пусто = без ограничений — та конвенция не меняется).
+function canApproveTimesheet(objId){
+  const r=currentUser?.role;
+  if(r==='admin'||r==='owner')return true;
+  if(r==='dispatcher'){
+    const ids=dispatcherEquipIds();
+    if(!ids.length)return false;
+    const eqs=cfg.equipment.filter(e=>e.objectId===objId);
+    return eqs.some(e=>ids.includes(e.id));
+  }
+  return false;
+}
+// Диспетчер видит только табели своих объектов; admin/owner — все
+function canViewTimesheet(objId){
+  const r=currentUser?.role;
+  if(r==='admin'||r==='owner'||r==='accountant')return true;
+  if(r==='dispatcher')return canApproveTimesheet(objId);
+  return false;
+}
+// Может ли текущий пользователь утвердить КОНКРЕТНОЕ утверждение (точная техника).
+// Совпадает с Firestore-правилом: диспетчеру нужна пересечение equipmentIds с назначенной техникой
+// (пустой список назначений = без ограничений).
+function canApproveApproval(a){
+  const r=currentUser?.role;
+  if(r==='admin'||r==='owner')return true;
+  if(r==='dispatcher'){
+    const ids=dispatcherEquipIds();
+    if(!ids.length)return false; // пустой список назначений = НЕТ доступа к согласованию
+    return (a.equipmentIds||[]).some(id=>ids.includes(id));
+  }
+  return false;
+}
+async function fbSaveTsApproval(doc){
+  const{_docId,...d}=doc;
+  const id=_docId||_tsApprovalKey(d.objectId,d.equipmentIds||[],d.periodFrom,d.periodTo);
+  const per=d.period||curPK(); // сохраняем исходный период документа (не перезаписываем при утверждении)
+  pd.tsApprovals=pd.tsApprovals||{};pd.tsApprovals[id]={...d,period:per,_docId:id}; // оптимистично (ключ = id)
+  try{await db.collection('timesheetApprovals').doc(id).set({...d,period:per});}catch(e){fbErr(e);}
+}
+// Базовый объект утверждения — точные рамки табеля
+function _tsApprovalBase(objId,equipIds,from,to){
+  return{objectId:objId,period:curPK(),periodFrom:from,periodTo:to,equipmentIds:equipIds};
+}
+function _tsHistEntry(action,comment){
+  return{at:new Date().toISOString(),by:currentUser.name||currentUser.email,byUid:currentUser.uid,byRole:ROLE_LABELS[currentUser.role]||currentUser.role,action,comment:comment||''};
+}
+// Собирает точные рамки табеля объекта из текущего окна (техника + период). null если нет техники/дат.
+function _tsScope(objId){
+  const equipIds=_tsObjEquipIds(objId);const{from,to}=_tsRange();
+  if(!equipIds.length){alert('Для объекта не выбрана техника');return null;}
+  if(!from||!to){alert('Не задан период табеля (даты с/по)');return null;}
+  return{equipIds,from,to,cur:getTsApprovalByKey(_tsApprovalKey(objId,equipIds,from,to))||{}};
+}
+// ── Ядро операций согласования (принимают точную область: objId + equipIds + from + to) ──
+function _tsCurDoc(objId,equipIds,from,to){return getTsApprovalByKey(_tsApprovalKey(objId,equipIds,from,to))||{};}
+async function _tsSend(objId,equipIds,from,to){
+  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();const who=currentUser.name||currentUser.email;
+  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,
+    status:'pending',rejectionComment:'',rejectedBy:'',rejectedAt:'',sentByName:who,sentByUid:currentUser.uid,sentAt:now,
+    history:[...(cur.history||[]),_tsHistEntry('sent',`Отправлено на согласование (${from}–${to})`)]});
+}
+async function _tsApprove(objId,equipIds,from,to,comment){
+  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
+  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'approved',
+    approvedByUid:currentUser.uid,approvedByName:currentUser.name||currentUser.email,approvedByRole:ROLE_LABELS[currentUser.role]||currentUser.role,
+    approvedAt:now,approvalComment:comment||'',contentSig:objectTimesheetSig(objId,equipIds,from,to),rejectionComment:'',
+    history:[...(cur.history||[]),_tsHistEntry('approved',comment||'')]});
+}
+async function _tsReject(objId,equipIds,from,to,comment){
+  const cur=_tsCurDoc(objId,equipIds,from,to);const now=new Date().toISOString();
+  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'rejected',
+    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',
+    rejectedBy:currentUser.name||currentUser.email,rejectedByUid:currentUser.uid,rejectedAt:now,rejectionComment:comment,
+    history:[...(cur.history||[]),_tsHistEntry('rejected',comment)]});
+}
+async function _tsCancel(objId,equipIds,from,to){
+  const cur=_tsCurDoc(objId,equipIds,from,to);
+  await fbSaveTsApproval({..._tsApprovalBase(objId,equipIds,from,to),...cur,equipmentIds:equipIds,periodFrom:from,periodTo:to,status:'pending',
+    approvedByUid:'',approvedByName:'',approvedByRole:'',approvedAt:'',approvalComment:'',contentSig:null,
+    history:[...(cur.history||[]),_tsHistEntry('cancelled','Утверждение отменено, отправлено на повторное согласование')]});
+}
+// ── Обёртки из окна формирования табеля (область берётся из DOM через _tsScope) ──
+async function sendTimesheetForApproval(objId){
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отправить на согласование может Admin или Owner');return;}
+  const s=_tsScope(objId);if(!s)return;
+  await _tsSend(objId,s.equipIds,s.from,s.to);renderTimesheetApproval();
+}
+async function approveTimesheet(objId){
+  if(!canApproveTimesheet(objId)){alert('Нет прав на утверждение этого табеля');return;}
+  const s=_tsScope(objId);if(!s)return;
+  const comment=prompt('Комментарий к утверждению (необязательно):','')||'';
+  await _tsApprove(objId,s.equipIds,s.from,s.to,comment);renderTimesheetApproval();
+}
+async function rejectTimesheet(objId){
+  if(!canApproveTimesheet(objId)){alert('Нет прав');return;}
+  const s=_tsScope(objId);if(!s)return;
+  const comment=prompt('Причина отклонения (обязательно):','');
+  if(comment===null)return;
+  if(!comment.trim()){alert('Причина отклонения обязательна');return;}
+  await _tsReject(objId,s.equipIds,s.from,s.to,comment.trim());renderTimesheetApproval();
+}
+async function cancelTimesheetApproval(objId){
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner')){alert('Отменить утверждение может Admin или Owner');return;}
+  const s=_tsScope(objId);if(!s)return;
+  if(!confirm('Отменить утверждение и вернуть табель на согласование?'))return;
+  await _tsCancel(objId,s.equipIds,s.from,s.to);renderTimesheetApproval();
+}
+
+// ── Входящие табели на согласование (для Dispatcher; Owner/Admin видят все состояния) ──
+function tsEffStatus(a){
+  let s=a.status||'draft';
+  if(s==='approved'&&a.contentSig!=null&&a.contentSig!==objectTimesheetSig(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo))s='stale';
+  return s;
+}
+// Список утверждений, видимых текущему пользователю (dispatcher — только свои объекты)
+function tsVisibleApprovals(){
+  const r=currentUser?.role;
+  const out=[];
+  for(const key in (pd.tsApprovals||{})){
+    const a=pd.tsApprovals[key];if(!a||!a.objectId)continue;
+    if(r==='dispatcher'){if(!canApproveApproval(a))continue;}
+    else if(!(r==='admin'||r==='owner'))continue;
+    out.push(a);
+  }
+  return out;
+}
+// Кол-во ожидающих согласования (для счётчика/уведомления)
+function tsPendingCount(){return tsVisibleApprovals().filter(a=>tsEffStatus(a)==='pending').length;}
+
+let _tsInboxTab='pending',_tsReviewKey=null;
+function openTsInbox(tab){_tsInboxTab=tab||'pending';renderTsInbox();openMo('moTsInbox');}
+function renderTsInbox(){
+  const wrap=document.getElementById('tsInboxTabs'),list=document.getElementById('tsInboxList');
+  if(!wrap||!list)return;
+  const all=tsVisibleApprovals().map(a=>({a,st:tsEffStatus(a)}));
+  const counts={pending:0,approved:0,rejected:0};
+  for(const x of all){if(x.st==='pending')counts.pending++;else if(x.st==='approved')counts.approved++;else if(x.st==='rejected')counts.rejected++;}
+  const tabs=[['pending','Ожидают',counts.pending],['approved','Утверждённые',counts.approved],['rejected','Отклонённые',counts.rejected],['all','Все',all.length]];
+  wrap.innerHTML=tabs.map(([k,l,n])=>`<button class="btn btn-sm ${_tsInboxTab===k?'btn-primary':'btn-secondary'}" onclick="_tsInboxTab='${k}';renderTsInbox()">${l} ${n}</button>`).join('');
+  document.getElementById('tsInboxSub').textContent='Входящие табели техники · ожидают: '+counts.pending;
+  let rows=all.filter(x=>_tsInboxTab==='all'||x.st===_tsInboxTab);
+  // ожидающие — сверху, свежие — первыми
+  rows.sort((p,q)=>(q.a.sentAt||q.a.approvedAt||'').localeCompare(p.a.sentAt||p.a.approvedAt||''));
+  if(!rows.length){list.innerHTML='<div class="empty" style="padding:20px">Нет табелей на согласование</div>';return;}
+  let h='';
+  for(const {a,st} of rows){
+    const o=cfg.objects.find(x=>x.id===a.objectId);
+    const col=TS_STATUS_COLOR[st]||'var(--muted)';
+    const eqs=cfg.equipment.filter(e=>(a.equipmentIds||[]).includes(e.id));
+    const eqList=eqs.map(e=>`<span style="display:inline-block;background:var(--card2);border:1px solid var(--border-2);border-radius:5px;padding:1px 6px;margin:2px 3px 0 0;font-size:11px">${_tsEsc(e.name)}${e.serial?' · '+_tsEsc(e.serial):''}</span>`).join('')||'—';
+    h+=`<div class="c-card" style="margin-bottom:10px"><div class="c-card-body" style="font-size:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <b style="font-size:14px">${_tsEsc(o?o.name:'—')}</b>
+        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${TS_STATUS[st]||st}</span>
+      </div>
+      <div style="margin-top:6px;color:var(--muted)">Период: <b style="color:var(--text)">${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'}</b></div>
+      <div style="margin-top:4px;color:var(--muted)">Техника:</div><div>${eqList}</div>
+      ${a.sentByName?`<div style="margin-top:6px;color:var(--muted)">Отправил: ${_tsEsc(a.sentByName)} · ${a.sentAt?_tsDT(a.sentAt):''}</div>`:''}
+      ${st==='approved'&&a.approvedByName?`<div style="margin-top:2px;color:var(--green)">✓ Утвердил: ${_tsEsc(a.approvedByName)} · ${a.approvedAt?_tsDT(a.approvedAt):''}</div>`:''}
+      ${st==='rejected'&&a.rejectedBy?`<div style="margin-top:2px;color:var(--red)">Отклонил: ${_tsEsc(a.rejectedBy)}${a.rejectionComment?' · «'+_tsEsc(a.rejectionComment)+'»':''}</div>`:''}
+      ${st==='stale'?`<div style="margin-top:2px;color:var(--accent)">Изменён после утверждения</div>`:''}
+    </div>
+    <div class="c-card-foot">
+      <button class="btn btn-primary btn-sm" onclick="openTsReview('${a._docId}')">Открыть табель</button>
+    </div></div>`;
+  }
+  list.innerHTML=h;
+}
+// Открыть точный сохранённый табель (детализация по дням) для проверки перед утверждением
+async function openTsReview(key){
+  const a=getTsApprovalByKey(key);if(!a){alert('Табель не найден');return;}
+  if(!canViewTimesheet(a.objectId)){alert('Нет доступа к этому табелю');return;}
+  _tsReviewKey=key;
+  const o=cfg.objects.find(x=>x.id===a.objectId);
+  const st=tsEffStatus(a);
+  document.getElementById('tsReviewTitle').textContent='Табель — '+(o?o.name:'—');
+  document.getElementById('tsReviewSub').textContent=`Период: ${a.periodFrom&&a.periodTo?_tsFmtDate(a.periodFrom)+'–'+_tsFmtDate(a.periodTo):'—'} · Статус: ${TS_STATUS[st]||st}`;
+  document.getElementById('tsReviewBody').innerHTML='<div style="color:var(--muted);font-size:12px;padding:8px">Загрузка табеля…</div>';
+  const acts=document.getElementById('tsReviewActs');
+  acts.innerHTML='<button class="btn btn-secondary" onclick="closeMo(\'moTsReview\')">Назад</button>';
+  if(canApproveApproval(a)&&(st==='pending'||st==='stale')){
+    acts.innerHTML+=`<button class="btn btn-primary" style="background:var(--green);border-color:var(--green)" onclick="reviewApprove()">✓ Утвердить</button>
+      <button class="btn btn-primary" style="background:var(--red);border-color:var(--red)" onclick="reviewReject()">Отклонить</button>`;
+  }
+  openMo('moTsReview');
+  const data=await buildEquipDetailed(a.equipmentIds||[],a.periodFrom,a.periodTo);
+  if(_tsReviewKey!==key)return;
+  document.getElementById('tsReviewBody').innerHTML=_tsReviewTableHTML(data);
+}
+// Экранная таблица детализации по дням для проверки
+function _tsReviewTableHTML(data){
+  if(!data.length)return '<div style="color:var(--muted)">Нет данных за период</div>';
+  let h='';
+  for(const t of data){
+    const showDay=t.totals.days>0,showNight=t.totals.nights>0,showOver=t.totals.over>0;
+    h+=`<div style="margin-bottom:14px"><div style="font-weight:700;font-size:13px;margin-bottom:4px">${_tsEsc(t.equip)} <span style="color:var(--muted);font-weight:400">${_tsEsc(t.serial)} · ${_tsEsc(t.obj)}</span></div>`;
+    h+='<div class="tbl-wrap"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="color:var(--muted);text-align:left"><th style="padding:4px 6px">Дата</th><th>День недели</th>';
+    if(showDay)h+='<th style="text-align:center">Дневная смена</th>';
+    if(showNight)h+='<th style="text-align:center">Ночная смена</th>';
+    if(showOver)h+='<th style="text-align:center">Переработка</th>';
+    h+='</tr></thead><tbody>';
+    for(const r of t.rows){
+      const we=r.dow==='Сб'||r.dow==='Вс';const[y,m,d]=r.date.split('-');
+      h+=`<tr style="border-top:1px solid var(--border-2)"><td style="padding:4px 6px">${d}.${m}.${y}</td><td style="${we?'color:var(--red);font-weight:600':''}">${r.dow}</td>`;
+      if(showDay)h+=`<td style="text-align:center;color:var(--green);font-weight:700">${r.day?'●':'<span style="color:var(--muted)">—</span>'}</td>`;
+      if(showNight)h+=`<td style="text-align:center;color:var(--blue);font-weight:700">${r.night?'●':'<span style="color:var(--muted)">—</span>'}</td>`;
+      if(showOver)h+=`<td style="text-align:center;color:var(--violet);font-weight:700">${r.over?'●':'<span style="color:var(--muted)">—</span>'}</td>`;
+      h+='</tr>';
+    }
+    h+='</tbody></table></div>';
+    h+=`<div style="font-weight:700;font-size:12px;margin-top:5px">ИТОГО: Дневных смен: ${t.totals.days} · Ночных смен: ${t.totals.nights}${t.totals.over?' · Переработок: '+t.totals.over:''}</div></div>`;
+  }
+  return h;
+}
+async function reviewApprove(){
+  const a=getTsApprovalByKey(_tsReviewKey);if(!a)return;
+  if(!canApproveApproval(a)){alert('Нет прав на утверждение этого табеля');return;}
+  const comment=prompt('Комментарий к утверждению (необязательно):','')||'';
+  await _tsApprove(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo,comment);
+  closeMo('moTsReview');renderTsInbox();
+}
+async function reviewReject(){
+  const a=getTsApprovalByKey(_tsReviewKey);if(!a)return;
+  if(!canApproveApproval(a)){alert('Нет прав');return;}
+  const comment=prompt('Причина отклонения (обязательно):','');
+  if(comment===null)return;
+  if(!comment.trim()){alert('Причина отклонения обязательна');return;}
+  await _tsReject(a.objectId,a.equipmentIds||[],a.periodFrom,a.periodTo,comment.trim());
+  closeMo('moTsReview');renderTsInbox();
+}
+
 // Экранирование для вставки в HTML табеля
 function _tsEsc(v){return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 // Открыть окно формирования табеля. objId — предвыбрать один объект; без аргумента — все.
+let _tsMode='summary';
 function openTimesheetModal(objId){
   const list=document.getElementById('tsObjectList');
-  list.innerHTML=cfg.objects.map(o=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer">
+  // Диспетчер видит только свои объекты (по назначенной технике); admin/owner/accountant — все
+  const objs=currentUser?.role==='dispatcher'?cfg.objects.filter(o=>canViewTimesheet(o.id)):cfg.objects;
+  list.innerHTML=objs.map(o=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer">
     <input type="checkbox" class="ts-obj" value="${o.id}" ${(!objId||objId===o.id)?'checked':''} onchange="renderTimesheetEquipList()">
-    <span><b>${_tsEsc(o.name)}</b>${o.client?` <span style="color:var(--muted);font-size:11px">— ${_tsEsc(o.client)}</span>`:''}</span></label>`).join('')||'<div style="color:var(--muted);font-size:12px">Объектов нет</div>';
-  document.getElementById('tsPeriodSub').textContent='Период: '+periodLabel(curYear,curEM).main+' · активный период (для другого — переключите в шапке)';
+    <span><b>${_tsEsc(o.name)}</b>${o.client?` <span style="color:var(--muted);font-size:11px">— ${_tsEsc(o.client)}</span>`:''}</span></label>`).join('')||'<div style="color:var(--muted);font-size:12px">Нет доступных объектов</div>';
+  // диапазон дат по умолчанию = границы расчётного периода
+  const dts=getPeriodDates(curYear,curEM);
+  document.getElementById('tsFrom').value=dk(dts[0]);
+  document.getElementById('tsTo').value=dk(dts[dts.length-1]);
+  document.getElementById('tsPeriodSub').textContent='Период: '+periodLabel(curYear,curEM).main;
+  tsSetMode('summary');
   renderTimesheetEquipList();
   openMo('moTimesheet');
+}
+function tsSetMode(m){
+  _tsMode=m;
+  document.getElementById('tsModeSum').className='btn btn-sm '+(m==='summary'?'btn-primary':'btn-secondary');
+  document.getElementById('tsModeDet').className='btn btn-sm '+(m==='detail'?'btn-primary':'btn-secondary');
+  document.getElementById('tsDateRow').style.display=m==='detail'?'':'none';
 }
 
 // Отмеченные объекты
@@ -3392,6 +4034,93 @@ function renderTimesheetEquipList(){
     h+='</div>';
   }
   list.innerHTML=h;
+  renderTimesheetApproval();
+}
+
+// Дата+время «дд.мм.гггг чч:мм»
+function _tsDT(iso){if(!iso)return'';const d=new Date(iso);const p=n=>String(n).padStart(2,'0');return `${p(d.getDate())}.${p(d.getMonth()+1)}.${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`;}
+
+// Формат «дд.мм.гггг»
+function _tsFmtDate(iso){if(!iso)return'';const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;}
+// Панель согласования табеля — по ТОЧНОМУ табелю (объект + выбранная техника + период с/по)
+function renderTimesheetApproval(){
+  const box=document.getElementById('tsApprovalBox');if(!box)return;
+  const objIds=tsCheckedObjects();
+  if(!objIds.length){box.innerHTML='<div style="color:var(--muted);font-size:12px">Выберите объект(ы)</div>';return;}
+  const {from,to}=_tsRange();
+  const isMgr=currentUser?.role==='admin'||currentUser?.role==='owner';
+  let h='';
+  for(const oid of objIds){
+    const o=cfg.objects.find(x=>x.id===oid);if(!o)continue;
+    if(!canViewTimesheet(oid)){h+=`<div style="padding:6px 0;border-bottom:1px solid var(--border-2);font-size:12px;color:var(--muted)">${_tsEsc(o.name)} — нет доступа к согласованию</div>`;continue;}
+    const equipIds=_tsObjEquipIds(oid);
+    const {status,doc}=tsApprovalStatus(oid,equipIds,from,to);
+    const col=TS_STATUS_COLOR[status]||'var(--muted)';
+    const eqNames=cfg.equipment.filter(e=>equipIds.includes(e.id)).map(e=>e.name).join(', ')||'—';
+    h+=`<div style="padding:8px 0;border-bottom:1px solid var(--border-2)">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+        <b style="font-size:13px">${_tsEsc(o.name)}</b>
+        <span class="tag" style="background:transparent;border:1px solid ${col};color:${col}">${TS_STATUS[status]||status}</span>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:3px">Период: <b style="color:var(--text)">${from&&to?_tsFmtDate(from)+'–'+_tsFmtDate(to):'—'}</b> · Техника: ${_tsEsc(eqNames)}</div>`;
+    if(!equipIds.length){h+='<div style="font-size:11px;color:var(--yellow);margin-top:4px">Не выбрана техника этого объекта</div>';}
+    if(status==='approved'&&doc){
+      h+=`<div style="font-size:11px;color:var(--muted);margin-top:4px">✓ Утвердил: <b style="color:var(--text)">${_tsEsc(doc.approvedByName||'—')}</b> · ${_tsEsc(doc.approvedByRole||'')} · ${doc.approvedAt?_tsDT(doc.approvedAt):''}${doc.approvalComment?' · «'+_tsEsc(doc.approvalComment)+'»':''}</div>`;
+    }else if(status==='rejected'&&doc){
+      h+=`<div style="font-size:11px;color:var(--red);margin-top:4px">Отклонил: ${_tsEsc(doc.rejectedBy||'—')} · ${doc.rejectedAt?_tsDT(doc.rejectedAt):''}${doc.rejectionComment?' · Причина: «'+_tsEsc(doc.rejectionComment)+'»':''}</div>`;
+    }else if(status==='stale'){
+      h+=`<div style="font-size:11px;color:var(--accent);margin-top:4px">Табель изменён после утверждения — требуется повторное согласование.</div>`;
+    }else if(status==='pending'){
+      h+=`<div style="font-size:11px;color:var(--yellow);margin-top:4px">Ожидает согласования.</div>`;
+    }else{
+      h+=`<div style="font-size:11px;color:var(--muted);margin-top:4px">Не отправлен на согласование.</div>`;
+    }
+    const acts=[];
+    if(isMgr&&(status==='draft'||status==='rejected'||status==='stale'))acts.push(`<button class="btn btn-sm btn-primary" onclick="sendTimesheetForApproval('${oid}')">На согласование</button>`);
+    if(canApproveTimesheet(oid)&&(status==='pending'||status==='stale'))acts.push(`<button class="btn btn-sm" style="background:rgba(34,211,160,.15);color:var(--green)" onclick="approveTimesheet('${oid}')">✓ Утвердить</button>`);
+    if(canApproveTimesheet(oid)&&status==='pending')acts.push(`<button class="btn btn-sm" style="background:var(--red-soft);color:var(--red)" onclick="rejectTimesheet('${oid}')">Отклонить</button>`);
+    if(isMgr&&status==='approved')acts.push(`<button class="btn btn-sm btn-secondary" onclick="cancelTimesheetApproval('${oid}')">Отменить утверждение</button>`);
+    if(doc&&(doc.history||[]).length)acts.push(`<button class="btn btn-sm btn-secondary" onclick="showTsHistory('${oid}')">История</button>`);
+    if(acts.length)h+=`<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">${acts.join('')}</div>`;
+    h+='</div>';
+  }
+  box.innerHTML=h;
+}
+function showTsHistory(objId){
+  const equipIds=_tsObjEquipIds(objId);const{from,to}=_tsRange();
+  const a=getTsApprovalByKey(_tsApprovalKey(objId,equipIds,from,to));
+  if(!a||!(a.history||[]).length){alert('История согласований пуста');return;}
+  const A={sent:'Отправлено на согласование',approved:'Утверждено',rejected:'Отклонено',cancelled:'Утверждение отменено'};
+  const lines=a.history.map(h=>`${_tsDT(h.at)} · ${h.by} (${h.byRole||''}) · ${A[h.action]||h.action}${h.comment?': '+h.comment:''}`);
+  alert('История согласований — '+oName(objId)+`\n(${_tsFmtDate(from)}–${_tsFmtDate(to)})\n\n`+lines.join('\n'));
+}
+
+// Блок «Утверждено в JUMIX Tech» для печати — ТОЛЬКО для точного табеля (scope: {objId,equipIds,from,to})
+function _tsApprovalPrintHTML(scopes){
+  const approved=[];
+  for(const s of (scopes||[])){
+    const {status,doc}=tsApprovalStatus(s.objId,s.equipIds,s.from,s.to);
+    if(status==='approved'&&doc)approved.push({o:cfg.objects.find(x=>x.id===s.objId),doc});
+  }
+  if(!approved.length)return '';
+  const multi=approved.length>1;
+  let rows='';
+  for(const a of approved){
+    rows+=`<div class="apprv-row">
+      <div><b>✓ Утверждено в JUMIX Tech</b>${multi&&a.o?` <span style="color:#555">— ${_tsEsc(a.o.name)}</span>`:''}</div>
+      <div>ФИО: <b>${_tsEsc(a.doc.approvedByName||'—')}</b></div>
+      <div>Роль: ${_tsEsc(a.doc.approvedByRole||'—')}</div>
+      <div>Период табеля: ${a.doc.periodFrom&&a.doc.periodTo?_tsFmtDate(a.doc.periodFrom)+'–'+_tsFmtDate(a.doc.periodTo):'—'}</div>
+      <div>Дата утверждения: ${a.doc.approvedAt?_tsDT(a.doc.approvedAt):'—'}</div>
+      <div>Статус: Утверждён</div>
+    </div>`;
+  }
+  return `<div class="apprv">${rows}</div>`;
+}
+// Точные рамки табеля для печати по выбранным объектам (используется в exportTimesheet)
+function _tsPrintScopes(objIds){
+  const {from,to}=_tsRange();
+  return objIds.map(oid=>({objId:oid,equipIds:_tsObjEquipIds(oid),from,to}));
 }
 
 // Выбрать/снять всю технику
@@ -3418,7 +4147,10 @@ function _tsEquipRows(objId,equipIds,monthDays){
       svc[it.type]+=(it.qty||1);
     }
     const mDays=monthDays[e.id]!=null?monthDays[e.id]:equipDays(e);
-    rows.push({equip:e.name,serial:e.serial||'—',days,nights,svc,mDays});
+    // «Дни аренды техники» показываем ТОЛЬКО для месячной аренды.
+    // Для дневного/ночного тарифа источник — фактические смены (days/nights), а не equipDays.
+    const usesMonthly=(e.rates?.monthly||0)>0;
+    rows.push({equip:e.name,serial:e.serial||'—',days,nights,svc,mDays,showRentDays:usesMonthly});
   }
   return rows;
 }
@@ -3441,13 +4173,13 @@ function buildTimesheetData(objIds,equipIds,monthDays){
 // ВАЖНО: только учёт работы техники — без зарплат, окладов, авансов, фактически
 // отработанных дней работников и БЕЗ комментариев/служебных заметок.
 // Группировка: объект → техника → «вид работ / количество». Нулевые строки скрыты.
-function timesheetHTML(d){
+function timesheetHTML(d,approvalHTML){
   let body='';
   for(const g of d.groups){
     let eqBlocks='';
     for(const r of g.rows){
       const items=[];
-      if(r.mDays>0)items.push(['Дни аренды техники',r.mDays]);
+      if(r.showRentDays&&r.mDays>0)items.push(['Дни аренды техники',r.mDays]);
       if(r.days>0)items.push(['Дневные смены',r.days]);
       if(r.nights>0)items.push(['Ночные смены',r.nights]);
       for(const[k,lbl] of TS_SERVICES){if((r.svc[k]||0)>0)items.push([lbl,r.svc[k]]);}
@@ -3482,8 +4214,12 @@ function timesheetHTML(d){
     table.worktbl th{background:#e8e8e8;text-align:left;font-size:12px}
     td.work,th.work{text-align:left}
     td.qty,th.qty{text-align:center;width:120px}
-    .sign{margin-top:48px}
-    .sign div{margin-top:30px;font-size:13px}
+    .apprv{margin-top:24px;page-break-inside:avoid;break-inside:avoid}
+    .apprv-row{border:1px solid #16a34a;border-left:4px solid #16a34a;border-radius:5px;background:#f0fdf4;padding:8px 12px;margin-bottom:8px;font-size:12.5px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .apprv-row div{padding:1px 0}
+    .sign{margin-top:34px;display:flex;justify-content:space-between;gap:40px;page-break-inside:avoid;break-inside:avoid}
+    .sign > div{flex:1;font-size:13px}
+    .sign .si{text-align:right}
     @media print{body{padding:0}}
   </style></head><body>
   <h1>ТАБЕЛЬ УЧЁТА РАБОТЫ ТЕХНИКИ</h1>
@@ -3494,37 +4230,245 @@ function timesheetHTML(d){
     <div><b>Дата формирования:</b> ${_tsEsc(d.genDate)}</div>
   </div>
   ${body}
+  ${approvalHTML||''}
   <div class="sign">
-    <div>Подпись заказчика ____________________</div>
-    <div>Подпись исполнителя ____________________</div>
+    <div class="sc">Подпись заказчика ____________________</div>
+    <div class="si">Подпись исполнителя ____________________</div>
   </div>
   </body></html>`;
 }
 
-// Формирование табеля из окна (fmt: 'pdf' | 'excel')
-function exportTimesheet(fmt){
-  const objIds=tsCheckedObjects();
-  if(!objIds.length){alert('Выберите хотя бы один объект');return;}
-  const equipIds=[...document.querySelectorAll('#tsEquipList .ts-equip:checked')].map(c=>c.value);
-  if(!equipIds.length){alert('Выберите хотя бы одну единицу техники');return;}
-  const monthDays={};
-  document.querySelectorAll('#tsEquipList .ts-days').forEach(inp=>{monthDays[inp.dataset.eq]=+inp.value||0;});
-  const d=buildTimesheetData(objIds,equipIds,monthDays);
-  if(!d||!d.groups.length){alert('Нет данных для табеля по выбранным объектам и технике');return;}
-  const fname=d.groups.length===1?d.groups[0].obj.name:'сводный';
+// Вывод готового HTML-документа: печать в PDF или скачивание Excel
+function _tsOutput(html,fmt,fname){
   if(fmt==='pdf'){
     const w=window.open('','_blank');
     if(!w){alert('Разрешите всплывающие окна, чтобы сохранить табель в PDF');return;}
-    w.document.write(timesheetHTML(d));w.document.close();w.focus();
+    w.document.write(html);w.document.close();w.focus();
     setTimeout(()=>{try{w.print();}catch(e){}},400);
   }else{
-    const blob=new Blob(['﻿'+timesheetHTML(d)],{type:'application/vnd.ms-excel'});
+    const blob=new Blob(['﻿'+html],{type:'application/vnd.ms-excel'});
     const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;
     a.download=`Табель_${fname}_${curYear}_${pad(curEM)}.xls`;
     document.body.appendChild(a);a.click();
     setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},100);
   }
+}
+
+// Фактический работник, вышедший на смену (крановый). Учитывает подмену и партнёра.
+function _shiftOperatorName(cell,equip){
+  const wid=cell&&cell.workerId;
+  if(!wid){const w=cfg.workers.find(x=>x.id===equip.primaryWorkerId);return w?w.name:'—';}
+  if(String(wid).startsWith('p_')){const p=cfg.partners.find(x=>x.id===String(wid).slice(2));return p?p.name:'Партнёр';}
+  const w=cfg.workers.find(x=>x.id===wid);return w?w.name:'—';
+}
+// Детализация работы техники по дням за произвольный диапазон дат.
+// Источник — реальные записи смен (shifts) в диапазоне, НЕ equipDays/период.
+async function buildEquipDetailed(equipIds,fromISO,toISO){
+  const SERVICE_TYPES=TS_SERVICES.map(s=>s[0]);
+  const out=[];
+  for(const eid of equipIds){
+    const e=cfg.equipment.find(x=>x.id===eid);if(!e)continue;
+    // смены техники в диапазоне (запрос по одному полю equipId — без составного индекса)
+    const cells={};
+    try{
+      const snap=await db.collection('shifts').where('equipId','==',eid).get();
+      snap.forEach(doc=>{const x=doc.data();if(x.date>=fromISO&&x.date<=toISO)cells[x.date]=x;});
+    }catch(err){
+      const cs=pd.shifts[eid]||{};for(const[date,c] of Object.entries(cs)){if(date>=fromISO&&date<=toISO)cells[date]=c;}
+    }
+    // доп. работы (доп. услуги) по датам
+    const svcByDate={};
+    try{
+      const isnap=await db.collection('incomes').where('equipmentId','==',eid).get();
+      isnap.forEach(doc=>{const x=doc.data();if(x.status==='cancelled')return;if(x.date>=fromISO&&x.date<=toISO&&SERVICE_TYPES.includes(x.type)){(svcByDate[x.date]=svcByDate[x.date]||[]).push(INC_TYPES[x.type]||x.type);}});
+    }catch(err){}
+    const allDates=[...new Set([...Object.keys(cells),...Object.keys(svcByDate)])].sort();
+    const rows=[];let td=0,tn=0,to=0,te=0;
+    for(const date of allDates){
+      const c=cells[date];const t=c?(c.type||0):0;
+      const skip=c&&(c.status==='pending'||c.status==='rejected');
+      const day=!skip&&(t===1||t===3),night=!skip&&(t===2||t===3),over=!skip&&(t===4);
+      const svc=svcByDate[date]||[];
+      if(!day&&!night&&!over&&!svc.length)continue;
+      if(day)td++;if(night)tn++;if(over)to++;te+=svc.length;
+      const [yy,mm,dd]=date.split('-');
+      // фактический крановый на эту дату (одна запись смены = один работник; для типа «день+ночь» он же)
+      const op=c?_shiftOperatorName(c,e):'';
+      // примечание = выполненные работы: заметка смены + доп. услуги (+ пометка переработки)
+      const noteParts=[];
+      if(c&&c.note)noteParts.push(c.note);
+      for(const sName of svc)noteParts.push(sName);
+      if(over)noteParts.push('Переработка'+(op?' ('+op+')':''));
+      rows.push({date,dow:DOW[new Date(+yy,+mm-1,+dd).getDay()],day,night,over,
+        dayOp:day?op:'',nightOp:night?op:'',note:[...new Set(noteParts)].join('; ')});
+    }
+    const obj=cfg.objects.find(o=>o.id===e.objectId);
+    // Контрагент/Исполнитель: партнёр-арендодатель, иначе — компания-исполнитель
+    const contractor=e.rentalPartnerId?((cfg.partners.find(p=>p.id===e.rentalPartnerId)||{}).name||'—'):(cfg.settings.companyName||'ТОО');
+    out.push({equip:e.name,serial:e.serial||'—',objId:e.objectId||'',obj:obj?obj.name:'—',client:obj?obj.client||'':'',contractor,rows,totals:{days:td,nights:tn,over:to,extra:te}});
+  }
+  return out;
+}
+
+// HTML детализированного табеля СПЕЦ.ТЕХНИКИ по дням — официальная печатная форма (A4 landscape).
+// Меняется ТОЛЬКО оформление и подготовка данных для этой формы. approvals = карта objId → {status,doc}.
+function detailedTimesheetHTML(data,fromISO,toISO,approvals){
+  approvals=approvals||{};
+  const fmtD=iso=>{if(!iso)return'';const[y,m,d]=iso.split('-');return `${d}.${m}.${y}`;};
+  const period=`${fmtD(fromISO)}–${fmtD(toISO)}`;
+  let sections='';
+  for(const t of data){
+    // строки по датам: № · дата+день · день(время+крановый) · ночь(время+крановый) · примечание
+    let rowsH='',i=1;
+    for(const r of t.rows){
+      const we=r.dow==='Сб'||r.dow==='Вс';
+      rowsH+=`<tr>
+        <td class="c">${i++}</td>
+        <td class="dt">${fmtD(r.date)} <span class="dw ${we?'we':''}">${r.dow}</span></td>
+        <td class="c">${r.day?'08:00–20:00':'—'}</td>
+        <td>${r.day?_tsEsc(r.dayOp||'—'):'—'}</td>
+        <td class="c">${r.night?'20:00–08:00':'—'}</td>
+        <td>${r.night?_tsEsc(r.nightOp||'—'):'—'}</td>
+        <td>${r.note?_tsEsc(r.note):'—'}</td>
+      </tr>`;
+    }
+    if(!rowsH)rowsH=`<tr><td colspan="7" style="color:#777;text-align:center">Нет смен за выбранный период</td></tr>`;
+    // единственный итог — в самом конце таблицы
+    const totRow=`<tr class="totrow"><td colspan="7"><b>ИТОГО ЗА ПЕРИОД</b> &nbsp; Дневных смен: <b>${t.totals.days}</b> &nbsp;·&nbsp; Ночных смен: <b>${t.totals.nights}</b> &nbsp;·&nbsp; Всего смен: <b>${t.totals.days+t.totals.nights}</b></td></tr>`;
+    // блок согласования (справа сверху) — только если утверждён; иначе статус / ничего
+    const ap=approvals[t.objId]||{status:'draft',doc:null};
+    const doc=ap.doc;
+    let apprBlock='';
+    if(ap.status==='approved'&&doc){
+      apprBlock=`<div class="apprv">
+        <div class="apprv-title">✓ СОГЛАСОВАНО В JUMIX TECH</div>
+        <div>Статус: <b>Утверждено</b></div>
+        <div>Ответственный диспетчер: <b>${_tsEsc(doc.approvedByName||'—')}</b></div>
+        <div>Дата и время: ${doc.approvedAt?_tsDT(doc.approvedAt):'—'}</div>
+        <div>Составил табель: ${_tsEsc(doc.sentByName||'—')}</div>
+      </div>`;
+    }else if(ap.status==='pending'){
+      apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">СТАТУС: На согласовании</div></div>`;
+    }else if(ap.status==='stale'){
+      apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">Изменён после утверждения</div></div>`;
+    }
+    // подписи: Составил (Owner) слева, Подтвердил (Dispatcher) справа
+    const sostavil=doc&&doc.sentByName?_tsEsc(doc.sentByName):'____________________';
+    const sostavilDate=doc&&doc.sentAt?fmtD(doc.sentAt.split('T')[0]):'________________';
+    const podtverdil=(ap.status==='approved'&&doc)?_tsEsc(doc.approvedByName||'—'):'____________________';
+    const podtverdilDT=(ap.status==='approved'&&doc&&doc.approvedAt)?_tsDT(doc.approvedAt):'________________';
+    sections+=`<section class="eqform">
+      <div class="brand">JUMIX TECH</div>
+      <h1>ТАБЕЛЬ УЧЁТА РАБОТЫ СПЕЦ.ТЕХНИКИ</h1>
+      <div class="hdr">
+        <div class="hdr-left">
+          <div><span class="lbl">Заказчик:</span> ${_tsEsc(t.client||'—')}</div>
+          <div><span class="lbl">Проект / Объект:</span> ${_tsEsc(t.obj)}</div>
+          <div><span class="lbl">Контрагент / Исполнитель:</span> ${_tsEsc(t.contractor||'—')}</div>
+          <div><span class="lbl">Техника:</span> ${_tsEsc(t.equip)}</div>
+          <div><span class="lbl">Госномер / инв. номер:</span> ${_tsEsc(t.serial)}</div>
+          <div><span class="lbl">Период работы:</span> ${period}</div>
+        </div>
+        <div class="hdr-right">${apprBlock}</div>
+      </div>
+      <table class="wt">
+        <colgroup><col class="c-num"><col class="c-date"><col class="c-time"><col class="c-op"><col class="c-time"><col class="c-op"><col class="c-note"></colgroup>
+        <thead>
+          <tr>
+            <th rowspan="2">№</th><th rowspan="2">Дата / День недели</th>
+            <th colspan="2">День (08:00–20:00)</th>
+            <th colspan="2">Ночь (20:00–08:00)</th>
+            <th rowspan="2">Примечание (выполненные работы)</th>
+          </tr>
+          <tr><th>Время</th><th>Крановый</th><th>Время</th><th>Крановый</th></tr>
+        </thead>
+        <tbody>${rowsH}${totRow}</tbody>
+      </table>
+      <div class="sign">
+        <div class="sc">
+          <div>Составил (Owner): <b>${sostavil}</b></div>
+          <div>Дата составления: ${sostavilDate}</div>
+        </div>
+        <div class="si">
+          <div>Подтвердил (Dispatcher): <b>${podtverdil}</b></div>
+          <div>Дата и время подтверждения: ${podtverdilDT}</div>
+        </div>
+      </div>
+    </section>`;
+  }
+  if(!sections)sections='<div style="padding:20px;color:#777">Нет данных за выбранный диапазон.</div>';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Табель спец.техники — ${period}</title>
+  <style>
+    @page{size:A4 landscape;margin:10mm}
+    *{box-sizing:border-box}
+    html,body{background:#fff}
+    body{font-family:'Segoe UI',Arial,sans-serif;color:#111;margin:0;font-size:11px;line-height:1.35;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .eqform{padding:2px}
+    .eqform + .eqform{page-break-before:always}
+    .brand{text-align:center;color:#2563eb;font-weight:700;font-size:11px;letter-spacing:1.5px}
+    h1{font-size:15px;text-align:center;margin:2px 0 8px;letter-spacing:.4px;font-weight:800}
+    .hdr{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:8px}
+    .hdr-left{flex:1}
+    .hdr-left div{padding:1.5px 0;font-size:11.5px}
+    .lbl{color:#555;font-weight:600;display:inline-block;min-width:158px}
+    .apprv{border:1px solid #16a34a;border-left:4px solid #16a34a;border-radius:5px;background:#f0fdf4;
+      padding:7px 11px;font-size:11px;min-width:270px}
+    .apprv-wait{border-color:#d97706;border-left-color:#d97706;background:#fffbeb}
+    .apprv-title{font-weight:800;margin-bottom:4px}
+    .apprv div{padding:1px 0}
+    table.wt{border-collapse:collapse;width:100%;font-size:10.5px;table-layout:fixed}
+    table.wt th,table.wt td{border:1px solid #94a3b8;padding:3px 6px;text-align:left;vertical-align:top;
+      word-wrap:break-word;overflow-wrap:break-word}
+    table.wt thead th{background:#e5edf7;font-weight:700;font-size:10px;text-align:center}
+    thead{display:table-header-group}
+    table.wt tbody tr{page-break-inside:avoid;break-inside:avoid}
+    .wt .c{text-align:center}
+    .wt col.c-num{width:3.5%}.wt col.c-date{width:13%}.wt col.c-time{width:9.5%}
+    .wt col.c-op{width:16%}.wt col.c-note{width:32.5%}
+    .dt{white-space:nowrap}
+    .dw{color:#334155}.we{color:#dc2626;font-weight:700}
+    tr.totrow td{background:#eef2f7;border-top:2px solid #111;font-weight:700;font-size:11px;padding:6px 8px;text-align:left}
+    tr.totrow{page-break-inside:avoid;break-inside:avoid}
+    .sign{display:flex;justify-content:space-between;gap:40px;margin-top:9mm;
+      page-break-inside:avoid;break-inside:avoid}
+    .sign > div{flex:1;font-size:11.5px}
+    .sign > div div{padding:2px 0}
+    .sign .si{text-align:right}
+    @media print{body{padding:0}}
+  </style></head><body>${sections}</body></html>`;
+}
+
+// Формирование табеля техники из окна (fmt: 'pdf' | 'excel'). Async из-за детального режима.
+async function exportTimesheet(fmt){
+  const equipIds=[...document.querySelectorAll('#tsEquipList .ts-equip:checked')].map(c=>c.value);
+  if(!equipIds.length){alert('Выберите хотя бы одну единицу техники');return;}
+  if(_tsMode==='detail'){
+    const from=document.getElementById('tsFrom').value,to=document.getElementById('tsTo').value;
+    if(!from||!to){alert('Укажите диапазон дат (с / по)');return;}
+    if(from>to){alert('«Дата с» не может быть позже «Дата по»');return;}
+    const data=await buildEquipDetailed(equipIds,from,to);
+    // Согласование — по точным рамкам табеля (объект + выбранная техника + даты).
+    // Карта objId → {status,doc}, чтобы блок «СОГЛАСОВАНО» и подписи брались по объекту.
+    const approvals={};
+    for(const s of _tsPrintScopes([...new Set(data.map(x=>x.objId).filter(Boolean))])){
+      approvals[s.objId]=tsApprovalStatus(s.objId,s.equipIds,s.from,s.to);
+    }
+    _tsOutput(detailedTimesheetHTML(data,from,to,approvals),fmt,'спецтехника');
+    return;
+  }
+  // Сводный табель (по расчётному периоду)
+  const objIds=tsCheckedObjects();
+  if(!objIds.length){alert('Выберите хотя бы один объект');return;}
+  const monthDays={};
+  document.querySelectorAll('#tsEquipList .ts-days').forEach(inp=>{monthDays[inp.dataset.eq]=+inp.value||0;});
+  const d=buildTimesheetData(objIds,equipIds,monthDays);
+  if(!d||!d.groups.length){alert('Нет данных для табеля по выбранным объектам и технике');return;}
+  const fname=d.groups.length===1?d.groups[0].obj.name:'сводный';
+  // Блок утверждения — по точным табелям объектов, попавших в документ
+  const approvalHTML=_tsApprovalPrintHTML(_tsPrintScopes(d.groups.map(g=>g.obj.id)));
+  _tsOutput(timesheetHTML(d,approvalHTML),fmt,fname);
 }
 
 function openObjModal(id){
@@ -4195,40 +5139,49 @@ function renderIncome(){
   ift.innerHTML='<option value="">Все</option>'+Object.entries(INC_TYPES).map(([k,v])=>`<option value="${k}"${pv.t===k?' selected':''}>${v}</option>`).join('');
   ifs.innerHTML='<option value="">Все</option>'+Object.entries(FIN_STATUS).map(([k,v])=>`<option value="${k}"${pv.s===k?' selected':''}>${v}</option>`).join('');
 
-  // Авто-доход по технике (договор × фактические дни + ночные)
-  let autoHtml='<div class="sec-title">Базовый доход (учёт техники: договор × фактические дни + ночные)</div>';
-  autoHtml+=`<div class="tbl-wrap"><table><thead><tr><th>Техника</th><th>Объект</th><th>Ставка/мес</th><th>Дней техники<br>из ${n}</th><th class="tr">Доход/мес (факт)</th><th>Ночей</th><th class="tr">Ночной доход б/НДС</th><th class="tr">Итого б/НДС</th></tr></thead><tbody>`;
-  let grandNoVat=0,baseRental=0,baseNights=0;
-  for(const e of cfg.equipment){
-    const cs=pd.shifts[e.id]||{};
-    let nights=0;for(const k in cs){const t=cs[k].type||0;if(t===2||t===3)nights++;}
-    const r=e.rates||{};
-    const days=equipDays(e),monthInc=equipMonthlyIncome(e),nightInc=nights*(r.nightly||0)/n;
-    const totalNoVat=monthInc+nightInc;
+  // Авто-доход по технике (по фактическим сменам и тарифам: месяц / день / ночь)
+  let filtEquip=cfg.equipment;
+  if(pv.o)filtEquip=filtEquip.filter(e=>e.objectId===pv.o);
+  if(pv.e)filtEquip=filtEquip.filter(e=>e.id===pv.e);
+  if(pv.c)filtEquip=filtEquip.filter(e=>{const o=cfg.objects.find(x=>x.id===e.objectId);return o&&o.client===pv.c;});
+  let autoHtml='<div class="sec-title">Доход по технике (по фактическим сменам и тарифам)</div>';
+  autoHtml+=`<div class="tbl-wrap"><table><thead><tr><th>Объект</th><th>Техника</th><th>Вид услуги</th><th style="text-align:center">Кол-во</th><th class="tr">Тариф</th><th class="tr">Без НДС</th><th class="tr">НДС ${vat}%</th><th class="tr">С НДС</th></tr></thead><tbody>`;
+  let grandNoVat=0,baseRental=0,baseDay=0,baseNight=0;
+  for(const e of filtEquip){
+    const ir=equipIncomeRows(e);
+    if(!ir.rows.length)continue;
     const obj=cfg.objects.find(o=>o.id===e.objectId);
-    grandNoVat+=totalNoVat;baseRental+=monthInc;baseNights+=nightInc;
-    const daysCell=canEdInc?`<input type="number" min="0" value="${days}" onchange="saveEquipDays('${e.id}',this.value)" class="fi" style="width:64px;padding:4px 6px;text-align:center">`:`<span style="text-align:center;display:block">${days}</span>`;
-    autoHtml+=`<tr><td>${e.name}</td><td>${obj?obj.name:'—'}</td><td class="num">${fmt(r.monthly||0)} ₸</td><td style="text-align:center">${daysCell}</td><td class="num tr">${fmt(Math.round(monthInc))} ₸</td><td style="text-align:center">${nights}</td><td class="num tr">${fmt(Math.round(nightInc))} ₸</td><td class="num tr">${fmt(Math.round(totalNoVat))} ₸</td></tr>`;
+    for(const row of ir.rows){
+      const vt=row.sum*vat/100;
+      grandNoVat+=row.sum;
+      if(row.kind==='month')baseRental+=row.sum;else if(row.kind==='day')baseDay+=row.sum;else if(row.kind==='night')baseNight+=row.sum;
+      const qtyCell=row.kind==='month'&&canEdInc?`<input type="number" min="0" value="${row.qty}" onchange="saveEquipDays('${e.id}',this.value)" class="fi" style="width:60px;padding:3px 5px;text-align:center">`:row.qty;
+      autoHtml+=`<tr><td>${obj?obj.name:'—'}</td><td>${e.name}</td><td>${row.service}</td><td style="text-align:center">${qtyCell}</td><td class="num tr">${fmt(Math.round(row.rate))} ₸</td><td class="num tr">${fmt(Math.round(row.sum))} ₸</td><td class="num tr" style="color:var(--yellow)">${fmt(Math.round(vt))} ₸</td><td class="num tr" style="color:var(--blue)">${fmt(Math.round(row.sum+vt))} ₸</td></tr>`;
+    }
   }
+  if(grandNoVat===0)autoHtml+='<tr><td colspan="8" class="empty">Нет дохода по технике за период</td></tr>';
   autoHtml+='</tbody></table></div>';
   document.getElementById('incomeAuto').innerHTML=autoHtml;
 
-  // KPI (по текущему периоду)
+  // KPI по текущему периоду (доход без НДС / НДС / с НДС + разбивка)
   const activeManual=(pd.incomeItems||[]).filter(i=>i.status!=='cancelled');
-  const SVC=['section','wall','anchor','transport','install','dismantle','other'],SHIFTS=['day','nightly','over'];
+  const SVC=['section','wall','anchor','transport','install','dismantle','other'];
+  const catSum=fn=>activeManual.filter(fn).reduce((s,i)=>s+(i.total||0),0);
   const mTotal=activeManual.reduce((s,i)=>s+(i.total||0),0);
+  const mVat=activeManual.reduce((s,i)=>s+(i.noVat?0:(i.total||0)*vat/100),0);
   const mPaid=activeManual.reduce((s,i)=>s+finPaid(i),0);
-  const mRental=activeManual.filter(i=>i.type==='monthly').reduce((s,i)=>s+(i.total||0),0);
-  const mSvc=activeManual.filter(i=>SVC.includes(i.type)).reduce((s,i)=>s+(i.total||0),0);
-  const mShift=activeManual.filter(i=>SHIFTS.includes(i.type)).reduce((s,i)=>s+(i.total||0),0);
-  const totalInc=grandNoVat+mTotal,remInc=totalInc-mPaid;
+  const mRental=catSum(i=>i.type==='monthly'),mDay=catSum(i=>i.type==='day'),mNight=catSum(i=>i.type==='nightly'),mSvc=catSum(i=>SVC.includes(i.type));
+  const totalNoVat=grandNoVat+mTotal, totalVat=grandNoVat*vat/100+mVat, totalWithVat=totalNoVat+totalVat;
   document.getElementById('incomeKpi').innerHTML=`
-    <div class="kpi bl"><div class="kl">Доход за период</div><div class="kv bl">${fmtM(totalInc)}</div></div>
-    <div class="kpi gn"><div class="kl">Оплачено</div><div class="kv gn">${fmtM(mPaid)}</div></div>
-    <div class="kpi rd"><div class="kl">Остаток к получению</div><div class="kv rd">${fmtM(remInc)}</div></div>
-    <div class="kpi bl"><div class="kl">Аренда техники</div><div class="kv bl">${fmtM(baseRental+mRental)}</div></div>
-    <div class="kpi bl"><div class="kl">Доп. услуги</div><div class="kv bl">${fmtM(mSvc)}</div></div>
-    <div class="kpi bl"><div class="kl">Ночные / смены</div><div class="kv bl">${fmtM(baseNights+mShift)}</div></div>`;
+    <div class="kpi bl"><div class="kl">Доход без НДС</div><div class="kv bl">${fmtM(Math.round(totalNoVat))}</div></div>
+    <div class="kpi yw"><div class="kl">НДС ${vat}%</div><div class="kv yw">${fmtM(Math.round(totalVat))}</div></div>
+    <div class="kpi gn"><div class="kl">Доход с НДС</div><div class="kv gn">${fmtM(Math.round(totalWithVat))}</div></div>
+    <div class="kpi"><div class="kl">Месячная аренда</div><div class="kv" style="font-size:15px">${fmtM(baseRental+mRental)}</div></div>
+    <div class="kpi"><div class="kl">Дневные смены</div><div class="kv" style="font-size:15px">${fmtM(baseDay+mDay)}</div></div>
+    <div class="kpi"><div class="kl">Ночные смены</div><div class="kv" style="font-size:15px">${fmtM(baseNight+mNight)}</div></div>
+    <div class="kpi"><div class="kl">Доп. услуги</div><div class="kv" style="font-size:15px">${fmtM(mSvc)}</div></div>
+    <div class="kpi gn"><div class="kl">Оплачено</div><div class="kv gn" style="font-size:15px">${fmtM(mPaid)}</div></div>
+    <div class="kpi rd"><div class="kl">Остаток к получению</div><div class="kv rd" style="font-size:15px">${fmtM(Math.round(totalNoVat-mPaid))}</div></div>`;
 
   // фильтрация таблицы ручных доходов
   let items=activeManual;
@@ -4244,7 +5197,7 @@ function renderIncome(){
       <td>${fmtDate(it.date)}</td>
       <td>${eqName(it.equipmentId)}${it.recurring?'<span class="rec">↻</span>':''}</td>
       <td>${oName(it.objectId)}</td>
-      <td><span class="tag it-${it.type||'other'}">${INC_TYPES[it.type]||it.type||'—'}</span>${it.partnerId?` <span style="color:var(--muted);font-size:10px">${_tsEsc(pName(it.partnerId))}</span>`:''}</td>
+      <td><span class="tag it-${it.type||'other'}">${INC_TYPES[it.type]||it.type||'—'}</span>${it.noVat?' <span style="color:var(--muted);font-size:10px">б/НДС</span>':''}${it.partnerId?` <span style="color:var(--muted);font-size:10px">${_tsEsc(pName(it.partnerId))}</span>`:''}</td>
       <td style="text-align:center">${it.qty||1}</td>
       <td class="num tr">${fmt(Math.round(tot))} ₸</td>
       <td class="num tr" style="color:var(--green)">${fmt(Math.round(paid))} ₸</td>
@@ -4255,15 +5208,14 @@ function renderIncome(){
   };
   document.getElementById('incomeManualTbl').innerHTML=_finRenderGrouped(items,pv.g,rowFn,'income')||'<tr><td colspan="10" class="empty">Нет доп. услуг</td></tr>';
 
-  // Итоги с НДС
-  const totalNoVat=grandNoVat+mTotal,totalVat=totalNoVat*vat/100;
+  // Итоги с НДС (доход по технике + доп. услуги)
   document.getElementById('incomeTotals').innerHTML=`<div class="vat-box">
     <h3>Итого по доходам</h3>
-    <div class="vat-row"><span>Базовый доход (краны)</span><span class="vv bl">${fmt(Math.round(grandNoVat))} ₸</span></div>
+    <div class="vat-row"><span>Доход по технике (смены/аренда)</span><span class="vv bl">${fmt(Math.round(grandNoVat))} ₸</span></div>
     <div class="vat-row"><span>Дополнительные услуги</span><span class="vv bl">${fmt(Math.round(mTotal))} ₸</span></div>
     <div class="vat-row"><span>Итого без НДС</span><span class="vv bl">${fmt(Math.round(totalNoVat))} ₸</span></div>
     <div class="vat-row"><span>НДС ${vat}%</span><span class="vv yw">${fmt(Math.round(totalVat))} ₸</span></div>
-    <div class="vat-row"><span>ИТОГО С НДС</span><span class="vv gn">${fmt(Math.round(totalNoVat+totalVat))} ₸</span></div>
+    <div class="vat-row"><span>ИТОГО С НДС</span><span class="vv gn">${fmt(Math.round(totalWithVat))} ₸</span></div>
   </div>`;
 }
 
@@ -4277,6 +5229,7 @@ function openIncomeModal(id){
   document.getElementById('inTotal').value=it?it.total||0:0;
   document.getElementById('inNote').value=it?it.note||'':'';
   document.getElementById('inRecurring').checked=it?!!it.recurring:false;
+  document.getElementById('inNoVat').checked=it?!!it.noVat:false;
 
   const esel=document.getElementById('inEquip');
   esel.innerHTML=cfg.equipment.map(e=>`<option value="${e.id}"${it?.equipmentId===e.id?' selected':''}>${e.name}</option>`).join('');
@@ -4327,6 +5280,7 @@ function saveIncomeItem(){
     partnerId:document.getElementById('inPartner').value,
     type:document.getElementById('inType').value,
     qty,unitPrice,total,paidAmount,status,
+    noVat:document.getElementById('inNoVat').checked,
     note:document.getElementById('inNote').value.trim(),
     recurring:document.getElementById('inRecurring').checked,
     createdAt:existing?.createdAt||new Date().toISOString(),
@@ -4495,19 +5449,15 @@ function renderSummary(){
   const objAgg={}; // objectId -> {inc, exp}
   const addObj=(oid,inc,exp)=>{const o=objAgg[oid||'']=objAgg[oid||'']||{inc:0,exp:0};o.inc+=inc;o.exp+=exp;};
   for(const e of cfg.equipment){
-    const cs=pd.shifts[e.id]||{};
-    let nights=0;
-    for(const k in cs){const t=cs[k].type||0;if(t===2||t===3)nights++;}
-    const r=e.rates||{};
-    const nightInc=nights*(r.nightly||0)/n;
-    const base=equipMonthlyIncome(e)+nightInc;
+    const ir=equipIncomeRows(e); // месяц / день / ночь по тарифам техники
+    const base=ir.noVatTotal;
     const manual=incItems.filter(i=>i.equipmentId===e.id).reduce((s,i)=>s+(i.total||0),0);
     const totalInc=base+manual;
     baseTotal+=base;
     const expForEquip=expsAll.filter(x=>x.equipmentId===e.id).reduce((s,x)=>s+(x.amount||0),0);
     const rentalCost=e.rentalCost||0;
     const netForEquip=totalInc-expForEquip-rentalCost;
-    equipStats.push({e,nights,nightInc,monthInc:equipMonthlyIncome(e),base,manual,totalInc,expForEquip,rentalCost,netForEquip});
+    equipStats.push({e,nights:ir.nights,nightInc:ir.nightSum,monthInc:ir.monthSum,daySum:ir.daySum,base,manual,totalInc,expForEquip,rentalCost,netForEquip});
     addObj(e.objectId,totalInc,expForEquip+rentalCost);
   }
   // доходы/расходы без привязки к технике, но к объекту
@@ -4546,8 +5496,9 @@ function renderSummary(){
     eqH+=`<div class="c-card">
       <div class="c-card-head"><div><div class="c-card-title">${s.e.name}</div><div class="c-card-sub">${s.nights} ночей · ${equipDays(s.e)}/${n} дней техники</div></div></div>
       <div class="c-card-body" style="font-size:12px">
-        <div class="vat-row"><span style="color:var(--muted)">Договор/месяц (факт ${equipDays(s.e)} дн)</span><span>${fmt(Math.round(s.monthInc))} ₸</span></div>
-        <div class="vat-row"><span style="color:var(--muted)">Ночной доход</span><span>${fmt(Math.round(s.nightInc))} ₸</span></div>
+        ${s.monthInc?`<div class="vat-row"><span style="color:var(--muted)">Месячная аренда (факт ${equipDays(s.e)} дн)</span><span>${fmt(Math.round(s.monthInc))} ₸</span></div>`:''}
+        ${s.daySum?`<div class="vat-row"><span style="color:var(--muted)">Дневные смены</span><span>${fmt(Math.round(s.daySum))} ₸</span></div>`:''}
+        <div class="vat-row"><span style="color:var(--muted)">Ночные смены</span><span>${fmt(Math.round(s.nightInc))} ₸</span></div>
         <div class="vat-row"><span style="color:var(--muted)">Доп. услуги</span><span>${fmt(Math.round(s.manual))} ₸</span></div>
         <div class="vat-row"><span style="color:var(--muted)">Аренда у партнера</span><span style="color:var(--red)">${fmt(s.rentalCost)} ₸</span></div>
         <div class="vat-row"><span style="color:var(--muted)">Прочие расходы</span><span style="color:var(--red)">${fmt(s.expForEquip)} ₸</span></div>
