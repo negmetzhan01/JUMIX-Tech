@@ -4760,10 +4760,12 @@ function _orgSignHTML(org){
   const dir=org.directorName||'';
   const bin=org.binIin?` &nbsp;·&nbsp; БИН/ИИН: ${_tsEsc(org.binIin)}`:'';
   const showStamp=!!(org.showStampInDocuments&&org.stamp);
-  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:0;bottom:-10px;max-height:120px;max-width:200px;width:auto;height:auto;object-fit:contain;opacity:.95;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
-  return `<div style="margin-top:20px;position:relative;min-height:${showStamp?'130px':'auto'};page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact">
+  // Печать в документе — реальный размер ~40 мм по A4, без фона/рамки/тени; слегка накрывает линию
+  // подписи, пропорции сохраняются (object-fit:contain, width:auto). Только само изображение печати.
+  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:6mm;bottom:-8mm;height:40mm;width:auto;max-width:52mm;object-fit:contain;background:transparent;border:0;box-shadow:none;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
+  return `<div style="margin-top:20px;position:relative;min-height:${showStamp?'44mm':'auto'};page-break-inside:avoid;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact">
     <div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
-    <div style="margin-top:12px;position:relative;display:inline-block;padding-right:210px">
+    <div style="margin-top:12px;position:relative;display:inline-block;padding-right:56mm">
       <span style="font-size:13px">${_tsEsc(pos)}: <b>${_tsEsc(dir||'____________________')}</b> &nbsp;______________________</span>
       ${stampImg}
     </div>
@@ -6261,8 +6263,35 @@ function removeOrgStamp(){_orgStampBuf='';document.getElementById('orgStampFile'
 // Максимальный размер data URI печати (символы base64 ≈ 4/3 от байтов → ~250 000 симв ≈ ~185 КБ).
 // Печать хранится в КАЖДОМ документе группы, поэтому держим её компактной, сохраняя читаемость.
 const STAMP_MAX_LEN=250000;
-// Загрузка печати: агрессивно, но с сохранением читаемости оптимизируем (PNG — с прозрачностью, пока
-// помещается; иначе — уменьшение размера, в крайнем случае JPEG). data URI хранится в Firestore.
+// Загрузка печати: делаем светлый фон прозрачным, автоматически обрезаем поля вокруг печати и
+// сохраняем PNG с прозрачностью. Результат — почти только сама печать (для естественного вида в
+// документе). Итоговый data URI хранится в Firestore, размер контролируется STAMP_MAX_LEN.
+function _stampProcess(img,workDim){
+  // 1) рабочий холст (ограничиваем разрешение обработки)
+  let w=img.width,h=img.height;
+  if(w>workDim||h>workDim){const k=workDim/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;
+  const ctx=cv.getContext('2d');ctx.drawImage(img,0,0,w,h);
+  // 2) убираем светлый/почти белый/светло-серый фон → прозрачность.
+  //    Критерий фона: высокая яркость И низкая насыщенность (у синих линий/текста насыщенность выше,
+  //    у тёмного текста — низкая яркость), поэтому синие элементы печати сохраняются.
+  const id=ctx.getImageData(0,0,w,h);const d=id.data;
+  for(let i=0;i<d.length;i+=4){
+    const r=d[i],g=d[i+1],b=d[i+2];
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),sat=mx-mn;
+    if(mn>=232&&sat<=16){d[i+3]=0;}                                  // явный фон → полностью прозрачно
+    else if(mn>=212&&sat<=14){d[i+3]=Math.round(d[i+3]*Math.max(0,(232-mn)/20));} // мягкий край
+  }
+  ctx.putImageData(id,0,0);
+  // 3) автообрезка по непрозрачным пикселям + небольшой безопасный отступ
+  let minX=w,minY=h,maxX=0,maxY=0,found=false;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){if(d[(y*w+x)*4+3]>40){found=true;if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}}
+  if(!found)return null;
+  const pad=Math.round(Math.max(maxX-minX,maxY-minY)*0.04)+4;
+  minX=Math.max(0,minX-pad);minY=Math.max(0,minY-pad);maxX=Math.min(w-1,maxX+pad);maxY=Math.min(h-1,maxY+pad);
+  const cw=maxX-minX+1,ch=maxY-minY+1;
+  return {cv,minX,minY,cw,ch};
+}
 function onOrgStampSelected(ev){
   const file=ev.target.files&&ev.target.files[0];if(!file)return;
   if(!/^image\/(png|jpe?g)$/.test(file.type)){alert('Только PNG или JPG');return;}
@@ -6270,29 +6299,20 @@ function onOrgStampSelected(ev){
   reader.onload=()=>{
     const img=new Image();
     img.onload=()=>{
-      const isPng=file.type==='image/png';
-      const render=(dim,asPng,q)=>{
-        let w=img.width,h=img.height;
-        if(w>dim||h>dim){const k=dim/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k);}
-        const cv=document.createElement('canvas');cv.width=w;cv.height=h;
-        cv.getContext('2d').drawImage(img,0,0,w,h);
-        return asPng?cv.toDataURL('image/png'):cv.toDataURL('image/jpeg',q);
+      const proc=_stampProcess(img,900);
+      if(!proc){alert('Не удалось распознать печать на изображении (слишком светлое?).');return;}
+      // экспорт обрезанной области в PNG (с прозрачностью), уменьшая до порога размера документа —
+      // НЕ переводим в JPEG, иначе фон вернётся
+      const exportAt=dim=>{
+        let ow=proc.cw,oh=proc.ch;
+        if(ow>dim||oh>dim){const k=dim/Math.max(ow,oh);ow=Math.round(ow*k);oh=Math.round(oh*k);}
+        const out=document.createElement('canvas');out.width=ow;out.height=oh;
+        out.getContext('2d').drawImage(proc.cv,proc.minX,proc.minY,proc.cw,proc.ch,0,0,ow,oh);
+        return out.toDataURL('image/png');
       };
-      let uri;
-      if(isPng){
-        // сначала пробуем сохранить прозрачность (PNG), постепенно уменьшая разрешение
-        uri=render(500,true);
-        if(uri.length>STAMP_MAX_LEN)uri=render(400,true);
-        if(uri.length>STAMP_MAX_LEN)uri=render(320,true);
-        // если PNG всё ещё велик — переходим на JPEG (теряется прозрачность, но помещается)
-        if(uri.length>STAMP_MAX_LEN)uri=render(500,false,0.82);
-        if(uri.length>STAMP_MAX_LEN)uri=render(420,false,0.7);
-      }else{
-        uri=render(560,false,0.85);
-        if(uri.length>STAMP_MAX_LEN)uri=render(480,false,0.72);
-        if(uri.length>STAMP_MAX_LEN)uri=render(400,false,0.6);
-      }
-      if(uri.length>STAMP_MAX_LEN){alert('Печать слишком большая даже после сжатия (~'+Math.round(uri.length/1024)+' КБ). Используйте более простое изображение меньшего разрешения.');return;}
+      let dim=460,uri=exportAt(dim);
+      while(uri.length>STAMP_MAX_LEN&&dim>200){dim=Math.round(dim*0.82);uri=exportAt(dim);}
+      if(uri.length>STAMP_MAX_LEN){alert('Печать слишком большая даже после обработки (~'+Math.round(uri.length/1024)+' КБ). Используйте изображение меньшего разрешения.');return;}
       _orgStampBuf=uri;_orgRenderStampPreview(uri);
     };
     img.onerror=()=>alert('Не удалось прочитать изображение');
