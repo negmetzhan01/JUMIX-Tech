@@ -193,7 +193,7 @@ body{padding-left:var(--sidebar-w)}
 /* MODAL */
 .mo{position:fixed;inset:0;background:rgba(16,24,40,.45);z-index:500;display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px)}
 .mo.hidden{display:none}
-.mo-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg)}
+.mo-box{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:24px;width:100%;max-width:480px;max-height:90vh;max-height:90dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:var(--shadow-lg)}
 .mo-box.wide{max-width:620px}
 .mo-title{font-size:19px;font-weight:800;letter-spacing:-.4px;margin-bottom:4px}
 .mo-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
@@ -293,7 +293,9 @@ body{padding-left:var(--sidebar-w)}
   .sopt{padding:12px 3px;font-size:11px;touch-action:manipulation}
   /* Modals: bottom sheet on mobile */
   .mo{padding:0;align-items:flex-end}
-  .mo-box,.mo-box.wide{border-radius:18px 18px 0 0;max-width:100%;max-height:90vh;padding:20px 14px 28px}
+  /* Нижний лист: dvh вместо vh (iOS-панель браузера ломает vh и прячет кнопки под экран);
+     нижний отступ учитывает home-bar (safe-area). Внутренний скролл включён. */
+  .mo-box,.mo-box.wide{border-radius:18px 18px 0 0;max-width:100%;max-height:92vh;max-height:92dvh;padding:20px 14px calc(20px + env(safe-area-inset-bottom))}
   .mo-title{font-size:15px;margin-bottom:2px}
   .mo-sub{margin-bottom:12px}
   .mo-acts{flex-direction:row-reverse;margin-top:12px}
@@ -825,6 +827,15 @@ body{padding-left:var(--sidebar-w)}
       <div class="fg"><label class="fl">Серийный номер</label><input class="fi" id="eqSerial" placeholder="F3523581"></div>
     </div>
     <div class="frow frow-2">
+      <div class="fg"><label class="fl">Тип техники</label>
+        <select class="fi" id="eqType" onchange="_eqTypeChanged()">
+          <option value="tower_crane">Башенный кран</option>
+          <option value="mobile_crane">Автокран</option>
+          <option value="other">Другое</option>
+        </select></div>
+      <div class="fg"></div>
+    </div>
+    <div class="frow frow-2">
       <div class="fg"><label class="fl">Основной оператор</label>
         <select class="fi" id="eqWorker"><option value="">— Не назначен —</option></select></div>
       <div class="fg"><label class="fl">Объект</label>
@@ -844,8 +855,18 @@ body{padding-left:var(--sidebar-w)}
       <div class="fg"><label class="fl">Ставка аренды ₸</label><input class="fi" type="number" id="eqRentalRate" placeholder="напр. 2500000">
         <div style="color:var(--muted);font-size:11px;margin-top:3px">Начисление партнёру. Если пусто — берётся «Стоимость аренды/мес». Дней аренды = фактические дни техники на объекте.</div></div>
     </div>
+    <div id="eqCranePayBlock" style="display:none">
+      <div class="divider"></div>
+      <div style="font-size:11px;color:var(--green);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">💵 Зарплата крановщика (автокран) — не видна диспетчеру</div>
+      <div class="frow frow-3">
+        <div class="fg"><label class="fl">День ₸ / смена</label><input class="fi" type="number" id="eqCraneDay" placeholder="30000"></div>
+        <div class="fg"><label class="fl">Ночь ₸ / смена</label><input class="fi" type="number" id="eqCraneNight" placeholder="30000"></div>
+        <div class="fg"><label class="fl">Переработка ₸ / час</label><input class="fi" type="number" id="eqCraneHour" placeholder="4000"></div>
+      </div>
+      <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Ставки оплаты оператору за подтверждённые смены. Хранятся в закрытой коллекции (диспетчер не видит). Изменение ставки применяется к будущим сменам — прошлые подтверждённые суммы не пересчитываются.</div>
+    </div>
     <div class="divider"></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы за смену (дневная / ночная / почасовая аренда)</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы за смену ЗАКАЗЧИКУ (доход: дневная / ночная / почасовая аренда)</div>
     <div class="frow frow-3">
       <div class="fg"><label class="fl">Тариф за день ₸</label><input class="fi" type="number" id="eqDayRate" placeholder="напр. 250000"></div>
       <div class="fg"><label class="fl">Тариф за ночь ₸</label><input class="fi" type="number" id="eqNightRate" placeholder="напр. 300000"></div>
@@ -1188,6 +1209,9 @@ body{padding-left:var(--sidebar-w)}
     </div>
     <div class="fg"><label class="fl">Кто вышел на смену</label>
       <select class="fi" id="shWorker"></select></div>
+    <div class="fg" id="shFracRow" style="display:none"><label class="fl">Доля смены (автокран)</label>
+      <select class="fi" id="shFrac"><option value="1">Полная смена</option><option value="0.5">Половина смены</option></select>
+      <div style="color:var(--muted);font-size:11px;margin-top:3px">Исправление доли для автокрана. Изменение фиксируется в истории записи.</div></div>
     <div class="fg"><label class="fl">Примечание</label><input class="fi" id="shNote" placeholder="подмена, ИП, детали..."></div>
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moShift')">Отмена</button>
@@ -1320,6 +1344,50 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-acts">
       <button class="btn btn-secondary" onclick="closeMo('moWorkerShift')">Отмена</button>
       <button class="btn btn-primary" onclick="saveWorkerShift()">Отправить заявку</button>
+    </div>
+  </div>
+</div>
+
+<!-- АВТОКРАН: дневная смена (фиксация, без таймера) -->
+<div class="mo hidden" id="moCraneDay" onclick="closeMoCheck('moCraneDay',event)">
+  <div class="mo-box">
+    <div class="mo-title">🏗 Дневная смена</div>
+    <div class="mo-sub" id="craneDaySub">Сегодня · автокран</div>
+    <div class="fg"><label class="fl">Как закрыть смену?</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button type="button" class="btn btn-primary" id="craneDayFull" style="padding:16px" onclick="_craneFracSel('day',1)">Полная смена</button>
+        <button type="button" class="btn btn-secondary" id="craneDayHalf" style="padding:16px" onclick="_craneFracSel('day',0.5)">Половина смены</button>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Комментарий (необязательно)</label>
+      <input class="fi" id="craneDayNote" placeholder="Можно оставить пустым">
+    </div>
+    <div id="craneDayError" style="color:var(--red);font-size:12px;min-height:18px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moCraneDay')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitCraneShift('day')">Отправить диспетчеру</button>
+    </div>
+  </div>
+</div>
+
+<!-- АВТОКРАН: ночная смена (описание работы обязательно) -->
+<div class="mo hidden" id="moCraneNight" onclick="closeMoCheck('moCraneNight',event)">
+  <div class="mo-box">
+    <div class="mo-title">🌙 Ночная смена</div>
+    <div class="mo-sub" id="craneNightSub">Сегодня · автокран</div>
+    <div class="fg"><label class="fl">Как закрыть смену?</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <button type="button" class="btn btn-primary" id="craneNightFull" style="padding:16px" onclick="_craneFracSel('night',1)">Полная смена</button>
+        <button type="button" class="btn btn-secondary" id="craneNightHalf" style="padding:16px" onclick="_craneFracSel('night',0.5)">Половина смены</button>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Что выполняли? (обязательно)</label>
+      <input class="fi" id="craneNightNote" placeholder="Опишите выполненную ночную работу">
+    </div>
+    <div id="craneNightError" style="color:var(--red);font-size:12px;min-height:18px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moCraneNight')">Отмена</button>
+      <button class="btn btn-primary" onclick="submitCraneShift('night')">Отправить диспетчеру</button>
     </div>
   </div>
 </div>
@@ -1474,7 +1542,7 @@ function initFirebase() {
 // ═══════════════════════════════════════════════
 let currentUser = null; // {uid, email, name, role, workerId}
 let _regName = null;   // имя из формы регистрации, передаётся в onAuthStateChanged
-let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[], organizations:[] };
+let cfg = { settings:{periodStartDay:21,periodEndDay:20,vatRate:16,companyName:'ТОО'}, workers:[], equipment:[], objects:[], partners:[], organizations:[], craneRates:[] };
 let pd = { shifts:{}, incomeItems:[], expenses:[], payments:{}, partnerEntries:[], tsApprovals:{} };
 let curYear, curEM;
 (function(){
@@ -1598,6 +1666,14 @@ function listenConfig() {
     cfg.organizations = snap.docs.map(d=>({id:d.id,...d.data()}));
     scheduleRender();
   },()=>{}));
+  // Ставки з/п крановщика автокрана (закрытая коллекция). Читают: Admin/Owner — все; Worker — только
+  // свои (по своему workerId); Dispatcher/прочие — доступа НЕТ (запрос не подписывается).
+  const _crRole=currentUser?.role;
+  if(_crRole==='admin'||_crRole==='owner'){
+    _cfgUnsubs.push(db.collection('craneRates').onSnapshot(snap=>{cfg.craneRates=snap.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();},()=>{}));
+  }else if(_crRole==='worker'&&currentUser?.workerId){
+    _cfgUnsubs.push(db.collection('craneRates').where('workerId','==',currentUser.workerId).onSnapshot(snap=>{cfg.craneRates=snap.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();},()=>{}));
+  }
   // Диспетчер: постоянные (не зависящие от периода) слушатели согласований — за все периоды.
   //  A) адресные лично ему (assignedDispatcherUid == uid) — покрывает старые одиночные документы;
   //  B) все документы ГРУПП, где он получатель (recipientUids array-contains uid) — включая
@@ -2210,6 +2286,12 @@ function openShiftModal(equipId,dateKey){
   ws.innerHTML='<option value="">Основной оператор</option>'+
     cfg.workers.map(w=>`<option value="${w.id}"${cell.workerId===w.id?' selected':''}>${w.name} (${WORKER_TYPES[w.type]||w.type})</option>`).join('')+
     cfg.partners.map(p=>`<option value="p_${p.id}"${cell.workerId==='p_'+p.id?' selected':''}>${p.name}</option>`).join('');
+  // Доля смены — только для автокрана (исправление Owner/Admin с историей)
+  const fracRow=document.getElementById('shFracRow');
+  if(fracRow){
+    if(isMobileCrane(equip)){fracRow.style.display='';document.getElementById('shFrac').value=String(cell.shiftFraction===0.5?0.5:1);}
+    else fracRow.style.display='none';
+  }
   selSOpt(cell.type||0);
   openMo('moShift');
 }
@@ -2225,13 +2307,35 @@ function saveShift(){
   const key=document.getElementById('shDateKey').value;
   const note=document.getElementById('shNote').value.trim();
   const workerId=document.getElementById('shWorker').value;
+  const equip=cfg.equipment.find(e=>e.id===equipId);
+  const existing=(pd.shifts[equipId]||{})[key]||{};
   // Optimistic local update for immediate feedback
   if(!pd.shifts[equipId])pd.shifts[equipId]={};
-  if(shiftOptVal===0&&!note&&!workerId){delete pd.shifts[equipId][key];}
-  else{pd.shifts[equipId][key]={type:shiftOptVal,workerId,note};}
+  if(shiftOptVal===0&&!note&&!workerId){delete pd.shifts[equipId][key];closeMo('moShift');renderShifts();fbSaveShift(equipId,key,{type:0,workerId:'',note:''});return;}
+  // Сохраняем существующие операционные/статусные поля (не затираем подтверждение и создателя).
+  const shiftData={type:shiftOptVal,workerId,note};
+  if(existing.status)shiftData.status=existing.status;
+  if(existing.createdBy)shiftData.createdBy=existing.createdBy;
+  if(existing.createdAt)shiftData.createdAt=existing.createdAt;
+  if(existing.reviewNote)shiftData.reviewNote=existing.reviewNote;
+  if(existing.reviewedBy)shiftData.reviewedBy=existing.reviewedBy;
+  if(existing.overHours!=null)shiftData.overHours=existing.overHours;
+  if(Array.isArray(existing.history))shiftData.history=[...existing.history];
+  // Автокран: доля смены + история исправлений Owner/Admin (#17)
+  if(isMobileCrane(equip)){
+    const newFrac=(document.getElementById('shFrac').value==='0.5')?0.5:1;
+    const oldFrac=existing.shiftFraction===0.5?0.5:1;
+    shiftData.shiftFraction=newFrac;
+    if(existing.type&&(oldFrac!==newFrac||shiftOptVal!==existing.type)){
+      const reason=prompt('Причина исправления смены (для истории):','')||'';
+      shiftData.history=[...(shiftData.history||[]),{at:new Date().toISOString(),by:currentUser?.name||currentUser?.email,byUid:currentUser?.uid,
+        changes:[oldFrac!==newFrac?{field:'shiftFraction',old:oldFrac,new:newFrac}:null,shiftOptVal!==existing.type?{field:'type',old:existing.type,new:shiftOptVal}:null].filter(Boolean),reason}];
+    }
+  }
+  pd.shifts[equipId][key]=shiftData;
   closeMo('moShift');
   renderShifts();
-  fbSaveShift(equipId,key,{type:shiftOptVal,workerId,note});
+  fbSaveShift(equipId,key,shiftData);
 }
 
 // ═══════════════════════════════════════════════
@@ -2271,9 +2375,90 @@ function effectiveMonthly(w,year,em){
 // Учёт работника ОТДЕЛЁН от учёта техники: оклад считается по фактически отработанным
 // дням самого работника (ручное поле workedDays[период]), а не по сменам техники.
 // Ночные/подмены/переработки берутся из смен; премии/удержания — ручные per-period суммы.
+// ═══════════════════════════════════════════════
+// АВТОКРАН: тип техники, ставки з/п (закрытая коллекция), расчёт по подтверждённым сменам
+// ═══════════════════════════════════════════════
+// Автокран определяется ТИПОМ техники (не по названию/модели/госномеру).
+function isMobileCrane(e){return !!e&&e.type==='mobile_crane';}
+// Документ ставок з/п по паре работник+техника (id = workerId__equipId)
+function craneRateDoc(workerId,equipId){return (cfg.craneRates||[]).find(x=>x.workerId===workerId&&x.equipId===equipId)||null;}
+// Действующая ставка на дату dateISO (по истории {from,...}); без даты — последняя.
+function effectiveCraneRateDoc(workerId,equipId,dateISO){
+  const doc=craneRateDoc(workerId,equipId);
+  const hist=(doc&&Array.isArray(doc.history))?doc.history:[];
+  if(!hist.length)return null;
+  const sorted=[...hist].sort((a,b)=>(a.from||'').localeCompare(b.from||''));
+  let pick=null;
+  for(const h of sorted){if(!dateISO||(h.from||'')<=dateISO)pick=h;}
+  return pick||sorted[0];
+}
+// Сохранить ставки з/п автокрановщика: добавляем запись истории только если ставки изменились.
+// Историчность: прошлые подтверждённые суммы считаются по ставке, действовавшей на дату смены.
+async function saveCraneRates(workerId,equipId,rates){
+  if(!workerId||!equipId)return;
+  const id=workerId+'__'+equipId;
+  const cur=effectiveCraneRateDoc(workerId,equipId);
+  const same=cur&&(+cur.dayRate||0)===(+rates.dayRate||0)&&(+cur.nightRate||0)===(+rates.nightRate||0)&&(+cur.hourRate||0)===(+rates.hourRate||0);
+  if(same)return; // без изменений — новую запись истории не добавляем
+  const doc=craneRateDoc(workerId,equipId);
+  const hist=[...((doc&&doc.history)||[])];
+  hist.push({from:todayISO(),dayRate:+rates.dayRate||0,nightRate:+rates.nightRate||0,hourRate:+rates.hourRate||0,
+    by:currentUser?.name||currentUser?.email||'',byUid:currentUser?.uid||'',at:new Date().toISOString()});
+  const payload={workerId,equipId,history:hist};
+  cfg.craneRates=cfg.craneRates||[];
+  const i=cfg.craneRates.findIndex(x=>x.id===id);
+  if(i>=0)cfg.craneRates[i]={id,...payload};else cfg.craneRates.push({id,...payload});
+  try{await db.collection('craneRates').doc(id).set(payload);}catch(e){fbErr(e);}
+}
+// Сумма к начислению за конкретную автокрановую смену (день/ночь × доля, переработка × часы).
+// Ставка берётся действующая НА ДАТУ смены → изменение ставки не пересчитывает прошлое (#18).
+function craneShiftAmount(cell,date,workerId,equipId){
+  const r=effectiveCraneRateDoc(workerId,equipId,date);if(!r)return 0;
+  const t=cell.type||0;const frac=(cell.shiftFraction===0.5)?0.5:1;
+  if(t===1)return Math.round((+r.dayRate||0)*frac);
+  if(t===2)return Math.round((+r.nightRate||0)*frac);
+  if(t===3)return Math.round(((+r.dayRate||0)+(+r.nightRate||0))*frac);
+  if(t===4)return Math.round((+r.hourRate||0)*(+cell.overHours||0));
+  return 0;
+}
+// Расчёт з/п автокрановщика за текущий период: только подтверждённые смены (approved / без статуса).
+// Возвращает разбивку по полным/половинным дневным и ночным + переработка + ожидающие.
+function calcCraneEarnings(w){
+  const res={dayFull:0,dayHalf:0,nightFull:0,nightHalf:0,overHours:0,
+    dayAmount:0,nightAmount:0,overAmount:0,total:0,
+    pendingDay:0,pendingNight:0,pendingOver:0,rows:[]};
+  for(const equip of cfg.equipment){
+    if(!isMobileCrane(equip))continue;
+    const isMain=equip.primaryWorkerId===w.id;
+    const cs=pd.shifts[equip.id]||{};
+    for(const[date,cell] of Object.entries(cs)){
+      const t=cell.type||0;if(!t)continue;
+      // смена относится к работнику: явно назначен ИЛИ он основной оператор без явного назначения
+      const mine=(cell.workerId===w.id)||(isMain&&!cell.workerId);
+      if(!mine)continue;
+      const frac=(cell.shiftFraction===0.5)?0.5:1;
+      const approved=(!cell.status||cell.status==='approved');
+      if(cell.status==='pending'){
+        if(t===1||t===3)res.pendingDay++;if(t===2||t===3)res.pendingNight++;if(t===4)res.pendingOver++;
+        res.rows.push({date,type:t,frac,status:'pending',amount:0,equipId:equip.id});
+        continue;
+      }
+      if(!approved)continue; // rejected — не учитываем
+      const amt=craneShiftAmount(cell,date,w.id,equip.id);
+      if(t===1||t===3){if(frac===0.5)res.dayHalf++;else res.dayFull++;res.dayAmount+=amt;}
+      if(t===2){if(frac===0.5)res.nightHalf++;else res.nightFull++;res.nightAmount+=amt;}
+      if(t===4){res.overHours+=(+cell.overHours||0);res.overAmount+=amt;}
+      res.rows.push({date,type:t,frac,status:'approved',amount:amt,overHours:+cell.overHours||0,equipId:equip.id});
+    }
+  }
+  res.total=res.dayAmount+res.nightAmount+res.overAmount;
+  res.rows.sort((a,b)=>b.date.localeCompare(a.date));
+  return res;
+}
 function calcWorkerEarnings(w){
   let nightCount=0,overCount=0,subNightCount=0,subDayCount=0;
   for(const equip of cfg.equipment){
+    if(isMobileCrane(equip))continue; // автокран считается отдельно (calcCraneEarnings), не по месячной модели
     const cs=pd.shifts[equip.id]||{};
     const isMain=equip.primaryWorkerId===w.id;
     for(const[key,cell] of Object.entries(cs)){
@@ -2305,11 +2490,15 @@ function calcWorkerEarnings(w){
   // Премии и удержания за период (ручные суммы, optional)
   const bonus=workerPeriodAmount(w.bonuses);
   const deduction=workerPeriodAmount(w.deductions);
-  const totalAccrued=base+nightBonus+overBonus+subBonus+bonus-deduction;
+  // Автокран: отдельная модель по подтверждённым сменам × ставки (не смешивается с месячной).
+  // Складывается в общий итог — так один работник может в периоде получать и оклад (башенный),
+  // и посменную оплату (автокран) независимо (#21).
+  const crane=calcCraneEarnings(w);
+  const totalAccrued=base+nightBonus+overBonus+subBonus+bonus-deduction+crane.total;
   const pays=(pd.payments[w.id]||[]).reduce((s,p)=>s+((!p.status||p.status==='paid')?p.amount:0),0);
   const pendingAdvances=(pd.payments[w.id]||[]).filter(p=>p.status==='pending'||p.status==='approved').reduce((s,p)=>s+p.amount,0);
   const balance=totalAccrued-pays;
-  return{base,monthly,norm,proRated,worked,dayRate,nightCount,nightBonus,overCount,overBonus,subNightCount,subDayCount,subBonus,bonus,deduction,totalAccrued,pays,pendingAdvances,balance};
+  return{base,monthly,norm,proRated,worked,dayRate,nightCount,nightBonus,overCount,overBonus,subNightCount,subDayCount,subBonus,bonus,deduction,crane,totalAccrued,pays,pendingAdvances,balance};
 }
 
 function renderWorkers(){
@@ -2474,6 +2663,16 @@ function openWorkerDetail(wId){
   }else{
     if(earn.bonus)h+=`<div class="wdet-row"><span>Премия</span><span style="color:var(--green)">+${fmt(earn.bonus)} ₸</span></div>`;
     if(earn.deduction)h+=`<div class="wdet-row"><span>Удержание</span><span style="color:var(--red)">−${fmt(earn.deduction)} ₸</span></div>`;
+  }
+  // Автокран — разбивка по подтверждённым сменам (только approved входят в сумму)
+  const cr=earn.crane;
+  if(cr&&(cr.total||cr.dayFull||cr.dayHalf||cr.nightFull||cr.nightHalf||cr.overHours||cr.pendingDay||cr.pendingNight||cr.pendingOver)){
+    h+=`<div class="wdet-row" style="border-top:1px dashed var(--border);margin-top:6px;padding-top:8px"><span style="font-weight:700;color:var(--green)">Автокран (оплата по сменам)</span><span></span></div>`;
+    if(cr.dayFull||cr.dayHalf)h+=`<div class="wdet-row"><span>Дневные смены (${cr.dayFull} полн.${cr.dayHalf?' + '+cr.dayHalf+' × ½':''})</span><span>${fmt(cr.dayAmount)} ₸</span></div>`;
+    if(cr.nightFull||cr.nightHalf)h+=`<div class="wdet-row"><span>Ночные смены (${cr.nightFull} полн.${cr.nightHalf?' + '+cr.nightHalf+' × ½':''})</span><span style="color:var(--blue)">${fmt(cr.nightAmount)} ₸</span></div>`;
+    if(cr.overHours)h+=`<div class="wdet-row"><span>Переработка (${cr.overHours} ч)</span><span style="color:var(--accent)">${fmt(cr.overAmount)} ₸</span></div>`;
+    if(cr.pendingDay||cr.pendingNight||cr.pendingOver)h+=`<div class="wdet-row"><span style="color:var(--yellow)">Ожидают подтверждения</span><span style="color:var(--yellow)">${(cr.pendingDay||0)+(cr.pendingNight||0)+(cr.pendingOver||0)} смен</span></div>`;
+    h+=`<div class="wdet-row"><span style="font-weight:600">Начислено (автокран)</span><span style="color:var(--green);font-weight:600">${fmt(cr.total)} ₸</span></div>`;
   }
   h+=`<div class="wdet-row total"><span>Итого начислено</span><span id="wdTotalPrev" style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</span></div>`;
   if(canPay)h+=`<div style="text-align:right;margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveWorkerPeriod('${w.id}')">💾 Сохранить и пересчитать</button></div>`;
@@ -3094,12 +3293,92 @@ function renderDashboard(){
   el.innerHTML=html;
 }
 
+// Подпись типа+объёма смены для подтверждения (диспетчер видит объём, НЕ деньги).
+function _shiftTypeLabel(cell){
+  const T={1:'Дневная',2:'Ночная',3:'День+Ночь',4:'Переработка'};
+  let lbl=T[cell.type]||'';
+  if(cell.type===4)return lbl+(cell.overHours?' · '+(+cell.overHours)+' ч':'');
+  if(cell.shiftFraction===0.5)lbl+=' · Половина смены';
+  else if(cell.shiftFraction===1)lbl+=' · Полная смена';
+  return lbl;
+}
+// Понятная подпись смены автокрана: «День · Полная смена», «Ночь · Половина смены», «Переработка · N ч»
+function _craneShiftLabel(cell){
+  const t=cell.type||0;const half=cell.shiftFraction===0.5;
+  if(t===4)return 'Переработка · '+(+cell.overHours||0)+' ч';
+  const base=t===1?'День':t===2?'Ночь':t===3?'День+Ночь':'Смена';
+  return base+' · '+(half?'Половина смены':'Полная смена');
+}
+// Главный экран Worker-автокрановщика: 3 крупные кнопки + статус сегодня + расчёт з/п + история.
+function _craneWorkerDash(myW,myEquip,myObj,earn){
+  const cr=earn.crane||{};
+  const today=todayISO();
+  const cell=(pd.shifts[myEquip.id]||{})[today];
+  const pays=pd.payments[myW.id]||[];
+  const paidAmt=pays.filter(p=>!p.status||p.status==='paid').reduce((s,p)=>s+p.amount,0);
+  const pendAmt=pays.filter(p=>p.status==='pending').reduce((s,p)=>s+p.amount,0);
+  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+  let h='';
+  h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+    <button class="btn btn-primary" style="grid-column:1 / -1;font-size:18px;font-weight:800;padding:22px 12px" onclick="openCraneDayModal()">🏗 НАЧАТЬ СМЕНУ</button>
+    <button class="btn btn-secondary" style="font-size:16px;font-weight:700;padding:20px 12px" onclick="openCraneNightModal()">🌙 НОЧЬ</button>
+    <button class="btn btn-secondary" style="font-size:16px;font-weight:700;padding:20px 12px" onclick="openAdvanceRequestModal()">💰 АВАНС</button>
+  </div>`;
+  h+=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:13px">
+    <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Автокран</div><div style="font-weight:700;color:var(--accent);font-size:15px">${_tsEsc(myEquip.name)}</div></div>
+    <div><div style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px">Объект</div><div style="font-weight:700;font-size:15px">${myObj?_tsEsc(myObj.name):'—'}</div></div>
+  </div></div>`;
+  // Сегодня
+  if(cell&&cell.type){
+    let stat,acc='';
+    if(cell.status==='pending')stat='<span style="color:var(--yellow);font-weight:700">⏳ Ожидает подтверждения</span>';
+    else if(cell.status==='rejected')stat=`<span style="color:var(--red);font-weight:700">✕ Отклонено</span>${cell.reviewNote?' · '+_tsEsc(cell.reviewNote):''}`;
+    else{stat='<span style="color:var(--green);font-weight:700">✓ Подтверждено</span>';const amt=craneShiftAmount(cell,today,myW.id,myEquip.id);acc=`<div style="margin-top:4px;font-size:13px">Начислено: <b style="color:var(--green)">${fmt(amt)} ₸</b></div>`;}
+    h+=`<div class="dash-section-title">Сегодня</div>
+      <div class="c-card" style="margin-bottom:16px"><div class="c-card-body">
+        <div style="font-weight:700;font-size:16px">${_craneShiftLabel(cell)}</div>
+        <div style="margin-top:6px">${stat}</div>${acc}
+        ${cell.note?`<div style="margin-top:4px;color:var(--muted);font-size:12px">💬 ${_tsEsc(cell.note)}</div>`:''}
+      </div></div>`;
+  }else{
+    h+=`<div class="c-card" style="margin-bottom:16px"><div class="c-card-body" style="color:var(--muted);text-align:center;padding:14px">Сегодня смена ещё не отправлена</div></div>`;
+  }
+  // Зарплата за период (автокран)
+  h+=`<div class="dash-section-title">Зарплата за период</div>`;
+  h+=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="font-size:13px">
+    <div class="vat-row"><span>Дневные смены (полные)</span><b>${cr.dayFull||0}</b></div>
+    ${cr.dayHalf?`<div class="vat-row"><span>Половины дневных</span><b>${cr.dayHalf}</b></div>`:''}
+    <div class="vat-row"><span>Ночные смены (полные)</span><b>${cr.nightFull||0}</b></div>
+    ${cr.nightHalf?`<div class="vat-row"><span>Половины ночных</span><b>${cr.nightHalf}</b></div>`:''}
+    ${cr.overHours?`<div class="vat-row"><span>Переработка</span><b>${cr.overHours} ч</b></div>`:''}
+    ${(cr.pendingDay||cr.pendingNight||cr.pendingOver)?`<div class="vat-row"><span style="color:var(--yellow)">Ожидают подтверждения</span><b style="color:var(--yellow)">${(cr.pendingDay||0)+(cr.pendingNight||0)+(cr.pendingOver||0)}</b></div>`:''}
+    <div class="vat-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">Начислено</span><b style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</b></div>
+    <div class="vat-row"><span>Авансы выдано</span><b style="color:var(--green)">−${fmt(paidAmt)} ₸</b></div>
+    ${pendAmt?`<div class="vat-row"><span style="color:var(--muted)">Авансы ожидают</span><span style="color:var(--muted)">${fmt(pendAmt)} ₸</span></div>`:''}
+    <div class="vat-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">К выплате</span><b style="color:${balColor};font-size:16px">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</b></div>
+  </div></div>`;
+  // История по датам
+  if((cr.rows||[]).length){
+    h+=`<div class="dash-section-title">История смен</div>`;
+    h+='<div class="tbl-wrap"><table><thead><tr><th>Дата</th><th>Смена</th><th>Статус</th></tr></thead><tbody>';
+    const STL={pending:'<span style="color:var(--yellow);font-weight:600">⏳ Ожидает</span>',approved:'<span style="color:var(--green);font-weight:600">✓ Подтверждено</span>'};
+    for(const r of cr.rows.slice(0,15)){
+      const dp=r.date.split('-');const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+      const lbl=_craneShiftLabel({type:r.type,shiftFraction:r.frac,overHours:r.overHours});
+      h+=`<tr><td style="font-weight:600">${+dp[2]} ${MSHO[+dp[1]]} <span style="color:var(--muted);font-size:11px">${dow}</span></td><td>${lbl}</td><td>${STL[r.status]||''}</td></tr>`;
+    }
+    h+='</tbody></table></div>';
+  }
+  return h;
+}
 function _workerDash(){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   if(!myW)return`<div class="empty" style="text-align:center;padding:40px 0"><div style="font-size:40px;margin-bottom:12px">👤</div><div style="font-size:15px">Вы не привязаны к работнику.<br>Обратитесь к администратору.</div></div>`;
   const earn=calcWorkerEarnings(myW);
   const myEquip=cfg.equipment.find(e=>e.id===myW.equipmentId);
   const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
+  // Автокрановщик — отдельный упрощённый главный экран (3 крупные кнопки).
+  if(isMobileCrane(myEquip))return _craneWorkerDash(myW,myEquip,myObj,earn);
   // Shift stats
   let dayN=0,nightN=0,overN=0,subN=0,pendingShifts=0,approvedShifts=0,rejectedShifts=0;
   if(myEquip){
@@ -3318,7 +3597,7 @@ function _dispatcherDash(){
         const equip=cfg.equipment.find(e=>e.id===eqId);
         const worker=cfg.workers.find(w=>w.id===cell.workerId);
         const tShb=cell.type===2?'<div class="shb night" style="display:inline-flex">Н</div>':cell.type===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex">Д+Н</div>';
-        h+=`<tr><td style="font-weight:600">${worker?worker.name:'—'}</td><td style="color:var(--muted)">${equip?equip.name:eqId}</td><td>${fmtDate(date)}</td><td>${tShb} ${TLAB[cell.type]||''}</td><td style="color:var(--muted);font-size:12px">${cell.note||'—'}</td></tr>`;
+        h+=`<tr><td style="font-weight:600">${worker?worker.name:'—'}</td><td style="color:var(--muted)">${equip?equip.name:eqId}</td><td>${fmtDate(date)}</td><td>${tShb} ${_shiftTypeLabel(cell)}</td><td style="color:var(--muted);font-size:12px">${cell.note||'—'}</td></tr>`;
       }
     }
     h+='</tbody></table></div>';
@@ -3602,6 +3881,56 @@ async function saveWorkerShift(){
   }catch(e){document.getElementById('wsError').textContent='Ошибка: '+e.message;}
 }
 
+// ── АВТОКРАН: фиксация дневной/ночной смены (без таймера) ──
+let _craneDayFrac=1,_craneNightFrac=1;
+function _craneFracSel(kind,frac){
+  const full=document.getElementById(kind==='day'?'craneDayFull':'craneNightFull');
+  const half=document.getElementById(kind==='day'?'craneDayHalf':'craneNightHalf');
+  if(kind==='day')_craneDayFrac=frac;else _craneNightFrac=frac;
+  if(full){full.className='btn '+(frac===1?'btn-primary':'btn-secondary');full.style.padding='16px';}
+  if(half){half.className='btn '+(frac===0.5?'btn-primary':'btn-secondary');half.style.padding='16px';}
+}
+function _craneMyEquip(){const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);return myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;}
+function _craneTodayCell(){const e=_craneMyEquip();if(!e)return null;return (pd.shifts[e.id]||{})[todayISO()]||null;}
+function openCraneDayModal(){
+  const e=_craneMyEquip();if(!isMobileCrane(e)){alert('Автокран не назначен. Обратитесь к администратору.');return;}
+  const cell=_craneTodayCell();
+  // если сегодня уже есть моя pending/rejected дневная запись — предзаполнить для правки
+  const editable=cell&&cell.createdBy===currentUser.uid&&(cell.status==='pending'||cell.status==='rejected')&&(cell.type===1);
+  _craneFracSel('day',editable&&cell.shiftFraction===0.5?0.5:1);
+  document.getElementById('craneDayNote').value=editable?(cell.note||''):'';
+  document.getElementById('craneDayError').textContent='';
+  document.getElementById('craneDaySub').textContent=_tsFmtDate(todayISO())+' · '+e.name;
+  openMo('moCraneDay');
+}
+function openCraneNightModal(){
+  const e=_craneMyEquip();if(!isMobileCrane(e)){alert('Автокран не назначен. Обратитесь к администратору.');return;}
+  const cell=_craneTodayCell();
+  const editable=cell&&cell.createdBy===currentUser.uid&&(cell.status==='pending'||cell.status==='rejected')&&(cell.type===2);
+  _craneFracSel('night',editable&&cell.shiftFraction===0.5?0.5:1);
+  document.getElementById('craneNightNote').value=editable?(cell.note||''):'';
+  document.getElementById('craneNightError').textContent='';
+  document.getElementById('craneNightSub').textContent=_tsFmtDate(todayISO())+' · '+e.name;
+  openMo('moCraneNight');
+}
+async function submitCraneShift(kind){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const e=_craneMyEquip();
+  const errId=kind==='day'?'craneDayError':'craneNightError';
+  if(!isMobileCrane(e)){document.getElementById(errId).textContent='Автокран не назначен';return;}
+  const today=todayISO();
+  const type=kind==='day'?1:2;
+  const frac=kind==='day'?_craneDayFrac:_craneNightFrac;
+  const note=document.getElementById(kind==='day'?'craneDayNote':'craneNightNote').value.trim();
+  if(kind==='night'&&!note){document.getElementById(errId).textContent='Для ночной смены опишите выполненную работу';return;}
+  const cs=pd.shifts[e.id]||{};const existing=cs[today];
+  if(existing&&existing.status&&existing.status!=='pending'&&existing.status!=='rejected'){document.getElementById(errId).textContent='На сегодня уже есть подтверждённая смена';return;}
+  if(existing&&existing.createdBy&&existing.createdBy!==currentUser.uid){document.getElementById(errId).textContent='Сегодняшняя дата занята другой записью';return;}
+  const data={period:curPK(),equipId:e.id,date:today,type,shiftFraction:frac,workerId:myW.id,note,status:'pending',createdBy:currentUser.uid,createdAt:new Date().toISOString()};
+  try{await db.collection('shifts').doc(e.id+'_'+today).set(data);closeMo(kind==='day'?'moCraneDay':'moCraneNight');}
+  catch(err){document.getElementById(errId).textContent='Ошибка: '+err.message;}
+}
+
 async function deleteWorkerShift(dateKey){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
@@ -3640,7 +3969,7 @@ function renderPendingShifts(){
       <td style="font-weight:600">${s.worker?s.worker.name:'—'}</td>
       <td style="color:var(--muted)">${s.equip?s.equip.name:s.eqId}</td>
       <td style="font-weight:600">${fmtDate(s.date)}</td>
-      <td>${typeShb} ${TLAB[s.type]||''}</td>
+      <td>${typeShb} ${_shiftTypeLabel(s)}</td>
       <td style="color:var(--muted);font-size:12px">${s.note||'—'}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn btn-sm" style="background:rgba(34,211,160,.12);color:var(--green);border:1px solid rgba(34,211,160,.3);margin-right:4px" onclick="approveShift('${s.docId}','approved')">✓ Принять</button>
@@ -3655,9 +3984,17 @@ function renderPendingShifts(){
 async function approveShift(docId,newStatus){
   const eqId=docId.substring(0,docId.indexOf('_'));
   if(!canApproveShiftFor(eqId)){alert('Нет прав на подтверждение смен по этой технике');return;}
-  const label=newStatus==='approved'?'Подтвердить смену?':'Отклонить смену?';
-  if(!confirm(label))return;
-  const reviewNote=prompt('Комментарий (необязательно):','')||'';
+  let reviewNote;
+  if(newStatus==='rejected'){
+    // При отклонении причина обязательна (#8)
+    reviewNote=prompt('Причина отклонения (обязательно):','');
+    if(reviewNote===null)return;
+    if(!reviewNote.trim()){alert('Причина отклонения обязательна');return;}
+    reviewNote=reviewNote.trim();
+  }else{
+    if(!confirm('Подтвердить смену?'))return;
+    reviewNote=prompt('Комментарий (необязательно):','')||'';
+  }
   try{
     await db.collection('shifts').doc(docId).update({
       status:newStatus,
@@ -3744,6 +4081,13 @@ function openEquipModal(id){
   document.getElementById('eqId').value=e?e.id:'';
   document.getElementById('eqName').value=e?e.name:'';
   document.getElementById('eqSerial').value=e?e.serial||'':'';
+  document.getElementById('eqType').value=e?(e.type||'tower_crane'):'tower_crane';
+  // Ставки з/п крановщика (автокран) — из закрытой коллекции, по текущему оператору+технике
+  const cr=e?effectiveCraneRateDoc(e.primaryWorkerId,e.id):null;
+  document.getElementById('eqCraneDay').value=cr?cr.dayRate||'':'';
+  document.getElementById('eqCraneNight').value=cr?cr.nightRate||'':'';
+  document.getElementById('eqCraneHour').value=cr?cr.hourRate||'':'';
+  _eqTypeChanged();
   document.getElementById('eqRentalCost').value=e?e.rentalCost||0:0;
   document.getElementById('eqRentalType').value=e?e.rentalType||'month':'month';
   document.getElementById('eqRentalRate').value=e?e.rentalRate||'':'';
@@ -3777,6 +4121,7 @@ function saveEquip(){
   const obj={
     id:id||uuid(),name:document.getElementById('eqName').value.trim(),
     serial:document.getElementById('eqSerial').value.trim(),
+    type:document.getElementById('eqType').value||'tower_crane',
     primaryWorkerId:document.getElementById('eqWorker').value,
     objectId:document.getElementById('eqObject').value,
     rentalPartnerId:document.getElementById('eqRentalPartner').value,
@@ -3805,6 +4150,19 @@ function saveEquip(){
   if(!obj.name){alert('Введите название');return;}
   closeMo('moEquip');
   fbSaveEquip(obj);
+  // Автокран: сохранить ставки з/п крановщика в закрытую коллекцию /craneRates (история по датам).
+  if(obj.type==='mobile_crane'&&obj.primaryWorkerId){
+    saveCraneRates(obj.primaryWorkerId,obj.id,{
+      dayRate:+document.getElementById('eqCraneDay').value||0,
+      nightRate:+document.getElementById('eqCraneNight').value||0,
+      hourRate:+document.getElementById('eqCraneHour').value||0});
+  }
+}
+// Тип техники: показать блок з/п крановщика только для автокрана
+function _eqTypeChanged(){
+  const t=document.getElementById('eqType').value;
+  const box=document.getElementById('eqCranePayBlock');
+  if(box)box.style.display=(t==='mobile_crane')?'':'none';
 }
 
 function deleteEquip(id){
@@ -4383,7 +4741,8 @@ function _tsReviewTableHTML(data){
 // Печать открытого в проверке табеля (с реквизитами/печатью из organizationSnapshot)
 function reviewPrint(fmt){
   const a=_tsFindApproval(_tsReviewKey);if(!a){alert('Табель не найден');return;}
-  _tsPrintApproval(a,fmt);
+  const win=fmt==='pdf'?_openPrintWin():null; // окно открываем синхронно в клике (мобильные)
+  _tsPrintApproval(a,fmt,win);
 }
 async function reviewApprove(){
   const a=getTsApprovalByKey(_tsReviewKey);if(!a)return;
@@ -4493,7 +4852,7 @@ function renderTsArchive(){
   list.innerHTML=h;
 }
 // Печать/выгрузка табеля из архива: утверждённый — из snapshot; иначе — live за диапазон
-async function _tsPrintApproval(a,fmt){
+async function _tsPrintApproval(a,fmt,win){
   const from=a.periodFrom,to=a.periodTo;
   // Всегда печатаем ИМЕННО отправленную версию: approvedSnapshot формируется при отправке и
   // одинаков у всех получателей (pending/approved/rejected). Live-смены после отправки его не меняют.
@@ -4508,12 +4867,13 @@ async function _tsPrintApproval(a,fmt){
   // Реквизиты — из НЕИЗМЕНЯЕМОГО снимка организации (не из текущих настроек). Excel — без печати.
   let orgSnap=a.organizationSnapshot||null;
   if(orgSnap&&fmt==='excel')orgSnap={...orgSnap,stamp:'',showStampInDocuments:false};
-  _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgSnap),fmt,'спецтехника');
+  _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgSnap),fmt,'спецтехника',win);
 }
 function archivePrint(docId,fmt){
   const a=(_tsArchive||[]).find(x=>x._docId===docId);
   if(!a){alert('Табель не найден');return;}
-  _tsPrintApproval(a,fmt);
+  const win=fmt==='pdf'?_openPrintWin():null; // окно открываем в клике (мобильные)
+  _tsPrintApproval(a,fmt,win);
 }
 
 // Экранирование для вставки в HTML табеля
@@ -4762,12 +5122,15 @@ function _orgExecutorHTML(org){
   const dir=org.directorName||'';
   const bin=org.binIin?` &nbsp;·&nbsp; БИН/ИИН: ${_tsEsc(org.binIin)}`:'';
   const showStamp=!!(org.showStampInDocuments&&org.stamp);
-  const stampImg=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;right:2mm;bottom:-9mm;height:40mm;width:auto;max-width:52mm;object-fit:contain;background:transparent;border:0;box-shadow:none;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
-  return `<div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
-    <div style="margin-top:12px;position:relative;display:inline-block;padding-right:56mm">
-      <span style="font-size:13px">${_tsEsc(pos)}: <b>${_tsEsc(dir||'____________________')}</b> &nbsp;______________________</span>
-      ${stampImg}
-    </div>`;
+  // Печать привязана к блоку ИСПОЛНИТЕЛЯ (слева), у линии подписи директора: absolute внутри
+  // относительного контейнера, смещение left/top небольшое — печать остаётся в левом блоке,
+  // не уходит в центр и не задевает правую сторону/заказчика. Размер ~37 мм, пропорции сохранены.
+  const stamp=showStamp?`<img src="${org.stamp}" alt="печать" style="position:absolute;left:24mm;top:11mm;height:37mm;width:auto;max-width:48mm;object-fit:contain;background:transparent;border:0;box-shadow:none;pointer-events:none;-webkit-print-color-adjust:exact;print-color-adjust:exact">`:'';
+  return `<div style="position:relative;display:inline-block;min-width:78mm;${showStamp?'min-height:46mm;':''}-webkit-print-color-adjust:exact;print-color-adjust:exact">
+    <div style="font-weight:700;font-size:13px">${_tsEsc(name)}${bin}</div>
+    <div style="margin-top:10px;font-size:13px">${_tsEsc(pos)}: <b>${_tsEsc(dir||'____________________')}</b> &nbsp;______________________</div>
+    ${stamp}
+  </div>`;
 }
 // Полноширинный блок исполнителя (для сводной формы) — оборачивает содержимое.
 function _orgSignHTML(org){
@@ -4834,21 +5197,42 @@ function timesheetHTML(d,approvalHTML,org){
   </div>
   ${body}
   ${approvalHTML||''}
-  <div class="sign">
-    <div class="sc">Подпись заказчика ____________________</div>
-    <div class="si">Подпись исполнителя ____________________</div>
-  </div>
   ${_orgSignHTML(org)}
   </body></html>`;
 }
 
 // Вывод готового HTML-документа: печать в PDF или скачивание Excel
-function _tsOutput(html,fmt,fname){
-  if(fmt==='pdf'){
+// Открыть окно печати СИНХРОННО в обработчике клика (иначе мобильные браузеры блокируют popup,
+// т.к. фактический вывод происходит после await). Возвращает окно-заглушку или null.
+function _openPrintWin(){
+  try{
     const w=window.open('','_blank');
-    if(!w){alert('Разрешите всплывающие окна, чтобы сохранить табель в PDF');return;}
-    w.document.write(html);w.document.close();w.focus();
-    setTimeout(()=>{try{w.print();}catch(e){}},400);
+    if(w){try{w.document.write('<!doctype html><meta charset="utf-8"><title>Табель…</title><body style="font:15px -apple-system,sans-serif;padding:24px;color:#555">Формируется документ…</body>');}catch(e){}}
+    return w;
+  }catch(e){return null;}
+}
+// Печать без popup (запасной путь для мобильных, где window.open заблокирован): скрытый iframe.
+function _tsPrintViaIframe(html){
+  try{
+    const ifr=document.createElement('iframe');
+    ifr.setAttribute('aria-hidden','true');
+    ifr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;opacity:0';
+    document.body.appendChild(ifr);
+    const d=ifr.contentWindow.document;d.open();d.write(html);d.close();
+    setTimeout(()=>{try{ifr.contentWindow.focus();ifr.contentWindow.print();}catch(e){}
+      setTimeout(()=>{try{document.body.removeChild(ifr);}catch(e){}},60000);},600);
+  }catch(e){alert('Не удалось открыть печать. Разрешите всплывающие окна для сохранения в PDF.');}
+}
+// Вывод готового документа. win — предварительно открытое (в клике) окно для PDF.
+function _tsOutput(html,fmt,fname,win){
+  if(fmt==='pdf'){
+    let w=win||null;
+    if(!w){try{w=window.open('','_blank');}catch(e){w=null;}}
+    if(w){
+      try{w.document.open();w.document.write(html);w.document.close();w.focus();
+        setTimeout(()=>{try{w.focus();w.print();}catch(e){}},500);return;}catch(e){}
+    }
+    _tsPrintViaIframe(html); // popup заблокирован — печатаем через iframe
   }else{
     const blob=new Blob(['﻿'+html],{type:'application/vnd.ms-excel'});
     const url=URL.createObjectURL(blob);
@@ -4959,12 +5343,23 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
     }else if(ap.status==='stale'){
       apprBlock=`<div class="apprv apprv-wait"><div class="apprv-title">Изменён после утверждения</div></div>`;
     }
-    // Подписи: СЛЕВА — исполнитель (организация + руководитель + печать; уже подписал при отправке).
-    //          СПРАВА — Подтвердил (Dispatcher); заполняется после согласования.
+    // Подписи: СЛЕВА — исполнитель (организация + руководитель + печать; уже подтверждён при отправке).
+    //          СПРАВА — ЭЛЕКТРОННОЕ подтверждение Dispatcher (без ручной линии подписи).
     const orgExec=_orgExecutorHTML(org);
     const showStampExec=!!(org&&org.showStampInDocuments&&org.stamp);
-    const podtverdil=(ap.status==='approved'&&doc)?_tsEsc(doc.approvedByName||'—'):'____________________';
-    const podtverdilDT=(ap.status==='approved'&&doc&&doc.approvedAt)?_tsDT(doc.approvedAt):'________________';
+    let confirmHTML;
+    if(ap.status==='approved'&&doc){
+      confirmHTML=`<div style="font-weight:700;color:#16a34a">✓ Подтверждено (электронно)</div>
+        <div style="margin-top:6px">Подтвердил: <b>${_tsEsc(doc.approvedByName||'—')}</b></div>
+        <div>Дата и время: ${doc.approvedAt?_tsDT(doc.approvedAt):'—'}</div>`;
+    }else if(ap.status==='rejected'&&doc){
+      confirmHTML=`<div style="font-weight:700;color:#dc2626">Отклонён</div>
+        <div style="margin-top:6px">Отклонил: <b>${_tsEsc(doc.rejectedBy||'—')}</b></div>
+        <div>Дата и время: ${doc.rejectedAt?_tsDT(doc.rejectedAt):'—'}</div>`;
+    }else{
+      confirmHTML=`<div style="font-weight:700;color:#d97706">Статус: На согласовании</div>
+        <div style="margin-top:6px;color:#777">Электронное подтверждение появится после согласования диспетчером.</div>`;
+    }
     sections+=`<section class="eqform">
       <div class="brand">JUMIX TECH</div>
       <h1>ТАБЕЛЬ УЧЁТА РАБОТЫ СПЕЦ.ТЕХНИКИ</h1>
@@ -4993,11 +5388,8 @@ function detailedTimesheetHTML(data,fromISO,toISO,approvals,org){
         <tbody>${rowsH}${totRow}</tbody>
       </table>
       <div class="sign">
-        <div class="sc" style="position:relative;min-height:${showStampExec?'44mm':'auto'}">${orgExec||'<div style="color:#777">Исполнитель</div>'}</div>
-        <div class="si">
-          <div>Подтвердил (Dispatcher): <b>${podtverdil}</b></div>
-          <div>Дата и время подтверждения: ${podtverdilDT}</div>
-        </div>
+        <div class="sc" style="position:relative;min-height:${showStampExec?'46mm':'auto'}">${orgExec||'<div style="color:#777">Исполнитель</div>'}</div>
+        <div class="si" style="text-align:left;font-size:12px">${confirmHTML}</div>
       </div>
     </section>`;
   }
@@ -5054,6 +5446,7 @@ async function exportTimesheet(fmt){
     const from=document.getElementById('tsFrom').value,to=document.getElementById('tsTo').value;
     if(!from||!to){alert('Укажите диапазон дат (с / по)');return;}
     if(from>to){alert('«Дата с» не может быть позже «Дата по»');return;}
+    const win=fmt==='pdf'?_openPrintWin():null; // окно — синхронно в клике, ДО await (мобильные)
     const data=await buildEquipDetailed(equipIds,from,to);
     // Согласование — по точным рамкам табеля (объект + выбранная техника + даты).
     // Карта objId → {status,doc}, чтобы блок «СОГЛАСОВАНО» и подписи брались по объекту.
@@ -5064,7 +5457,7 @@ async function exportTimesheet(fmt){
     // Excel: только текстовые реквизиты (без изображения печати — .xls-таблица не гарантирует img);
     // PDF: полные реквизиты + печать.
     const orgPrint=_orgForFmt(org,fmt);
-    _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgPrint),fmt,'спецтехника');
+    _tsOutput(detailedTimesheetHTML(data,from,to,approvals,orgPrint),fmt,'спецтехника',win);
     return;
   }
   // Сводный табель — теперь строго в рамках выбранного диапазона дат (а не всего периода)
