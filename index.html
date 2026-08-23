@@ -503,6 +503,52 @@ body{padding-left:var(--sidebar-w)}
 /* Заголовки разделов дашборда */
 .dash-greeting{font-size:24px;font-weight:800;letter-spacing:-.5px}
 .dash-section-title{font-weight:700;letter-spacing:.3px}
+
+/* ═══ МОБИЛЬНАЯ НИЖНЯЯ НАВИГАЦИЯ (только узкий viewport; desktop не трогаем) ═══ */
+.mnav{display:none}
+.waction{display:none}
+@media(max-width:768px){
+  /* Роли с нижней навигацией: прячем гамбургер как основной UX, добавляем нижний отступ контента */
+  body.nav-worker .hamburger,body.nav-admin .hamburger{display:none}
+  body.nav-worker,body.nav-admin{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  body.nav-worker.on-home{padding-bottom:calc(60px + 62px + env(safe-area-inset-bottom))}
+  /* Скрыть Экспорт/Импорт у Worker на телефоне (админ-действия ему не нужны) */
+  body.nav-worker #topActions{display:none}
+
+  .mnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:400;
+    background:var(--card);border-top:1px solid var(--border);
+    padding-bottom:env(safe-area-inset-bottom);
+    box-shadow:0 -2px 14px rgba(16,24,40,.10)}
+  body.nav-worker .mnav,body.nav-admin .mnav{display:flex}
+  .mnav-item{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:3px;min-height:60px;padding:7px 2px 6px;background:none;border:0;cursor:pointer;
+    color:var(--muted);font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .mnav-item svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.9;
+    stroke-linecap:round;stroke-linejoin:round}
+  .mnav-item span{font-size:10.5px;font-weight:600;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+  .mnav-item.active{color:var(--accent)}
+  .mnav-item.active svg{stroke:var(--accent)}
+  /* Центральная главная кнопка Worker чуть заметнее */
+  .mnav-item.mnav-primary.active svg{stroke:var(--accent)}
+
+  /* Панель действий Worker — над нижней навигацией, только на «Главное» */
+  body.nav-worker.on-home .waction{display:flex;position:fixed;left:0;right:0;
+    bottom:calc(60px + env(safe-area-inset-bottom));z-index:399;gap:8px;
+    padding:8px 10px;background:var(--bg);border-top:1px solid var(--border)}
+  .waction .btn{min-height:46px;font-weight:700;font-size:13px;padding:10px 6px}
+  .waction .wa-main{flex:1.5}
+  .waction .wa-sec{flex:1}
+  /* Верхний дубль кнопок действий Worker на телефоне не нужен — есть нижняя панель */
+  body.nav-worker .worker-top-actions{display:none}
+}
+/* Нижний лист (Финансы / Ещё) — переиспользует стили .mo/.mo-box */
+.sheet-list{display:flex;flex-direction:column;gap:2px}
+.sheet-item{display:flex;align-items:center;gap:12px;padding:14px 8px;border:0;background:none;
+  width:100%;text-align:left;font-size:15px;color:var(--text);font-family:inherit;cursor:pointer;
+  border-bottom:1px solid var(--border-2);min-height:52px;touch-action:manipulation}
+.sheet-item:last-child{border-bottom:0}
+.sheet-item .si-ico{font-size:20px;width:26px;text-align:center;flex:none}
+.sheet-item.danger{color:var(--red)}
 </style>
 </head>
 <body>
@@ -580,13 +626,36 @@ body{padding-left:var(--sidebar-w)}
 </aside>
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeNav()"></div>
 
+<!-- ═══════════ МОБИЛЬНАЯ НИЖНЯЯ НАВИГАЦИЯ (строится в JS по роли) ═══════════ -->
+<nav class="mnav" id="mobileNav" aria-label="Навигация"></nav>
+<div class="waction" id="workerActionBar"></div>
+
+<!-- Нижний лист «Финансы» (Admin/Owner) -->
+<div class="mo hidden" id="moFinance" onclick="closeMoCheck('moFinance',event)">
+  <div class="mo-box">
+    <div class="mo-title">Финансы</div>
+    <div class="sheet-list" id="financeSheet"></div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moFinance')">Закрыть</button></div>
+  </div>
+</div>
+<!-- Нижний лист «Ещё» (Admin/Owner) -->
+<div class="mo hidden" id="moMore" onclick="closeMoCheck('moMore',event)">
+  <div class="mo-box">
+    <div class="mo-title">Ещё</div>
+    <div class="sheet-list" id="moreSheet"></div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moMore')">Закрыть</button></div>
+  </div>
+</div>
+
 <!-- ═══════════ HEADER (компактная шапка) ═══════════ -->
 <header class="topbar">
   <button class="hamburger" onclick="toggleNav()" aria-label="Меню">☰</button>
   <div class="brand mobile-brand"><img src="jumix-mark.png" alt="" style="height:20px;width:auto;margin-right:7px;vertical-align:middle">JUMIX Tech</div>
   <div class="top-right">
-    <button class="icon-btn" onclick="exportData()">⬇ Экспорт</button>
-    <button class="icon-btn" onclick="document.getElementById('impFile').click()">⬆ Импорт</button>
+    <span id="topActions" style="display:contents">
+      <button class="icon-btn" onclick="exportData()">⬇ Экспорт</button>
+      <button class="icon-btn" onclick="document.getElementById('impFile').click()">⬆ Импорт</button>
+    </span>
     <input type="file" id="impFile" accept=".json" style="display:none" onchange="importData(event)">
     <div class="user-chip" id="userBadge" style="display:none">
       <div class="user-av" id="userAvatar">U</div>
@@ -662,6 +731,12 @@ body{padding-left:var(--sidebar-w)}
 <div id="pane-mypay" class="tab-pane">
   <div class="ph"><h2>Мои выплаты</h2></div>
   <div id="mypayContent"></div>
+</div>
+
+<!-- ═══════════ ПРОФИЛЬ (Worker) ═══════════ -->
+<div id="pane-profile" class="tab-pane">
+  <div class="ph"><h2>Профиль</h2></div>
+  <div id="profileContent"></div>
 </div>
 
 <!-- ═══════════ РАБОТНИКИ ═══════════ -->
@@ -1599,7 +1674,7 @@ const ROLE_TABS = {
   admin:      ['dashboard','smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
   owner:      ['dashboard','smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
   dispatcher: ['dashboard','smeny','workers','equip','objects'],
-  worker:     ['dashboard','myshifts','mypay'],
+  worker:     ['dashboard','myshifts','mypay','profile'],
   accountant: ['dashboard','income','expenses','summary','settings'],
   partner:    ['dashboard'],
   pending:    []
@@ -1989,6 +2064,10 @@ function applyRoleVisibility() {
     if (av) av.textContent = (nm.trim()[0] || 'U').toUpperCase();
     document.getElementById('logoutBtn').style.display = '';
   }
+  // Экспорт/Импорт — только для ролей с правом (Worker их не видит)
+  const ta = document.getElementById('topActions');
+  if (ta) ta.style.display = can('export_data') ? 'contents' : 'none';
+  buildMobileNav(); // построить нижнюю мобильную навигацию под роль
 }
 
 // ═══════════════════════════════════════════════
@@ -2105,6 +2184,7 @@ function showTab(name,btn){
   activeTab=name;
   closeNav();            // на мобильном закрываем выезжающее меню после выбора
   window.scrollTo(0,0);
+  _syncMobileNav();
   renderAll();
 }
 
@@ -2116,6 +2196,104 @@ function toggleNav(){
 function closeNav(){
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('drawerOverlay').classList.remove('show');
+}
+
+// ═══════════════════════════════════════════════
+// МОБИЛЬНАЯ НИЖНЯЯ НАВИГАЦИЯ (только узкий viewport; desktop использует левый sidebar)
+// ═══════════════════════════════════════════════
+// Единый минималистичный inline-icon set (stroke currentColor, без внешних зависимостей).
+const MNAV_SVG={
+  home:'<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  calendar:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/>',
+  wallet:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/>',
+  user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+  crane:'<path d="M4 21h16M6 21V6h9M6 6 3 9M15 6l4 3M12 6V3M12 3h6"/><path d="M9 9v4M9 13h3"/>',
+  coins:'<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3"/><ellipse cx="15" cy="14" rx="6" ry="3"/><path d="M9 17v.5c0 1.7 2.7 3 6 3s6-1.3 6-3V14"/>',
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+};
+// Пункты нижней навигации по роли. tab — вкладка showTab; sheet — открыть лист; для подсветки
+// дочерних экранов используется match (список вкладок, при которых пункт активен).
+function _mnavItems(role){
+  if(role==='worker')return [
+    {icon:'calendar',label:'Смены',tab:'myshifts',match:['myshifts']},
+    {icon:'home',label:'Главное',tab:'dashboard',match:['dashboard'],primary:true},
+    {icon:'wallet',label:'Выплаты',tab:'mypay',match:['mypay']},
+    {icon:'user',label:'Профиль',tab:'profile',match:['profile']},
+  ];
+  if(role==='admin'||role==='owner')return [
+    {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
+    {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny']},
+    {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
+    {icon:'coins',label:'Финансы',sheet:'finance',match:['income','expenses','summary']},
+    {icon:'more',label:'Ещё',sheet:'more',match:['workers','objects','partners','settings','profile']},
+  ];
+  return null; // прочие роли — без нижней навигации (остаётся drawer)
+}
+// Построить нижнюю навигацию под текущую роль (вызывается из applyRoleVisibility).
+function buildMobileNav(){
+  const role=currentUser?.role;
+  const items=_mnavItems(role);
+  const nav=document.getElementById('mobileNav');
+  document.body.classList.remove('nav-worker','nav-admin','on-home');
+  if(!nav)return;
+  if(!items){nav.innerHTML='';return;}
+  document.body.classList.add(role==='worker'?'nav-worker':'nav-admin');
+  nav.innerHTML=items.map((it,i)=>{
+    const act=it.sheet?`onclick="openNavSheet('${it.sheet}')"`:`onclick="showTab('${it.tab}')"`;
+    return `<button class="mnav-item${it.primary?' mnav-primary':''}" data-i="${i}" ${act}>
+      <svg viewBox="0 0 24 24">${MNAV_SVG[it.icon]||''}</svg><span>${it.label}</span></button>`;
+  }).join('');
+  // Панель действий Worker (над навигацией) — только у worker
+  const wa=document.getElementById('workerActionBar');
+  if(wa){
+    wa.innerHTML = role==='worker'
+      ? `<button class="btn btn-primary wa-main" onclick="openCraneDayModal()">🏗 НАЧАТЬ СМЕНУ</button>
+         <button class="btn btn-secondary wa-sec" onclick="openCraneNightModal()">🌙 НОЧЬ</button>
+         <button class="btn btn-secondary wa-sec" onclick="openAdvanceRequestModal()">💰 АВАНС</button>`
+      : '';
+  }
+  _syncMobileNav();
+}
+// Подсветка активного пункта + видимость Worker action-panel (только на «Главное»).
+function _syncMobileNav(){
+  const role=currentUser?.role;const items=_mnavItems(role);
+  if(items){
+    document.querySelectorAll('#mobileNav .mnav-item').forEach((btn,i)=>{
+      const it=items[i];btn.classList.toggle('active',!!(it&&it.match&&it.match.includes(activeTab)));
+    });
+  }
+  // Панель действий Worker показываем только на Главной И только если действия «worked_time» доступны
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
+  const showAction=role==='worker'&&activeTab==='dashboard'&&!!(myEquip&&isWorkedTimeAssign(myW.id,myEquip.id));
+  document.body.classList.toggle('on-home',showAction);
+}
+// Открыть нижний лист навигации (Финансы / Ещё)
+function openNavSheet(kind){
+  if(kind==='finance')openFinanceSheet();
+  else if(kind==='more')openMoreSheet();
+}
+function _sheetBtn(ico,label,onclick,cls){return `<button class="sheet-item ${cls||''}" onclick="${onclick}"><span class="si-ico">${ico}</span><span>${label}</span></button>`;}
+function openFinanceSheet(){
+  let h='';
+  if(can('view_income'))h+=_sheetBtn('💵','Доходы',"closeMo('moFinance');showTab('income')");
+  if(can('view_expenses'))h+=_sheetBtn('💸','Расходы',"closeMo('moFinance');showTab('expenses')");
+  if(can('view_summary'))h+=_sheetBtn('📊','Итоги',"closeMo('moFinance');showTab('summary')");
+  if(!h)h='<div style="color:var(--muted);padding:12px">Нет доступных финансовых разделов</div>';
+  document.getElementById('financeSheet').innerHTML=h;
+  openMo('moFinance');
+}
+function openMoreSheet(){
+  const role=currentUser?.role;const tabs=ROLE_TABS[role]||[];
+  let h='';
+  if(tabs.includes('workers'))h+=_sheetBtn('👥','Работники',"closeMo('moMore');showTab('workers')");
+  if(tabs.includes('objects'))h+=_sheetBtn('🏢','Объекты',"closeMo('moMore');showTab('objects')");
+  if(tabs.includes('partners'))h+=_sheetBtn('🤝','Партнёры',"closeMo('moMore');showTab('partners')");
+  if(tabs.includes('settings'))h+=_sheetBtn('⚙','Настройки',"closeMo('moMore');showTab('settings')");
+  h+=_sheetBtn('👤','Профиль',"closeMo('moMore');showTab('profile')");
+  h+=_sheetBtn('⏻','Выйти',"closeMo('moMore');doLogout()",'danger');
+  document.getElementById('moreSheet').innerHTML=h;
+  openMo('moMore');
 }
 
 // ═══════════════════════════════════════════════
@@ -2134,6 +2312,7 @@ function renderAll(){
   if(activeTab==='smeny')     renderShifts();
   if(activeTab==='myshifts')  renderMyShifts();
   if(activeTab==='mypay')     renderMyPay();
+  if(activeTab==='profile')   renderProfile();
   if(activeTab==='workers')   renderWorkers();
   if(activeTab==='equip')     renderEquip();
   if(activeTab==='objects')   renderObjects();
@@ -3433,7 +3612,8 @@ function _craneWorkerDash(myW,myEquip,myObj,earn){
   const pendAmt=pays.filter(p=>p.status==='pending').reduce((s,p)=>s+p.amount,0);
   const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
   let h='';
-  h+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+  // Кнопки действий: на телефоне они закреплены снизу (waction), поэтому верхний дубль скрываем на mobile.
+  h+=`<div class="worker-top-actions" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
     <button class="btn btn-primary" style="grid-column:1 / -1;font-size:18px;font-weight:800;padding:22px 12px" onclick="openCraneDayModal()">🏗 НАЧАТЬ СМЕНУ</button>
     <button class="btn btn-secondary" style="font-size:16px;font-weight:700;padding:20px 12px" onclick="openCraneNightModal()">🌙 НОЧЬ</button>
     <button class="btn btn-secondary" style="font-size:16px;font-weight:700;padding:20px 12px" onclick="openAdvanceRequestModal()">💰 АВАНС</button>
@@ -3542,6 +3722,38 @@ function renderMyPay(){
       h+=`<div class="mypay-card mypay-adv"><div><div style="font-weight:600">${fmtDate(p.date)}</div><div class="mypay-item-sub">${BADGE[p.status||'paid']||''}${p.note?' · '+_tsEsc(p.note):''}</div></div><div class="mypay-adv-amt">${fmt(p.amount)} ₸</div></div>`;
     }
   }
+  el.innerHTML=h;
+}
+// Персональный экран «Профиль» (компактный). Данные только текущего пользователя.
+function renderProfile(){
+  const el=document.getElementById('profileContent');if(!el)return;
+  const role=currentUser?.role;
+  const name=currentUser?.name||currentUser?.email||'—';
+  const email=currentUser?.email||'';
+  let h='';
+  h+=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="text-align:center;padding:22px 16px">
+    <div style="width:64px;height:64px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 10px">${_tsEsc((name.trim()[0]||'U').toUpperCase())}</div>
+    <div style="font-size:18px;font-weight:800;overflow-wrap:anywhere">${_tsEsc(name)}</div>
+    <div style="color:var(--muted);font-size:13px;margin-top:2px">${ROLE_LABELS[role]||role}</div>
+  </div></div>`;
+  const rows=[];
+  if(email)rows.push(['Email',email]);
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  if(myW){
+    if(myW.phone)rows.push(['Телефон',myW.phone]);
+    const eq=cfg.equipment.find(e=>e.id===myW.equipmentId);
+    const obj=eq?cfg.objects.find(o=>o.id===eq.objectId):null;
+    rows.push(['Техника',eq?eq.name:'—']);
+    rows.push(['Объект',obj?obj.name:'—']);
+    rows.push(['Тип',WORKER_TYPES[myW.type]||myW.type||'—']);
+    if(myW.cert)rows.push(['Документы/допуски',myW.cert]);
+  }
+  if(rows.length){
+    h+='<div class="c-card" style="margin-bottom:14px"><div class="c-card-body">';
+    for(const[k,v] of rows)h+=`<div class="set-row"><span class="set-label" style="color:var(--muted)">${_tsEsc(k)}</span><span style="font-weight:600;text-align:right;overflow-wrap:anywhere;max-width:60%">${_tsEsc(v)}</span></div>`;
+    h+='</div></div>';
+  }
+  h+=`<button class="btn btn-danger" style="width:100%" onclick="doLogout()">⏻ Выйти</button>`;
   el.innerHTML=h;
 }
 function _workerDash(){
