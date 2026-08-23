@@ -509,17 +509,21 @@ body{padding-left:var(--sidebar-w)}
 .waction{display:none}
 @media(max-width:768px){
   /* Роли с нижней навигацией: прячем гамбургер как основной UX, добавляем нижний отступ контента */
-  body.nav-worker .hamburger,body.nav-admin .hamburger{display:none}
-  body.nav-worker,body.nav-admin{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
+  body.nav-worker .hamburger,body.nav-admin .hamburger,body.nav-disp .hamburger{display:none}
+  body.nav-worker,body.nav-admin,body.nav-disp{padding-bottom:calc(60px + env(safe-area-inset-bottom))}
   body.nav-worker.on-home{padding-bottom:calc(60px + 62px + env(safe-area-inset-bottom))}
-  /* Скрыть Экспорт/Импорт у Worker на телефоне (админ-действия ему не нужны) */
-  body.nav-worker #topActions{display:none}
+  /* Скрыть Экспорт/Импорт у Worker/Dispatcher на телефоне (админ-действия им не нужны) */
+  body.nav-worker #topActions,body.nav-disp #topActions{display:none}
 
   .mnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:400;
     background:var(--card);border-top:1px solid var(--border);
     padding-bottom:env(safe-area-inset-bottom);
     box-shadow:0 -2px 14px rgba(16,24,40,.10)}
-  body.nav-worker .mnav,body.nav-admin .mnav{display:flex}
+  body.nav-worker .mnav,body.nav-admin .mnav,body.nav-disp .mnav{display:flex}
+  .mnav-ic-wrap{position:relative;display:inline-flex}
+  .mnav-badge{position:absolute;top:-6px;right:-9px;min-width:16px;height:16px;padding:0 4px;
+    background:var(--red,#f0576e);color:#fff;border-radius:9px;font-size:10px;font-weight:800;
+    line-height:16px;text-align:center}
   .mnav-item{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
     gap:3px;min-height:60px;padding:7px 2px 6px;background:none;border:0;cursor:pointer;
     color:var(--muted);font-family:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -549,6 +553,9 @@ body{padding-left:var(--sidebar-w)}
 .sheet-item:last-child{border-bottom:0}
 .sheet-item .si-ico{font-size:20px;width:26px;text-align:center;flex:none}
 .sheet-item.danger{color:var(--red)}
+/* Заявки на смены: таблица на desktop, карточки на телефоне */
+.pending-mobile{display:none}
+@media(max-width:768px){.pending-desktop{display:none}.pending-mobile{display:block}}
 </style>
 </head>
 <body>
@@ -2207,6 +2214,7 @@ const MNAV_SVG={
   calendar:'<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/>',
   wallet:'<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 14h2"/>',
   user:'<circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/>',
+  doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
   crane:'<path d="M4 21h16M6 21V6h9M6 6 3 9M15 6l4 3M12 6V3M12 3h6"/><path d="M9 9v4M9 13h3"/>',
   coins:'<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3"/><ellipse cx="15" cy="14" rx="6" ry="3"/><path d="M9 17v.5c0 1.7 2.7 3 6 3s6-1.3 6-3V14"/>',
   more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
@@ -2222,10 +2230,17 @@ function _mnavItems(role){
   ];
   if(role==='admin'||role==='owner')return [
     {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
-    {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny']},
+    {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny'],badge:'shifts'},
     {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
     {icon:'coins',label:'Финансы',sheet:'finance',match:['income','expenses','summary']},
     {icon:'more',label:'Ещё',sheet:'more',match:['workers','objects','partners','settings','profile']},
+  ];
+  if(role==='dispatcher')return [
+    {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
+    {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny'],badge:'shifts'},
+    {icon:'doc',label:'Табели',sheet:'tsheets',match:[],badge:'timesheets'},
+    {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
+    {icon:'user',label:'Профиль',tab:'profile',match:['profile']},
   ];
   return null; // прочие роли — без нижней навигации (остаётся drawer)
 }
@@ -2234,14 +2249,15 @@ function buildMobileNav(){
   const role=currentUser?.role;
   const items=_mnavItems(role);
   const nav=document.getElementById('mobileNav');
-  document.body.classList.remove('nav-worker','nav-admin','on-home');
+  document.body.classList.remove('nav-worker','nav-admin','nav-disp','on-home');
   if(!nav)return;
   if(!items){nav.innerHTML='';return;}
-  document.body.classList.add(role==='worker'?'nav-worker':'nav-admin');
+  document.body.classList.add(role==='worker'?'nav-worker':role==='dispatcher'?'nav-disp':'nav-admin');
   nav.innerHTML=items.map((it,i)=>{
     const act=it.sheet?`onclick="openNavSheet('${it.sheet}')"`:`onclick="showTab('${it.tab}')"`;
+    const badge=it.badge?`<span class="mnav-badge" data-badge="${it.badge}" style="display:none">0</span>`:'';
     return `<button class="mnav-item${it.primary?' mnav-primary':''}" data-i="${i}" ${act}>
-      <svg viewBox="0 0 24 24">${MNAV_SVG[it.icon]||''}</svg><span>${it.label}</span></button>`;
+      <span class="mnav-ic-wrap"><svg viewBox="0 0 24 24">${MNAV_SVG[it.icon]||''}</svg>${badge}</span><span>${it.label}</span></button>`;
   }).join('');
   // Панель действий Worker (над навигацией) — только у worker
   const wa=document.getElementById('workerActionBar');
@@ -2267,11 +2283,30 @@ function _syncMobileNav(){
   const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
   const showAction=role==='worker'&&activeTab==='dashboard'&&!!(myEquip&&isWorkedTimeAssign(myW.id,myEquip.id));
   document.body.classList.toggle('on-home',showAction);
+  _updateNavBadges();
 }
-// Открыть нижний лист навигации (Финансы / Ещё)
+// Кол-во ожидающих подтверждения смен по доступной пользователю технике
+function _pendingShiftsCount(){
+  let n=0;
+  for(const[eqId,dates] of Object.entries(pd.shifts||{})){
+    if(!canSeeEquip(eqId))continue;
+    for(const c of Object.values(dates))if(c.status==='pending')n++;
+  }
+  return n;
+}
+// Обновить badge-счётчики на нижней навигации (смены / табели). 0 → скрыть.
+function _updateNavBadges(){
+  const counts={shifts:_pendingShiftsCount(),timesheets:(currentUser?.role==='dispatcher'||currentUser?.role==='admin'||currentUser?.role==='owner')?tsPendingCount():0};
+  document.querySelectorAll('#mobileNav .mnav-badge').forEach(b=>{
+    const key=b.getAttribute('data-badge');const n=counts[key]||0;
+    if(n>0){b.textContent=n>99?'99+':n;b.style.display='';}else b.style.display='none';
+  });
+}
+// Открыть нижний лист навигации (Финансы / Ещё / Табели)
 function openNavSheet(kind){
   if(kind==='finance')openFinanceSheet();
   else if(kind==='more')openMoreSheet();
+  else if(kind==='tsheets')openTsInbox('pending');
 }
 function _sheetBtn(ico,label,onclick,cls){return `<button class="sheet-item ${cls||''}" onclick="${onclick}"><span class="si-ico">${ico}</span><span>${label}</span></button>`;}
 function openFinanceSheet(){
@@ -2321,6 +2356,7 @@ function renderAll(){
   if(activeTab==='expenses')  renderExpenses();
   if(activeTab==='summary')   renderSummary();
   if(activeTab==='settings')  renderSettings();
+  _updateNavBadges();         // обновляем счётчики нижней навигации при каждом рендере
 }
 
 function renderPeriodBar(){
@@ -3753,6 +3789,17 @@ function renderProfile(){
     for(const[k,v] of rows)h+=`<div class="set-row"><span class="set-label" style="color:var(--muted)">${_tsEsc(k)}</span><span style="font-weight:600;text-align:right;overflow-wrap:anywhere;max-width:60%">${_tsEsc(v)}</span></div>`;
     h+='</div></div>';
   }
+  // Диспетчер: назначенная техника и её объекты
+  if(role==='dispatcher'){
+    const eqs=visibleEquipment();
+    const objNames=[...new Set(eqs.map(e=>{const o=cfg.objects.find(x=>x.id===e.objectId);return o?o.name:null;}).filter(Boolean))];
+    h+='<div class="c-card" style="margin-bottom:14px"><div class="c-card-body">';
+    h+=`<div class="dash-section-title" style="margin-bottom:8px">Назначенная техника (${eqs.length})</div>`;
+    if(eqs.length){for(const e of eqs)h+=`<div class="set-row"><span style="font-weight:600;color:var(--accent)">${_tsEsc(e.name)}</span><span style="color:var(--muted);font-size:12px">${_tsEsc((cfg.objects.find(o=>o.id===e.objectId)||{}).name||'—')}</span></div>`;}
+    else h+='<div style="color:var(--muted);font-size:13px">Техника не закреплена — доступ ко всей технике</div>';
+    if(objNames.length)h+=`<div style="margin-top:8px;color:var(--muted);font-size:12px">Объекты: <span style="color:var(--text)">${objNames.map(_tsEsc).join(', ')}</span></div>`;
+    h+='</div></div>';
+  }
   h+=`<button class="btn btn-danger" style="width:100%" onclick="doLogout()">⏻ Выйти</button>`;
   el.innerHTML=h;
 }
@@ -4345,18 +4392,18 @@ function renderPendingShifts(){
   list.sort((a,b)=>a.date.localeCompare(b.date));
   if(!list.length){el.style.display='none';return;}
   el.style.display='';
-  const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
   let h=`<div class="set-group" style="border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.04)">
-    <h3 style="color:var(--yellow);margin-bottom:12px">⏳ Заявки на смены (${list.length})</h3>
-    <div class="tbl-wrap"><table><thead><tr><th>Работник</th><th>Техника</th><th>Дата</th><th>Тип</th><th>Комментарий</th><th style="text-align:right">Действие</th></tr></thead><tbody>`;
+    <h3 style="color:var(--yellow);margin-bottom:12px">⏳ Заявки на смены (${list.length})</h3>`;
+  // DESKTOP — таблица (как раньше)
+  h+=`<div class="pending-desktop"><div class="tbl-wrap"><table><thead><tr><th>Работник</th><th>Техника</th><th>Дата</th><th>Тип</th><th>Комментарий</th><th style="text-align:right">Действие</th></tr></thead><tbody>`;
   for(const s of list){
     const typeShb=s.type===2?'<div class="shb night" style="display:inline-flex">Н</div>':s.type===4?'<div class="shb over" style="display:inline-flex">П</div>':'<div class="shb day" style="display:inline-flex;font-size:8px">Д+Н</div>';
     h+=`<tr>
-      <td style="font-weight:600">${s.worker?s.worker.name:'—'}</td>
-      <td style="color:var(--muted)">${s.equip?s.equip.name:s.eqId}</td>
+      <td style="font-weight:600">${s.worker?_tsEsc(s.worker.name):'—'}</td>
+      <td style="color:var(--muted)">${_tsEsc(s.equip?s.equip.name:s.eqId)}</td>
       <td style="font-weight:600">${fmtDate(s.date)}</td>
       <td>${typeShb} ${_shiftTypeLabel(s)}</td>
-      <td style="color:var(--muted);font-size:12px">${s.note||'—'}</td>
+      <td style="color:var(--muted);font-size:12px">${_tsEsc(s.note||'—')}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="btn btn-sm" style="background:rgba(34,211,160,.12);color:var(--green);border:1px solid rgba(34,211,160,.3);margin-right:4px" onclick="approveShift('${s.docId}','approved')">✓ Принять</button>
         <button class="btn btn-sm" style="background:rgba(240,92,110,.1);color:var(--red);border:1px solid rgba(240,92,110,.25)" onclick="approveShift('${s.docId}','rejected')">✕ Отклонить</button>
@@ -4364,6 +4411,22 @@ function renderPendingShifts(){
     </tr>`;
   }
   h+='</tbody></table></div></div>';
+  // MOBILE — карточки (без горизонтального скролла), крупные кнопки Подтвердить/Отклонить
+  h+='<div class="pending-mobile">';
+  for(const s of list){
+    const obj=s.equip?cfg.objects.find(o=>o.id===s.equip.objectId):null;
+    h+=`<div class="c-card" style="margin-bottom:10px"><div class="c-card-body">
+      <div style="font-weight:700;font-size:15px;overflow-wrap:anywhere">${s.worker?_tsEsc(s.worker.name):'—'}</div>
+      <div style="color:var(--muted);font-size:12px;margin-top:2px;overflow-wrap:anywhere">${_tsEsc(s.equip?s.equip.name:s.eqId)}${obj?' · '+_tsEsc(obj.name):''} · ${fmtDate(s.date)}</div>
+      <div style="margin-top:6px;font-weight:600">${_shiftTypeLabel(s)}</div>
+      ${s.note?`<div style="margin-top:4px;color:var(--muted);font-size:12px;overflow-wrap:anywhere">💬 ${_tsEsc(s.note)}</div>`:''}
+    </div>
+    <div class="c-card-foot" style="gap:8px">
+      <button class="btn btn-sm" style="flex:1;min-height:42px;background:rgba(34,211,160,.14);color:var(--green);border:1px solid rgba(34,211,160,.35)" onclick="approveShift('${s.docId}','approved')">✓ Подтвердить</button>
+      <button class="btn btn-sm" style="flex:1;min-height:42px;background:var(--red-soft);color:var(--red);border:1px solid rgba(240,92,110,.3)" onclick="approveShift('${s.docId}','rejected')">× Отклонить</button>
+    </div></div>`;
+  }
+  h+='</div></div>';
   el.innerHTML=h;
 }
 
