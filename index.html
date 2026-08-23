@@ -361,6 +361,24 @@ body{padding-left:var(--sidebar-w)}
 .dash-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:8px}
 .dash-greeting{font-size:18px;font-weight:700;margin-bottom:2px}
 .dash-greeting-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+/* МОИ ВЫПЛАТЫ (Worker) — мобиль-first, одна колонка, крупные суммы, без гориз. скролла */
+.mypay-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.mypay-kpi{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 8px;text-align:center;min-width:0}
+.mypay-kl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.mypay-kv{font-size:17px;font-weight:800;line-height:1.15;word-break:break-word}
+.mypay-pending{background:var(--yellow-soft);border:1px solid rgba(245,166,35,.35);color:#b45309;border-radius:10px;padding:10px 12px;font-size:13px;margin-bottom:14px}
+.mypay-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.mypay-date{font-weight:700;font-size:15px;margin-bottom:8px}
+.mypay-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:6px 0;border-top:1px solid var(--border-2)}
+.mypay-item:first-of-type{border-top:0}
+.mypay-item-l{min-width:0;flex:1}
+.mypay-item-lbl{font-weight:600;font-size:14px;overflow-wrap:anywhere}
+.mypay-item-sub{font-size:11px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.mypay-item-r{flex:none;text-align:right;font-size:15px;white-space:nowrap}
+.mypay-day-tot{margin-top:8px;padding-top:8px;border-top:1px dashed var(--border);text-align:right;font-size:15px}
+.mypay-adv{display:flex;flex-direction:row;justify-content:space-between;align-items:center;gap:10px}
+.mypay-adv-amt{font-weight:700;color:var(--accent);font-size:16px;white-space:nowrap}
+@media(max-width:430px){.mypay-kv{font-size:15px}.mypay-kpi{padding:10px 5px}}
 /* WORKER CARD view (used in workers tab for worker role) */
 .worker-summary-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:14px}
 .worker-summary-card-head{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
@@ -546,6 +564,7 @@ body{padding-left:var(--sidebar-w)}
     <button class="tab-btn" onclick="showTab('dashboard',this)"><span class="nav-ico">🏠</span> Главная</button>
     <button class="tab-btn active" onclick="showTab('smeny',this)"><span class="nav-ico">📅</span> Смены</button>
     <button class="tab-btn" onclick="showTab('myshifts',this)"><span class="nav-ico">🌙</span> Мои смены</button>
+    <button class="tab-btn" onclick="showTab('mypay',this)"><span class="nav-ico">💰</span> Мои выплаты</button>
     <button class="tab-btn" onclick="showTab('workers',this)"><span class="nav-ico">👥</span> Работники</button>
     <button class="tab-btn" onclick="showTab('equip',this)"><span class="nav-ico">🏗</span> Техника</button>
     <button class="tab-btn" onclick="showTab('objects',this)"><span class="nav-ico">🏢</span> Объекты</button>
@@ -637,6 +656,12 @@ body{padding-left:var(--sidebar-w)}
   </div>
   <div id="myShiftsInfo"></div>
   <div id="myShiftsList"></div>
+</div>
+
+<!-- ═══════════ МОИ ВЫПЛАТЫ (Worker) ═══════════ -->
+<div id="pane-mypay" class="tab-pane">
+  <div class="ph"><h2>Мои выплаты</h2></div>
+  <div id="mypayContent"></div>
 </div>
 
 <!-- ═══════════ РАБОТНИКИ ═══════════ -->
@@ -857,13 +882,21 @@ body{padding-left:var(--sidebar-w)}
     </div>
     <div id="eqCranePayBlock" style="display:none">
       <div class="divider"></div>
-      <div style="font-size:11px;color:var(--green);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">💵 Зарплата крановщика (автокран) — не видна диспетчеру</div>
+      <div style="font-size:11px;color:var(--green);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">💵 Условия оплаты оператору на этой технике (назначение) — не видно диспетчеру</div>
+      <div class="frow frow-2">
+        <div class="fg"><label class="fl">Расчёт зарплаты</label>
+          <select class="fi" id="eqSalaryMode" onchange="_eqSalaryModePicked()">
+            <option value="fixed">Фиксированная (оклад)</option>
+            <option value="worked_time">По отработанному времени (посменно)</option>
+          </select></div>
+        <div class="fg" id="eqCraneMonthWrap"><label class="fl">Месяц ₸ (оклад)</label><input class="fi" type="number" id="eqCraneMonth" placeholder="750000"></div>
+      </div>
       <div class="frow frow-3">
         <div class="fg"><label class="fl">День ₸ / смена</label><input class="fi" type="number" id="eqCraneDay" placeholder="30000"></div>
         <div class="fg"><label class="fl">Ночь ₸ / смена</label><input class="fi" type="number" id="eqCraneNight" placeholder="30000"></div>
         <div class="fg"><label class="fl">Переработка ₸ / час</label><input class="fi" type="number" id="eqCraneHour" placeholder="4000"></div>
       </div>
-      <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Ставки оплаты оператору за подтверждённые смены. Хранятся в закрытой коллекции (диспетчер не видит). Изменение ставки применяется к будущим сменам — прошлые подтверждённые суммы не пересчитываются.</div>
+      <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Условия конкретного назначения (этот работник ↔ эта техника). Тип техники лишь предлагает режим по умолчанию — его можно изменить. Хранятся в закрытой коллекции (диспетчер не видит). Изменение применяется к будущим сменам — прошлые подтверждённые суммы не пересчитываются.</div>
     </div>
     <div class="divider"></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Тарифы за смену ЗАКАЗЧИКУ (доход: дневная / ночная / почасовая аренда)</div>
@@ -1566,7 +1599,7 @@ const ROLE_TABS = {
   admin:      ['dashboard','smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
   owner:      ['dashboard','smeny','workers','equip','objects','partners','income','expenses','summary','settings'],
   dispatcher: ['dashboard','smeny','workers','equip','objects'],
-  worker:     ['dashboard','myshifts','workers'],
+  worker:     ['dashboard','myshifts','mypay'],
   accountant: ['dashboard','income','expenses','summary','settings'],
   partner:    ['dashboard'],
   pending:    []
@@ -2100,6 +2133,7 @@ function renderAll(){
   if(activeTab==='dashboard')  renderDashboard();
   if(activeTab==='smeny')     renderShifts();
   if(activeTab==='myshifts')  renderMyShifts();
+  if(activeTab==='mypay')     renderMyPay();
   if(activeTab==='workers')   renderWorkers();
   if(activeTab==='equip')     renderEquip();
   if(activeTab==='objects')   renderObjects();
@@ -2289,7 +2323,8 @@ function openShiftModal(equipId,dateKey){
   // Доля смены — только для автокрана (исправление Owner/Admin с историей)
   const fracRow=document.getElementById('shFracRow');
   if(fracRow){
-    if(isMobileCrane(equip)){fracRow.style.display='';document.getElementById('shFrac').value=String(cell.shiftFraction===0.5?0.5:1);}
+    const rw=cell.workerId||equip.primaryWorkerId; // работник этой смены
+    if(isWorkedTimeAssign(rw,equip.id,dateKey)){fracRow.style.display='';document.getElementById('shFrac').value=String(cell.shiftFraction===0.5?0.5:1);}
     else fracRow.style.display='none';
   }
   selSOpt(cell.type||0);
@@ -2321,8 +2356,9 @@ function saveShift(){
   if(existing.reviewedBy)shiftData.reviewedBy=existing.reviewedBy;
   if(existing.overHours!=null)shiftData.overHours=existing.overHours;
   if(Array.isArray(existing.history))shiftData.history=[...existing.history];
-  // Автокран: доля смены + история исправлений Owner/Admin (#17)
-  if(isMobileCrane(equip)){
+  // worked_time-назначение: доля смены + история исправлений Owner/Admin (#17)
+  const _rw=workerId||equip.primaryWorkerId;
+  if(isWorkedTimeAssign(_rw,equip.id,key)){
     const newFrac=(document.getElementById('shFrac').value==='0.5')?0.5:1;
     const oldFrac=existing.shiftFraction===0.5?0.5:1;
     shiftData.shiftFraction=newFrac;
@@ -2378,8 +2414,13 @@ function effectiveMonthly(w,year,em){
 // ═══════════════════════════════════════════════
 // АВТОКРАН: тип техники, ставки з/п (закрытая коллекция), расчёт по подтверждённым сменам
 // ═══════════════════════════════════════════════
-// Автокран определяется ТИПОМ техники (не по названию/модели/госномеру).
+// Тип техники (для интерфейса/табелей/фильтров). НЕ определяет способ оплаты.
 function isMobileCrane(e){return !!e&&e.type==='mobile_crane';}
+// Оплата «по отработанному времени» решается РЕЖИМОМ НАЗНАЧЕНИЯ (работник↔техника), а не типом.
+function isWorkedTimeAssign(workerId,equipId,dateISO){
+  if(!workerId||!equipId)return false;
+  return assignmentModeAt(workerId,equipId,dateISO||periodCloseISO())==='worked_time';
+}
 // Документ ставок з/п по паре работник+техника (id = workerId__equipId)
 function craneRateDoc(workerId,equipId){return (cfg.craneRates||[]).find(x=>x.workerId===workerId&&x.equipId===equipId)||null;}
 // Действующая ставка на дату dateISO (по истории {from,...}); без даты — последняя.
@@ -2392,17 +2433,41 @@ function effectiveCraneRateDoc(workerId,equipId,dateISO){
   for(const h of sorted){if(!dateISO||(h.from||'')<=dateISO)pick=h;}
   return pick||sorted[0];
 }
-// Сохранить ставки з/п автокрановщика: добавляем запись истории только если ставки изменились.
-// Историчность: прошлые подтверждённые суммы считаются по ставке, действовавшей на дату смены.
-async function saveCraneRates(workerId,equipId,rates){
+// ── НАЗНАЧЕНИЕ Worker ↔ Equipment (условия оплаты). Хранится в /craneRates (техническое имя
+//    сохранено, чтобы не делать рискованную миграцию), НО структура = история условий назначения:
+//    history:[{from, salaryMode, monthlyRate, dayRate, nightRate, hourRate}]. salaryMode:
+//    'fixed' | 'worked_time'. Тип техники (equipment.type) даёт только default в UI, но НЕ решает. ──
+// Действующий режим оплаты назначения на дату (fallback: старые craneRates v36 без salaryMode = worked_time).
+function assignmentModeAt(workerId,equipId,dateISO){
+  const a=effectiveCraneRateDoc(workerId,equipId,dateISO);
+  if(!a)return null;
+  return a.salaryMode||'worked_time';
+}
+// Техника, на которую у работника ЕСТЬ назначение (любой режим) — исключается из легаси-расчёта.
+function workerAssignmentEquipIds(w){
+  const set=new Set();
+  for(const doc of (cfg.craneRates||[]))if(doc.workerId===w.id)set.add(doc.equipId);
+  return set;
+}
+// Дата закрытия текущего периода (для выбора действующих условий назначения)
+function periodCloseISO(){const dts=getPeriodDates(curYear,curEM);return dk(dts[dts.length-1]);}
+// Сохранить условия назначения: новую запись истории добавляем ТОЛЬКО если условия изменились.
+// Историчность: прошлые смены считаются по условиям, действовавшим на дату смены (#10).
+async function saveCraneRates(workerId,equipId,cond){
   if(!workerId||!equipId)return;
   const id=workerId+'__'+equipId;
-  const cur=effectiveCraneRateDoc(workerId,equipId);
-  const same=cur&&(+cur.dayRate||0)===(+rates.dayRate||0)&&(+cur.nightRate||0)===(+rates.nightRate||0)&&(+cur.hourRate||0)===(+rates.hourRate||0);
-  if(same)return; // без изменений — новую запись истории не добавляем
+  const cur=effectiveCraneRateDoc(workerId,equipId)||{};
+  const mode=cond.salaryMode||'worked_time';
+  const same=(cur.salaryMode||'worked_time')===mode
+    &&(+cur.monthlyRate||0)===(+cond.monthlyRate||0)
+    &&(+cur.dayRate||0)===(+cond.dayRate||0)
+    &&(+cur.nightRate||0)===(+cond.nightRate||0)
+    &&(+cur.hourRate||0)===(+cond.hourRate||0);
+  if(same&&craneRateDoc(workerId,equipId))return; // без изменений — новую запись не добавляем
   const doc=craneRateDoc(workerId,equipId);
   const hist=[...((doc&&doc.history)||[])];
-  hist.push({from:todayISO(),dayRate:+rates.dayRate||0,nightRate:+rates.nightRate||0,hourRate:+rates.hourRate||0,
+  hist.push({from:todayISO(),salaryMode:mode,monthlyRate:+cond.monthlyRate||0,
+    dayRate:+cond.dayRate||0,nightRate:+cond.nightRate||0,hourRate:+cond.hourRate||0,
     by:currentUser?.name||currentUser?.email||'',byUid:currentUser?.uid||'',at:new Date().toISOString()});
   const payload={workerId,equipId,history:hist};
   cfg.craneRates=cfg.craneRates||[];
@@ -2421,21 +2486,20 @@ function craneShiftAmount(cell,date,workerId,equipId){
   if(t===4)return Math.round((+r.hourRate||0)*(+cell.overHours||0));
   return 0;
 }
-// Расчёт з/п автокрановщика за текущий период: только подтверждённые смены (approved / без статуса).
-// Возвращает разбивку по полным/половинным дневным и ночным + переработка + ожидающие.
+// Расчёт з/п по назначениям WORKED_TIME за текущий период: только подтверждённые смены.
+// Триггер — режим НАЗНАЧЕНИЯ (workerId+equipId) на дату смены, а НЕ тип техники.
 function calcCraneEarnings(w){
   const res={dayFull:0,dayHalf:0,nightFull:0,nightHalf:0,overHours:0,
     dayAmount:0,nightAmount:0,overAmount:0,total:0,
-    pendingDay:0,pendingNight:0,pendingOver:0,rows:[]};
+    pendingDay:0,pendingNight:0,pendingOver:0,rows:[],byEquip:{}};
   for(const equip of cfg.equipment){
-    if(!isMobileCrane(equip))continue;
     const isMain=equip.primaryWorkerId===w.id;
     const cs=pd.shifts[equip.id]||{};
     for(const[date,cell] of Object.entries(cs)){
       const t=cell.type||0;if(!t)continue;
-      // смена относится к работнику: явно назначен ИЛИ он основной оператор без явного назначения
       const mine=(cell.workerId===w.id)||(isMain&&!cell.workerId);
       if(!mine)continue;
+      if(assignmentModeAt(w.id,equip.id,date)!=='worked_time')continue; // только worked_time-назначения
       const frac=(cell.shiftFraction===0.5)?0.5:1;
       const approved=(!cell.status||cell.status==='approved');
       if(cell.status==='pending'){
@@ -2445,9 +2509,11 @@ function calcCraneEarnings(w){
       }
       if(!approved)continue; // rejected — не учитываем
       const amt=craneShiftAmount(cell,date,w.id,equip.id);
-      if(t===1||t===3){if(frac===0.5)res.dayHalf++;else res.dayFull++;res.dayAmount+=amt;}
-      if(t===2){if(frac===0.5)res.nightHalf++;else res.nightFull++;res.nightAmount+=amt;}
-      if(t===4){res.overHours+=(+cell.overHours||0);res.overAmount+=amt;}
+      const be=res.byEquip[equip.id]||(res.byEquip[equip.id]={equipId:equip.id,equipName:equip.name,dayFull:0,dayHalf:0,nightFull:0,nightHalf:0,overHours:0,amount:0});
+      if(t===1||t===3){if(frac===0.5){res.dayHalf++;be.dayHalf++;}else{res.dayFull++;be.dayFull++;}res.dayAmount+=amt;}
+      if(t===2){if(frac===0.5){res.nightHalf++;be.nightHalf++;}else{res.nightFull++;be.nightFull++;}res.nightAmount+=amt;}
+      if(t===4){res.overHours+=(+cell.overHours||0);be.overHours+=(+cell.overHours||0);res.overAmount+=amt;}
+      be.amount+=amt;
       res.rows.push({date,type:t,frac,status:'approved',amount:amt,overHours:+cell.overHours||0,equipId:equip.id});
     }
   }
@@ -2455,10 +2521,44 @@ function calcCraneEarnings(w){
   res.rows.sort((a,b)=>b.date.localeCompare(a.date));
   return res;
 }
+// Расчёт з/п по назначениям FIXED за текущий период: база = monthlyRate назначения (проратно по
+// отработанным дням, если заданы) + ночные×nightRate + переработки×hourRate (по ставкам НАЗНАЧЕНИЯ).
+function calcFixedAssignmentEarnings(w){
+  const res={total:0,rows:[]};
+  const closeISO=periodCloseISO();
+  const norm=periodDayCount();
+  const worked=workerWorkedDays(w); // общий per-worker (проратно), если задан
+  for(const equip of cfg.equipment){
+    if(assignmentModeAt(w.id,equip.id,closeISO)!=='fixed')continue;
+    const a=effectiveCraneRateDoc(w.id,equip.id,closeISO)||{};
+    const monthlyRate=+a.monthlyRate||0;
+    const base=(worked!=null&&norm>0)?Math.round(monthlyRate/norm*worked):monthlyRate;
+    let nights=0,overH=0;
+    const isMain=equip.primaryWorkerId===w.id;
+    for(const[date,cell] of Object.entries(pd.shifts[equip.id]||{})){
+      const t=cell.type||0;if(!t)continue;
+      if(cell.status==='pending'||cell.status==='rejected')continue;
+      const mine=(cell.workerId===w.id)||(isMain&&!cell.workerId);
+      if(!mine)continue;
+      if(t===2||t===3)nights++;
+      if(t===4)overH+=(+cell.overHours||0);
+    }
+    const nightRate=+a.nightRate||0,hourRate=+a.hourRate||0;
+    const nightAmount=nights*nightRate,overAmount=Math.round(overH*hourRate);
+    const sum=base+nightAmount+overAmount;
+    res.total+=sum;
+    res.rows.push({equipId:equip.id,equipName:equip.name,monthlyRate,base,nights,nightRate,nightAmount,overH,hourRate,overAmount,sum});
+  }
+  return res;
+}
 function calcWorkerEarnings(w){
+  // Техника с явным назначением (Worker↔Equipment) считается по назначению (worked_time/fixed),
+  // а НЕ по легаси-модели. Техника без назначения — прежняя легаси-модель (полная совместимость).
+  const assignedEquip=workerAssignmentEquipIds(w);
+  const hasAssignment=assignedEquip.size>0;
   let nightCount=0,overCount=0,subNightCount=0,subDayCount=0;
   for(const equip of cfg.equipment){
-    if(isMobileCrane(equip))continue; // автокран считается отдельно (calcCraneEarnings), не по месячной модели
+    if(assignedEquip.has(equip.id))continue; // считается по назначению
     const cs=pd.shifts[equip.id]||{};
     const isMain=equip.primaryWorkerId===w.id;
     for(const[key,cell] of Object.entries(cs)){
@@ -2483,22 +2583,24 @@ function calcWorkerEarnings(w){
   // Фактически отработано дней (ручное per-period поле). Не задано → полный оклад (обратная совместимость).
   const worked=workerWorkedDays(w);
   const proRated=worked!=null;
-  const base=proRated?Math.round(dayRate*worked):monthly;
+  // Легаси-оклад применяется ТОЛЬКО если у работника НЕТ ни одного назначения. При наличии
+  // назначений базу дают они: fixed → monthlyRate назначения; worked_time → оклада нет (#7).
+  const base=hasAssignment?0:(proRated?Math.round(dayRate*worked):monthly);
   const nightBonus=nightCount*nRate;
   const overBonus=overCount*(dRate||nRate);
   const subBonus=subNightCount*nRate+subDayCount*dRate;
-  // Премии и удержания за период (ручные суммы, optional)
+  // Премии и удержания за период (ручные суммы, optional) — общие по работнику
   const bonus=workerPeriodAmount(w.bonuses);
   const deduction=workerPeriodAmount(w.deductions);
-  // Автокран: отдельная модель по подтверждённым сменам × ставки (не смешивается с месячной).
-  // Складывается в общий итог — так один работник может в периоде получать и оклад (башенный),
-  // и посменную оплату (автокран) независимо (#21).
+  // Назначения: worked_time (посменно) и fixed (оклад назначения) — считаются независимо и
+  // складываются в общий итог работника. Так один человек на двух машинах считается корректно (#18).
   const crane=calcCraneEarnings(w);
-  const totalAccrued=base+nightBonus+overBonus+subBonus+bonus-deduction+crane.total;
+  const fixed=calcFixedAssignmentEarnings(w);
+  const totalAccrued=base+nightBonus+overBonus+subBonus+bonus-deduction+crane.total+fixed.total;
   const pays=(pd.payments[w.id]||[]).reduce((s,p)=>s+((!p.status||p.status==='paid')?p.amount:0),0);
   const pendingAdvances=(pd.payments[w.id]||[]).filter(p=>p.status==='pending'||p.status==='approved').reduce((s,p)=>s+p.amount,0);
   const balance=totalAccrued-pays;
-  return{base,monthly,norm,proRated,worked,dayRate,nightCount,nightBonus,overCount,overBonus,subNightCount,subDayCount,subBonus,bonus,deduction,crane,totalAccrued,pays,pendingAdvances,balance};
+  return{base,monthly,norm,proRated,worked,dayRate,nightCount,nightBonus,overCount,overBonus,subNightCount,subDayCount,subBonus,bonus,deduction,crane,fixed,hasAssignment,totalAccrued,pays,pendingAdvances,balance};
 }
 
 function renderWorkers(){
@@ -2664,15 +2766,27 @@ function openWorkerDetail(wId){
     if(earn.bonus)h+=`<div class="wdet-row"><span>Премия</span><span style="color:var(--green)">+${fmt(earn.bonus)} ₸</span></div>`;
     if(earn.deduction)h+=`<div class="wdet-row"><span>Удержание</span><span style="color:var(--red)">−${fmt(earn.deduction)} ₸</span></div>`;
   }
-  // Автокран — разбивка по подтверждённым сменам (только approved входят в сумму)
-  const cr=earn.crane;
-  if(cr&&(cr.total||cr.dayFull||cr.dayHalf||cr.nightFull||cr.nightHalf||cr.overHours||cr.pendingDay||cr.pendingNight||cr.pendingOver)){
-    h+=`<div class="wdet-row" style="border-top:1px dashed var(--border);margin-top:6px;padding-top:8px"><span style="font-weight:700;color:var(--green)">Автокран (оплата по сменам)</span><span></span></div>`;
-    if(cr.dayFull||cr.dayHalf)h+=`<div class="wdet-row"><span>Дневные смены (${cr.dayFull} полн.${cr.dayHalf?' + '+cr.dayHalf+' × ½':''})</span><span>${fmt(cr.dayAmount)} ₸</span></div>`;
-    if(cr.nightFull||cr.nightHalf)h+=`<div class="wdet-row"><span>Ночные смены (${cr.nightFull} полн.${cr.nightHalf?' + '+cr.nightHalf+' × ½':''})</span><span style="color:var(--blue)">${fmt(cr.nightAmount)} ₸</span></div>`;
-    if(cr.overHours)h+=`<div class="wdet-row"><span>Переработка (${cr.overHours} ч)</span><span style="color:var(--accent)">${fmt(cr.overAmount)} ₸</span></div>`;
+  // Назначения (работник↔техника): worked_time — по машинам, fixed — по машинам. Только approved в сумме.
+  const cr=earn.crane,fx=earn.fixed||{rows:[],total:0};
+  const wtEquips=Object.values(cr.byEquip||{});
+  if(wtEquips.length||fx.rows.length||cr.pendingDay||cr.pendingNight||cr.pendingOver){
+    h+=`<div class="wdet-row" style="border-top:1px dashed var(--border);margin-top:6px;padding-top:8px"><span style="font-weight:700;color:var(--green)">Оплата по назначениям (по технике)</span><span></span></div>`;
+    for(const be of wtEquips){
+      h+=`<div class="wdet-row"><span style="font-weight:600">${_tsEsc(be.equipName)} — по отработанному времени</span><span style="color:var(--green);font-weight:600">${fmt(be.amount)} ₸</span></div>`;
+      const parts=[];
+      if(be.dayFull||be.dayHalf)parts.push(`Дни: ${be.dayFull} полн.${be.dayHalf?' + '+be.dayHalf+'×½':''}`);
+      if(be.nightFull||be.nightHalf)parts.push(`Ночи: ${be.nightFull} полн.${be.nightHalf?' + '+be.nightHalf+'×½':''}`);
+      if(be.overHours)parts.push(`Переработка: ${be.overHours} ч`);
+      if(parts.length)h+=`<div class="wdet-row" style="font-size:11px;color:var(--muted)"><span>${parts.join(' · ')}</span><span></span></div>`;
+    }
     if(cr.pendingDay||cr.pendingNight||cr.pendingOver)h+=`<div class="wdet-row"><span style="color:var(--yellow)">Ожидают подтверждения</span><span style="color:var(--yellow)">${(cr.pendingDay||0)+(cr.pendingNight||0)+(cr.pendingOver||0)} смен</span></div>`;
-    h+=`<div class="wdet-row"><span style="font-weight:600">Начислено (автокран)</span><span style="color:var(--green);font-weight:600">${fmt(cr.total)} ₸</span></div>`;
+    for(const fr of fx.rows){
+      h+=`<div class="wdet-row"><span style="font-weight:600">${_tsEsc(fr.equipName)} — фиксированная</span><span style="font-weight:600">${fmt(fr.sum)} ₸</span></div>`;
+      const parts=[`Оклад: ${fmt(fr.base)} ₸`];
+      if(fr.nights)parts.push(`Ночные: ${fr.nights} × ${fmt(fr.nightRate)} = ${fmt(fr.nightAmount)}`);
+      if(fr.overH)parts.push(`Переработка: ${fr.overH} ч × ${fmt(fr.hourRate)} = ${fmt(fr.overAmount)}`);
+      h+=`<div class="wdet-row" style="font-size:11px;color:var(--muted)"><span>${parts.join(' · ')}</span><span></span></div>`;
+    }
   }
   h+=`<div class="wdet-row total"><span>Итого начислено</span><span id="wdTotalPrev" style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</span></div>`;
   if(canPay)h+=`<div style="text-align:right;margin-top:10px"><button class="btn btn-primary btn-sm" onclick="saveWorkerPeriod('${w.id}')">💾 Сохранить и пересчитать</button></div>`;
@@ -3343,33 +3457,92 @@ function _craneWorkerDash(myW,myEquip,myObj,earn){
   }else{
     h+=`<div class="c-card" style="margin-bottom:16px"><div class="c-card-body" style="color:var(--muted);text-align:center;padding:14px">Сегодня смена ещё не отправлена</div></div>`;
   }
-  // Зарплата за период (автокран)
-  h+=`<div class="dash-section-title">Зарплата за период</div>`;
-  h+=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="font-size:13px">
-    <div class="vat-row"><span>Дневные смены (полные)</span><b>${cr.dayFull||0}</b></div>
-    ${cr.dayHalf?`<div class="vat-row"><span>Половины дневных</span><b>${cr.dayHalf}</b></div>`:''}
-    <div class="vat-row"><span>Ночные смены (полные)</span><b>${cr.nightFull||0}</b></div>
-    ${cr.nightHalf?`<div class="vat-row"><span>Половины ночных</span><b>${cr.nightHalf}</b></div>`:''}
-    ${cr.overHours?`<div class="vat-row"><span>Переработка</span><b>${cr.overHours} ч</b></div>`:''}
-    ${(cr.pendingDay||cr.pendingNight||cr.pendingOver)?`<div class="vat-row"><span style="color:var(--yellow)">Ожидают подтверждения</span><b style="color:var(--yellow)">${(cr.pendingDay||0)+(cr.pendingNight||0)+(cr.pendingOver||0)}</b></div>`:''}
-    <div class="vat-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">Начислено</span><b style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</b></div>
-    <div class="vat-row"><span>Авансы выдано</span><b style="color:var(--green)">−${fmt(paidAmt)} ₸</b></div>
-    ${pendAmt?`<div class="vat-row"><span style="color:var(--muted)">Авансы ожидают</span><span style="color:var(--muted)">${fmt(pendAmt)} ₸</span></div>`:''}
-    <div class="vat-row" style="border-top:1px solid var(--border);margin-top:4px;padding-top:8px"><span style="font-weight:700">К выплате</span><b style="color:${balColor};font-size:16px">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</b></div>
-  </div></div>`;
-  // История по датам
-  if((cr.rows||[]).length){
-    h+=`<div class="dash-section-title">История смен</div>`;
-    h+='<div class="tbl-wrap"><table><thead><tr><th>Дата</th><th>Смена</th><th>Статус</th></tr></thead><tbody>';
-    const STL={pending:'<span style="color:var(--yellow);font-weight:600">⏳ Ожидает</span>',approved:'<span style="color:var(--green);font-weight:600">✓ Подтверждено</span>'};
-    for(const r of cr.rows.slice(0,15)){
-      const dp=r.date.split('-');const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
-      const lbl=_craneShiftLabel({type:r.type,shiftFraction:r.frac,overHours:r.overHours});
-      h+=`<tr><td style="font-weight:600">${+dp[2]} ${MSHO[+dp[1]]} <span style="color:var(--muted);font-size:11px">${dow}</span></td><td>${lbl}</td><td>${STL[r.status]||''}</td></tr>`;
-    }
-    h+='</tbody></table></div>';
-  }
+  // Компактный финансовый блок текущего периода + ссылка на «Мои выплаты» (без полной истории здесь).
+  h+=`<div class="dash-section-title">Текущий период</div>`;
+  h+=`<div class="mypay-kpis" style="margin-bottom:10px">
+    <div class="mypay-kpi"><div class="mypay-kl">Заработано</div><div class="mypay-kv" style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</div></div>
+    <div class="mypay-kpi"><div class="mypay-kl">Авансы</div><div class="mypay-kv" style="color:var(--green)">${fmt(paidAmt)} ₸</div></div>
+    <div class="mypay-kpi"><div class="mypay-kl">К выплате</div><div class="mypay-kv" style="color:${balColor}">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</div></div>
+  </div>`;
+  h+=`<button class="btn btn-secondary" style="width:100%;margin-bottom:16px" onclick="showTab('mypay',document.querySelector('.tab-btn[onclick*=mypay]'))">Подробнее — Мои выплаты →</button>`;
   return h;
+}
+// Заработок работника по датам (для «Мои выплаты»). Разбивает день+ночь+переработку одной даты
+// на строки; суммы — только для worked_time-назначений (approved). Pending/rejected — только статусом.
+function _workerDayEarnings(w){
+  const byDate={};
+  for(const equip of cfg.equipment){
+    const isMain=equip.primaryWorkerId===w.id;
+    const cs=pd.shifts[equip.id]||{};
+    for(const[date,cell] of Object.entries(cs)){
+      const t=cell.type||0;if(!t)continue;
+      const mine=(cell.workerId===w.id)||(isMain&&!cell.workerId);
+      if(!mine)continue;
+      const wt=assignmentModeAt(w.id,equip.id,date)==='worked_time';
+      const status=cell.status||'approved'; // без статуса (создано Admin) = подтверждено
+      const frac=cell.shiftFraction===0.5?0.5:1;
+      const r=wt?effectiveCraneRateDoc(w.id,equip.id,date):null;
+      const g=byDate[date]||(byDate[date]={date,items:[],dayTotal:0,pending:0});
+      const add=(label,amt)=>{
+        g.items.push({label,amount:wt?amt:null,status,equipName:equip.name,reviewNote:cell.reviewNote||''});
+        if(wt&&status==='approved')g.dayTotal+=amt;
+        if(wt&&status==='pending')g.pending+=amt;
+      };
+      const fl=frac===0.5?'Половина смены':'Полная смена';
+      if(t===1||t===3)add('День · '+fl, wt?Math.round((+r.dayRate||0)*frac):0);
+      if(t===2||t===3)add('Ночь · '+fl, wt?Math.round((+r.nightRate||0)*frac):0);
+      if(t===4)add('Переработка · '+(+cell.overHours||0)+' ч', wt?Math.round((+r.hourRate||0)*(+cell.overHours||0)):0);
+    }
+  }
+  return Object.values(byDate).sort((a,b)=>b.date.localeCompare(a.date));
+}
+// Персональная страница «Мои выплаты» (Worker). Только свои данные. Мобиль-first, карточки.
+function renderMyPay(){
+  const el=document.getElementById('mypayContent');if(!el)return;
+  const w=cfg.workers.find(x=>x.id===currentUser?.workerId);
+  if(!w){el.innerHTML='<div class="empty" style="padding:30px;text-align:center">Вы не привязаны к работнику. Обратитесь к администратору.</div>';return;}
+  const earn=calcWorkerEarnings(w);
+  const days=_workerDayEarnings(w);
+  const pendingShifts=days.reduce((n,d)=>n+d.items.filter(i=>i.status==='pending').length,0);
+  const pl=periodLabel(curYear,curEM);
+  const pays=pd.payments[w.id]||[];
+  const paidAmt=pays.filter(p=>!p.status||p.status==='paid').reduce((s,p)=>s+p.amount,0);
+  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
+  let h='';
+  h+=`<div style="color:var(--muted);font-size:12px;margin-bottom:8px">Расчётный период: <b style="color:var(--text)">${pl.main}</b></div>`;
+  h+=`<div class="mypay-kpis">
+    <div class="mypay-kpi"><div class="mypay-kl">Заработано</div><div class="mypay-kv" style="color:var(--blue)">${fmt(earn.totalAccrued)} ₸</div></div>
+    <div class="mypay-kpi"><div class="mypay-kl">Авансы</div><div class="mypay-kv" style="color:var(--green)">${fmt(paidAmt)} ₸</div></div>
+    <div class="mypay-kpi"><div class="mypay-kl">К выплате</div><div class="mypay-kv" style="color:${balColor}">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</div></div>
+  </div>`;
+  if(pendingShifts)h+=`<div class="mypay-pending">🕓 Ожидает подтверждения: <b>${pendingShifts}</b> ${pendingShifts===1?'смена':'смен'} — не входит в «Заработано»</div>`;
+  h+=`<div class="dash-section-title">Заработок по дням</div>`;
+  if(!days.length)h+='<div class="empty" style="padding:20px">Смен за период пока нет</div>';
+  for(const d of days){
+    const dp=d.date.split('-');const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+    let rows='';
+    for(const it of d.items){
+      let right='';
+      if(it.status==='approved')right=it.amount!=null?`<b>${fmt(it.amount)} ₸</b>`:'<span style="color:var(--green);font-size:12px">✓</span>';
+      else if(it.status==='pending')right=it.amount!=null?`<span style="color:var(--muted);font-size:11px">после подтв.: ${fmt(it.amount)} ₸</span>`:'';
+      const stB=it.status==='approved'?'<span style="color:var(--green)">✓ Подтверждено</span>':it.status==='pending'?'<span style="color:var(--yellow)">🕓 Ожидает</span>':'<span style="color:var(--red)">✕ Отклонено</span>';
+      rows+=`<div class="mypay-item">
+        <div class="mypay-item-l"><div class="mypay-item-lbl">${_tsEsc(it.label)}</div><div class="mypay-item-sub">${_tsEsc(it.equipName)} · ${stB}${it.status==='rejected'&&it.reviewNote?' · «'+_tsEsc(it.reviewNote)+'»':''}</div></div>
+        <div class="mypay-item-r">${right}</div>
+      </div>`;
+    }
+    const totLine=d.dayTotal>0?`<div class="mypay-day-tot">За день: <b>${fmt(d.dayTotal)} ₸</b></div>`:'';
+    h+=`<div class="mypay-card"><div class="mypay-date">${+dp[2]} ${MGEN[+dp[1]]} <span style="color:var(--muted);font-weight:400">${dow}</span></div>${rows}${totLine}</div>`;
+  }
+  h+=`<div class="dash-section-title">Авансы</div>`;
+  if(!pays.length)h+='<div class="empty" style="padding:16px">Авансов за период нет</div>';
+  else{
+    const BADGE={pending:'<span style="color:var(--yellow)">⏳ Ожидает</span>',approved:'<span style="color:var(--blue)">👍 Одобрен</span>',rejected:'<span style="color:var(--red)">✕ Отклонён</span>',paid:'<span style="color:var(--green)">✓ Выдан</span>'};
+    for(const p of [...pays].sort((a,b)=>b.date.localeCompare(a.date))){
+      h+=`<div class="mypay-card mypay-adv"><div><div style="font-weight:600">${fmtDate(p.date)}</div><div class="mypay-item-sub">${BADGE[p.status||'paid']||''}${p.note?' · '+_tsEsc(p.note):''}</div></div><div class="mypay-adv-amt">${fmt(p.amount)} ₸</div></div>`;
+    }
+  }
+  el.innerHTML=h;
 }
 function _workerDash(){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
@@ -3377,8 +3550,8 @@ function _workerDash(){
   const earn=calcWorkerEarnings(myW);
   const myEquip=cfg.equipment.find(e=>e.id===myW.equipmentId);
   const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
-  // Автокрановщик — отдельный упрощённый главный экран (3 крупные кнопки).
-  if(isMobileCrane(myEquip))return _craneWorkerDash(myW,myEquip,myObj,earn);
+  // Назначение «по отработанному времени» — упрощённый главный экран (3 крупные кнопки).
+  if(myEquip&&isWorkedTimeAssign(myW.id,myEquip.id))return _craneWorkerDash(myW,myEquip,myObj,earn);
   // Shift stats
   let dayN=0,nightN=0,overN=0,subN=0,pendingShifts=0,approvedShifts=0,rejectedShifts=0;
   if(myEquip){
@@ -3893,7 +4066,7 @@ function _craneFracSel(kind,frac){
 function _craneMyEquip(){const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);return myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;}
 function _craneTodayCell(){const e=_craneMyEquip();if(!e)return null;return (pd.shifts[e.id]||{})[todayISO()]||null;}
 function openCraneDayModal(){
-  const e=_craneMyEquip();if(!isMobileCrane(e)){alert('Автокран не назначен. Обратитесь к администратору.');return;}
+  const e=_craneMyEquip();if(!e||!isWorkedTimeAssign(currentUser?.workerId,e.id)){alert('Для вашей техники не заданы условия «по отработанному времени». Обратитесь к администратору.');return;}
   const cell=_craneTodayCell();
   // если сегодня уже есть моя pending/rejected дневная запись — предзаполнить для правки
   const editable=cell&&cell.createdBy===currentUser.uid&&(cell.status==='pending'||cell.status==='rejected')&&(cell.type===1);
@@ -3904,7 +4077,7 @@ function openCraneDayModal(){
   openMo('moCraneDay');
 }
 function openCraneNightModal(){
-  const e=_craneMyEquip();if(!isMobileCrane(e)){alert('Автокран не назначен. Обратитесь к администратору.');return;}
+  const e=_craneMyEquip();if(!e||!isWorkedTimeAssign(currentUser?.workerId,e.id)){alert('Для вашей техники не заданы условия «по отработанному времени». Обратитесь к администратору.');return;}
   const cell=_craneTodayCell();
   const editable=cell&&cell.createdBy===currentUser.uid&&(cell.status==='pending'||cell.status==='rejected')&&(cell.type===2);
   _craneFracSel('night',editable&&cell.shiftFraction===0.5?0.5:1);
@@ -3917,7 +4090,7 @@ async function submitCraneShift(kind){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   const e=_craneMyEquip();
   const errId=kind==='day'?'craneDayError':'craneNightError';
-  if(!isMobileCrane(e)){document.getElementById(errId).textContent='Автокран не назначен';return;}
+  if(!e||!isWorkedTimeAssign(currentUser?.workerId,e.id)){document.getElementById(errId).textContent='Условия «по отработанному времени» не заданы';return;}
   const today=todayISO();
   const type=kind==='day'?1:2;
   const frac=kind==='day'?_craneDayFrac:_craneNightFrac;
@@ -3926,7 +4099,8 @@ async function submitCraneShift(kind){
   const cs=pd.shifts[e.id]||{};const existing=cs[today];
   if(existing&&existing.status&&existing.status!=='pending'&&existing.status!=='rejected'){document.getElementById(errId).textContent='На сегодня уже есть подтверждённая смена';return;}
   if(existing&&existing.createdBy&&existing.createdBy!==currentUser.uid){document.getElementById(errId).textContent='Сегодняшняя дата занята другой записью';return;}
-  const data={period:curPK(),equipId:e.id,date:today,type,shiftFraction:frac,workerId:myW.id,note,status:'pending',createdBy:currentUser.uid,createdAt:new Date().toISOString()};
+  // assignmentId = workerId__equipId — смена знает, какое назначение использовалось (#8). Не финансовое поле.
+  const data={period:curPK(),equipId:e.id,date:today,type,shiftFraction:frac,workerId:myW.id,assignmentId:myW.id+'__'+e.id,note,status:'pending',createdBy:currentUser.uid,createdAt:new Date().toISOString()};
   try{await db.collection('shifts').doc(e.id+'_'+today).set(data);closeMo(kind==='day'?'moCraneDay':'moCraneNight');}
   catch(err){document.getElementById(errId).textContent='Ошибка: '+err.message;}
 }
@@ -4082,12 +4256,15 @@ function openEquipModal(id){
   document.getElementById('eqName').value=e?e.name:'';
   document.getElementById('eqSerial').value=e?e.serial||'':'';
   document.getElementById('eqType').value=e?(e.type||'tower_crane'):'tower_crane';
-  // Ставки з/п крановщика (автокран) — из закрытой коллекции, по текущему оператору+технике
+  // Условия назначения (работник↔техника) — из закрытой коллекции, по текущему оператору+технике
   const cr=e?effectiveCraneRateDoc(e.primaryWorkerId,e.id):null;
+  const sm=document.getElementById('eqSalaryMode');
+  if(cr&&cr.salaryMode){sm.value=cr.salaryMode;sm.dataset.auto='0';} // из существующего назначения
+  else{sm.dataset.auto='1';} // нет назначения — режим предложит тип техники
+  document.getElementById('eqCraneMonth').value=cr?cr.monthlyRate||'':'';
   document.getElementById('eqCraneDay').value=cr?cr.dayRate||'':'';
   document.getElementById('eqCraneNight').value=cr?cr.nightRate||'':'';
   document.getElementById('eqCraneHour').value=cr?cr.hourRate||'':'';
-  _eqTypeChanged();
   document.getElementById('eqRentalCost').value=e?e.rentalCost||0:0;
   document.getElementById('eqRentalType').value=e?e.rentalType||'month':'month';
   document.getElementById('eqRentalRate').value=e?e.rentalRate||'':'';
@@ -4106,6 +4283,16 @@ function openEquipModal(id){
 
   const ws=document.getElementById('eqWorker');
   ws.innerHTML='<option value="">— Не назначен —</option>'+cfg.workers.map(w=>`<option value="${w.id}"${e?.primaryWorkerId===w.id?' selected':''}>${w.name}</option>`).join('');
+  ws.onchange=()=>{ // смена оператора: подгружаем его условия назначения на эту технику
+    const cr2=e?effectiveCraneRateDoc(ws.value,e.id):effectiveCraneRateDoc(ws.value,document.getElementById('eqId').value);
+    const sm2=document.getElementById('eqSalaryMode');
+    if(cr2&&cr2.salaryMode){sm2.value=cr2.salaryMode;sm2.dataset.auto='0';}else{sm2.dataset.auto='1';}
+    document.getElementById('eqCraneMonth').value=cr2?cr2.monthlyRate||'':'';
+    document.getElementById('eqCraneDay').value=cr2?cr2.dayRate||'':'';
+    document.getElementById('eqCraneNight').value=cr2?cr2.nightRate||'':'';
+    document.getElementById('eqCraneHour').value=cr2?cr2.hourRate||'':'';
+    _eqTypeChanged();
+  };
 
   const os=document.getElementById('eqObject');
   os.innerHTML='<option value="">— Не назначен —</option>'+cfg.objects.map(o=>`<option value="${o.id}"${e?.objectId===o.id?' selected':''}>${o.name}</option>`).join('');
@@ -4113,6 +4300,7 @@ function openEquipModal(id){
   const ps=document.getElementById('eqRentalPartner');
   ps.innerHTML='<option value="">— —</option>'+cfg.partners.map(p=>`<option value="${p.id}"${e?.rentalPartnerId===p.id?' selected':''}>${p.name}</option>`).join('');
 
+  _eqTypeChanged(); // применяем видимость блока условий и режим по умолчанию
   openMo('moEquip');
 }
 
@@ -4150,19 +4338,36 @@ function saveEquip(){
   if(!obj.name){alert('Введите название');return;}
   closeMo('moEquip');
   fbSaveEquip(obj);
-  // Автокран: сохранить ставки з/п крановщика в закрытую коллекцию /craneRates (история по датам).
-  if(obj.type==='mobile_crane'&&obj.primaryWorkerId){
+  // Условия назначения (работник↔техника) → закрытая коллекция /craneRates (история по датам).
+  // Сохраняем для ЛЮБОГО типа, если назначен оператор. Режим оплаты берётся из выбора (не из типа).
+  if(obj.primaryWorkerId){
     saveCraneRates(obj.primaryWorkerId,obj.id,{
+      salaryMode:document.getElementById('eqSalaryMode').value||'fixed',
+      monthlyRate:+document.getElementById('eqCraneMonth').value||0,
       dayRate:+document.getElementById('eqCraneDay').value||0,
       nightRate:+document.getElementById('eqCraneNight').value||0,
       hourRate:+document.getElementById('eqCraneHour').value||0});
   }
 }
-// Тип техники: показать блок з/п крановщика только для автокрана
+// Тип техники предлагает режим оплаты по умолчанию (mobile_crane→worked_time, иначе→fixed),
+// но только пока Owner не выбрал режим вручную (data-auto). Тип НЕ определяет режим жёстко (#4).
 function _eqTypeChanged(){
   const t=document.getElementById('eqType').value;
+  const sm=document.getElementById('eqSalaryMode');
+  if(sm&&sm.dataset.auto!=='0')sm.value=(t==='mobile_crane')?'worked_time':'fixed';
+  _eqCondVisibility();_eqSalaryModeChanged();
+}
+// Блок условий оплаты показываем, когда назначен оператор (условия = назначение работник↔техника).
+function _eqCondVisibility(){
+  const hasOp=!!document.getElementById('eqWorker').value;
   const box=document.getElementById('eqCranePayBlock');
-  if(box)box.style.display=(t==='mobile_crane')?'':'none';
+  if(box)box.style.display=hasOp?'':'none';
+}
+function _eqSalaryModePicked(){const sm=document.getElementById('eqSalaryMode');if(sm)sm.dataset.auto='0';_eqSalaryModeChanged();}
+function _eqSalaryModeChanged(){
+  const mode=document.getElementById('eqSalaryMode').value;
+  const mw=document.getElementById('eqCraneMonthWrap');
+  if(mw)mw.style.display=(mode==='fixed')?'':'none';
 }
 
 function deleteEquip(id){
