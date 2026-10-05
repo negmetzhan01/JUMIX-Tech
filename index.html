@@ -556,6 +556,27 @@ body{padding-left:var(--sidebar-w)}
 /* Заявки на смены: таблица на desktop, карточки на телефоне */
 .pending-mobile{display:none}
 @media(max-width:768px){.pending-desktop{display:none}.pending-mobile{display:block}}
+/* ── Мобильная шапка (≤768px, только роли с нижней навигацией). Старые topbar/period-bar на телефоне скрыты ── */
+.mhead{display:none}
+@media(max-width:768px){
+  body.nav-worker .topbar,body.nav-admin .topbar,body.nav-disp .topbar,
+  body.nav-worker .period-bar,body.nav-admin .period-bar,body.nav-disp .period-bar{display:none}
+  body.nav-worker .mhead,body.nav-admin .mhead,body.nav-disp .mhead{display:block}
+  /* период уже в мобильной шапке — приветствие с периодом на телефоне не дублируем */
+  body.nav-worker .dash-greet,body.nav-admin .dash-greet,body.nav-disp .dash-greet{display:none}
+  .mhead{position:sticky;top:0;z-index:100;background:rgba(247,248,250,.92);backdrop-filter:saturate(180%) blur(10px);
+    padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;border-bottom:1px solid var(--border)}
+  .mhead-row{display:flex;align-items:center;gap:8px;min-height:30px}
+  .mhead-row img{height:24px;width:auto}
+  .mhead-title{font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mhead-per{display:flex;align-items:center;gap:2px;margin-top:2px}
+  .mhead-per button{background:none;border:0;color:var(--accent);font-size:20px;line-height:1;width:34px;height:30px;
+    border-radius:8px;cursor:pointer;touch-action:manipulation;font-family:inherit}
+  .mhead-per button:active{background:var(--card2)}
+  .mhead-per span{font-size:12.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+  .mhead-warn{font-size:10.5px;color:#d97706;font-weight:700;margin-left:6px;white-space:nowrap}
+  .mhead-rec{margin-top:6px}
+}
 /* ── Мобильная Главная: центр управления (≤768px). Desktop-Главная — прежняя (.dash-dt) ── */
 .dash-mb{display:none}
 @media(max-width:768px){
@@ -586,7 +607,21 @@ body{padding-left:var(--sidebar-w)}
 .mh-wide:active{background:var(--card2)}
 .mh-wide .mh-ic{margin:0;flex:none}
 .mh-wide .mh-arrow{margin-left:auto;color:var(--muted);font-size:20px}
-.mh-eq{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);padding:12px 14px;margin-bottom:10px}
+.mh-pend{background:var(--card);border:1px solid var(--border);border-left:3px solid #f59e0b;border-radius:16px;box-shadow:var(--shadow-sm);
+  padding:11px 14px;margin-bottom:8px}
+.mh-pend-t{font-weight:800;font-size:14px;overflow-wrap:anywhere}
+.mh-pend-s{font-size:12.5px;color:var(--muted);margin-top:2px}
+.mh-pend-n{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.mh-pend-a{display:flex;gap:8px;margin-top:10px}
+.mh-pend-a button{flex:1;min-height:42px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.mh-pend-rej{background:var(--card);color:var(--red);border:1px solid rgba(240,92,110,.35)}
+.mh-pend-ok{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.mh-pend-a button:disabled{opacity:.5}
+.mh-eq{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);padding:11px 14px;margin-bottom:8px;
+  display:flex;align-items:center;gap:10px}
+.mh-eq-l{flex:1;min-width:0}
+.mh-eq-sum{font-weight:800;font-size:14px;color:var(--blue);white-space:nowrap;text-align:right}
+.mh-eq-sum small{display:block;font-size:10px;color:var(--muted);font-weight:600}
 .mh-eq-n{font-weight:800;text-transform:uppercase;font-size:13px;color:var(--accent);overflow-wrap:anywhere}
 .mh-eq-o{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
 .mh-eq-dn{font-weight:700;font-size:14px;margin:4px 0 6px}
@@ -733,6 +768,10 @@ body{padding-left:var(--sidebar-w)}
     <button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button>
   </div>
 </div>
+
+<!-- МОБИЛЬНАЯ ШАПКА (≤768px, роли с нижней навигацией): заменяет topbar + period-bar.
+     Главная — «JUMIX Tech» + ‹ период ›; разделы — название раздела + ‹ период ›. Desktop не затрагивает. -->
+<div id="mHead" class="mhead"></div>
 
 <!-- ═══════════ ДАШБОРД ═══════════ -->
 <div id="pane-dashboard" class="tab-pane">
@@ -2521,7 +2560,7 @@ async function checkRecurringBar(){
   const bar = document.getElementById('recurringBar');
   if(!bar)return;
   const hasData=(pd.expenses||[]).length>0||(pd.incomeItems||[]).length>0;
-  if(hasData){bar.style.display='none';return;}
+  if(hasData){bar.style.display='none';_renderMobileHead();return;}
   let pm=curEM-1,py=curYear;
   if(pm<1){pm=12;py--;}
   const prevPK=`${py}_${pad(pm)}`;
@@ -2533,6 +2572,7 @@ async function checkRecurringBar(){
     const hasRec=eSnap.docs.some(d=>d.data().recurring)||iSnap.docs.some(d=>d.data().recurring);
     bar.style.display=hasRec?'':'none';
   }catch{bar.style.display='none';}
+  _renderMobileHead();
 }
 
 async function copyRecurringFromPrev(){
@@ -2554,7 +2594,7 @@ async function copyRecurringFromPrev(){
     for(const e of recExp){const id=uuid();batch.set(db.collection('expenses').doc(id),{...e,id,period:pk,date:startDate});}
     for(const i of recInc){const id=uuid();batch.set(db.collection('incomes').doc(id),{...i,id,period:pk,date:startDate});}
     await batch.commit();
-    document.getElementById('recurringBar').style.display='none';
+    document.getElementById('recurringBar').style.display='none';_renderMobileHead();
     alert(`Перенесено: ${recExp.length} расходов, ${recInc.length} доходов.`);
   }catch(e){fbErr(e);}
 }
@@ -2709,14 +2749,7 @@ function _syncCraneActionBtns(){
   }
 }
 // Кол-во ожидающих подтверждения смен по доступной пользователю технике
-function _pendingShiftsCount(){
-  let n=0;
-  for(const[eqId,dates] of Object.entries(pd.shifts||{})){
-    if(!canSeeEquip(eqId))continue;
-    for(const[,c] of cellEntries(dates))if(c.status==='pending')n++;
-  }
-  return n;
-}
+function _pendingShiftsCount(){return pendingShiftList().length;}
 // Обновить badge-счётчики на нижней навигации (смены / табели). 0 → скрыть.
 function _updateNavBadges(){
   const counts={shifts:_pendingShiftsCount(),timesheets:(currentUser?.role==='dispatcher'||currentUser?.role==='admin'||currentUser?.role==='owner')?tsPendingCount():0};
@@ -2754,11 +2787,48 @@ function openMoreSheet(){
     h+=_sheetBtn('🗂','Архив табелей',"closeMo('moMore');openTsArchive()");
   }
   if(tabs.includes('settings'))h+=_sheetBtn('⚙','Настройки',"closeMo('moMore');showTab('settings')");
+  if(role==='admin'||role==='owner'){
+    h+=_sheetBtn('⬇','Экспорт данных',"closeMo('moMore');exportData()");
+    h+=_sheetBtn('⬆','Импорт данных',"closeMo('moMore');document.getElementById('impFile').click()");
+  }
   h+=_sheetBtn('👤','Профиль',"closeMo('moMore');showTab('profile')");
   h+=_sheetBtn('⏻','Выйти',"closeMo('moMore');doLogout()",'danger');
   document.getElementById('moreSheet').innerHTML=h;
   openMo('moMore');
 }
+
+// ── СВАЙП ОТ ЛЕВОГО КРАЯ → ГЛАВНАЯ (телефон, роли с нижней навигацией) ──
+// Срабатывает, только если: касание началось в первых 24 px слева; движение вправо > 80 px; горизонталь
+// в 2 раза больше вертикали; жест быстрее 700 мс. Не срабатывает: на Главной, при открытом модальном окне /
+// нижнем листе / меню, внутри полей ввода, календаря и прокручиваемых таблиц. Навигация — showTab('dashboard').
+const SWIPE_EDGE=24,SWIPE_MIN_DX=80;
+let _sw=null;
+function _swipeAllowedStart(e){
+  if(window.innerWidth>768||e.touches.length!==1)return false;
+  if(!document.body.classList.contains('nav-admin')&&!document.body.classList.contains('nav-disp')&&!document.body.classList.contains('nav-worker'))return false;
+  if(activeTab==='dashboard')return false;
+  if(document.querySelector('.mo:not(.hidden)'))return false;             // открыт modal / bottom sheet
+  const sb=document.querySelector('.sidebar.open');if(sb)return false;     // открыто боковое меню
+  const t=e.target;
+  if(t&&t.closest&&t.closest('input,select,textarea,.cal-grid,.cal-head,.tbl-wrap,[data-noswipe]'))return false;
+  return e.touches[0].clientX<=SWIPE_EDGE;
+}
+document.addEventListener('touchstart',e=>{
+  _sw=_swipeAllowedStart(e)?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:Date.now()}:null;
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(!_sw)return;
+  const dy=Math.abs(e.touches[0].clientY-_sw.y),dx=e.touches[0].clientX-_sw.x;
+  if(dy>30&&dy>Math.abs(dx))_sw=null; // вертикальный скролл — не жест возврата
+},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!_sw)return;const s0=_sw;_sw=null;
+  const t=e.changedTouches[0];const dx=t.clientX-s0.x,dy=Math.abs(t.clientY-s0.y);
+  if(dx>SWIPE_MIN_DX&&dx>dy*2&&Date.now()-s0.t<700&&!document.querySelector('.mo:not(.hidden)')){
+    showTab('dashboard',document.querySelector('.tab-btn[onclick*=dashboard]'));
+  }
+},{passive:true});
+document.addEventListener('touchcancel',()=>{_sw=null;},{passive:true});
 
 // ═══════════════════════════════════════════════
 // MODAL HELPERS
@@ -2799,6 +2869,28 @@ function renderPeriodBar(){
   const b=document.getElementById('pbadge');
   if(diff>=0&&diff<=5){b.className='pbadge warn';b.textContent=`⚠ Закрытие через ${diff} дн.`;}
   else{b.className='pbadge info';b.textContent=pl.short;}
+  _renderMobileHead();
+}
+// Мобильная шапка: одна на экран. Главная — «JUMIX Tech», разделы — название раздела; период с ‹ › (chPeriod).
+const MHEAD_TITLES={smeny:'Смены',myshifts:'Мои смены',mypay:'Мои выплаты',profile:'Профиль',workers:'Работники',equip:'Техника',
+  objects:'Объекты',partners:'Партнёры',income:'Доходы',expenses:'Расходы',summary:'Итоги',settings:'Настройки'};
+const MHEAD_NO_PERIOD=['profile','settings']; // разделы, где расчётный период не нужен
+function _mobPeriodText(){
+  const d=getPeriodDates(curYear,curEM);if(!d.length)return'';
+  const a=d[0],b=d[d.length-1],mg=m=>MGEN[m].toLowerCase();
+  return `${a.d} ${mg(a.m)} — ${b.d} ${mg(b.m)}${b.y!==new Date().getFullYear()?' '+b.y:''}`;
+}
+function _renderMobileHead(){
+  const el=document.getElementById('mHead');if(!el)return;
+  const home=activeTab==='dashboard';
+  const title=home?`<img src="jumix-mark.png" alt=""><div class="mhead-title">JUMIX Tech</div>`:`<div class="mhead-title">${MHEAD_TITLES[activeTab]||''}</div>`;
+  const ed=cfg.settings.periodEndDay||20;
+  const diff=Math.ceil((new Date(curYear,curEM-1,ed)-new Date())/86400000);
+  const per=MHEAD_NO_PERIOD.includes(activeTab)?'':`<div class="mhead-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button>${diff>=0&&diff<=5?`<span class="mhead-warn">закрытие через ${diff} дн.</span>`:''}</div>`;
+  const rb=document.getElementById('recurringBar');
+  // «Перенести постоянные статьи» — только в финансовых разделах (на Главной не занимает первый экран)
+  const rec=(rb&&rb.style.display!=='none'&&['income','expenses','summary'].includes(activeTab))?`<div class="mhead-rec"><button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button></div>`:'';
+  el.innerHTML=`<div class="mhead-row">${title}</div>${per}${rec}`;
 }
 
 // ═══════════════════════════════════════════════
@@ -4228,7 +4320,7 @@ function renderDashboard(){
   const greeting=h<6?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';
   const pl=periodLabel(curYear,curEM);
   const name=(currentUser?.name||currentUser?.email||'').split(' ')[0];
-  const greet=`<div style="margin-bottom:18px">
+  const greet=`<div class="dash-greet" style="margin-bottom:18px">
     <div class="dash-greeting">${greeting}, ${name}!</div>
     <div class="dash-greeting-sub">${pl.main}</div>
   </div>`;
@@ -4247,6 +4339,56 @@ function renderDashboard(){
 }
 // ── МОБИЛЬНАЯ ГЛАВНАЯ: центр управления. Только UI — все цифры из существующих функций v48
 // (_pendingShiftsCount, tsPendingCount, homeFleetKpi, periodFinance). Плитки — по правам роли (ROLE_TABS / can()).
+// Блок «Ожидают подтверждения» мобильной Главной (Admin/Owner/Dispatcher). Список — pendingShiftList()
+// (тот же, что раздел «Смены»), действия — существующий approveShift(). Без финансовых данных.
+// Нет заявок — блок не выводится. Максимум 3 (новые сверху), дальше «Все заявки (N) →».
+function _mobilePendingHTML(role){
+  if(!(role==='admin'||role==='owner'||role==='dispatcher')||!can('approve_shifts'))return'';
+  const list=pendingShiftList();
+  if(!list.length)return'';
+  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||b.date.localeCompare(a.date));
+  let h=`<div class="mh-sec" style="margin-top:6px">Ожидают подтверждения · ${list.length}</div>`;
+  for(const s of list.slice(0,3)){
+    const eqN=s.equip?s.equip.name:s.eqId;
+    const who=s.worker?s.worker.name:(s.equip?_shiftOperatorName(s,s.equip):'—');
+    const[y,m,d]=s.date.split('-').map(Number);
+    // тип — существующие названия (_craneShiftLabel); «Полная смена» не дублируем, половина/переработка — как есть
+    let typ=_craneShiftLabel(s).replace(' · Полная смена','');
+    if(s.workerId&&s.equip&&!String(s.workerId).startsWith('p_')&&s.workerId!==primaryWorkerAt(s.equip,s.date))typ+=' · Подмена';
+    const busy=_shiftReviewBusy.has(s.docId);
+    h+=`<div class="mh-pend">
+      <div class="mh-pend-t">${_tsEsc(who)} · ${_tsEsc(eqN)}</div>
+      <div class="mh-pend-s">${d} ${MGEN[m].toLowerCase()} · ${_tsEsc(typ)}</div>
+      ${(s.note||'').trim()?`<div class="mh-pend-n">💬 ${_tsEsc(s.note.trim())}</div>`:''}
+      <div class="mh-pend-a">
+        <button class="mh-pend-rej" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','rejected',this)">Отклонить</button>
+        <button class="mh-pend-ok" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','approved',this)">Подтвердить</button>
+      </div></div>`;
+  }
+  if(list.length>3)h+=`<button class="mh-all" onclick="_mhAllPending()">Все заявки (${list.length}) →</button>`;
+  return h;
+}
+// Кнопки карточки: блокируем обе на время операции, само действие — существующий approveShift()
+async function _mhReview(docId,status,btn){
+  const card=btn&&btn.closest?btn.closest('.mh-pend'):null;
+  const btns=card?[...card.querySelectorAll('button')]:[];
+  btns.forEach(b=>b.disabled=true);
+  try{await approveShift(docId,status);}
+  finally{btns.forEach(b=>b.disabled=false);scheduleRender();}
+}
+// «Все заявки» → раздел «Смены», прокрутка к блоку заявок
+function _mhAllPending(){
+  showTab('smeny',document.querySelector('.tab-btn[onclick*=smeny]'));
+  const el=document.getElementById('pendingShiftsPanel');
+  if(el&&el.scrollIntoView)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60);
+}
+// Короткая сумма для плитки: 11,6 млн / 850 тыс. (только отображение)
+function fmtMln(n){
+  n=Math.round(n||0);const a=Math.abs(n);
+  if(a>=1e6)return (Math.round(n/1e5)/10).toLocaleString('ru-RU',{maximumFractionDigits:1})+' млн';
+  if(a>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс.';
+  return fmt(n);
+}
 function _mobileHome(role){
   const tabs=ROLE_TABS[role]||[];
   const pl=periodLabel(curYear,curEM);
@@ -4268,26 +4410,23 @@ function _mobileHome(role){
   if(tabs.includes('workers'))tiles+=tile('👷','Работники',`${K.workers} активных`,"showTab('workers')");
   if(tabs.includes('equip'))tiles+=tile('🏗️','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')");
   if(tabs.includes('objects'))tiles+=tile('🏢','Объекты',`${K.objects} активных`,"showTab('objects')");
-  if(can('view_income')||can('view_expenses'))tiles+=tile('💰','Финансы','Доходы · расходы',"openFinanceSheet()");
-  let h=`<div class="mh-head"><img src="jumix-mark.png" alt=""><div><div class="mh-brand">JUMIX Tech</div><div class="mh-period">${pl.main}</div></div></div>`;
-  h+=`<div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div>`;
-  if(can('view_summary'))h+=`<button class="mh-wide" onclick="showTab('summary')"><span class="mh-ic">📊</span>
-    <span><span class="mh-t" style="display:block">Дашборд</span><span class="mh-s" style="display:block">Доходы · расходы · результаты</span></span><span class="mh-arrow">›</span></button>`;
-  else h+='<div style="height:8px"></div>';
+  // Финансы: доход С НДС за выбранный период из periodFinance() — только при праве view_income
+  const F=can('view_income')?periodFinance():null;
+  if(can('view_income')||can('view_expenses'))tiles+=tile('💰','Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)} ₸`:'Доходы · расходы',"openFinanceSheet()");
+  // Шапка (JUMIX Tech + период) — общая мобильная #mHead; плитки «Дашборд» на Главной нет (Итоги — через «Финансы»/«Ещё»)
+  let h=`<div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div>`;
+  h+=_mobilePendingHTML(role);
   // «Техника за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
-  if(can('view_income')){
-    const F=periodFinance();
-    h+=`<div class="mh-sec">Техника за период</div>`;
+  if(F){
+    h+=`<div class="mh-sec" style="margin-top:6px">Техника за период</div>`;
     if(!F.equipList.length)h+='<div class="empty" style="padding:10px 0">Нет техники в работе за период</div>';
     for(const r of F.equipList.slice(0,3)){
       const m=money3(r.net,r.gross);
       const od=(r.objDays||[]).filter(x=>x.objectId);
       const obj=od.length>1?od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)} дн`).join(' · '):(od.length?_tsEsc(oName(od[0].objectId)):'Без объекта');
-      h+=`<div class="mh-eq"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div><div class="mh-eq-o">${obj}</div>
-        <div class="mh-eq-dn">${_daysNightsLabel(r.days||0,r.nights||0)}</div>
-        <div class="mh-row"><span>Основной доход</span><span>${fmt(Math.round(r.mainNet))} ₸</span></div>
-        ${r.svcNet?`<div class="mh-row"><span>Доп. услуги</span><span>${fmt(Math.round(r.svcNet))} ₸</span></div>`:''}
-        <div class="mh-row tot"><span>Итого с НДС</span><span>${fmt(m.gross)} ₸</span></div></div>`;
+      h+=`<div class="mh-eq" onclick="showTab('income')"><div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div>
+        <div class="mh-eq-o">${obj}</div><div class="mh-eq-dn" style="margin:3px 0 0">${_daysNightsLabel(r.days||0,r.nights||0)}</div></div>
+        <div class="mh-eq-sum">${fmt(m.gross)} ₸<small>с НДС</small></div></div>`;
     }
     if(F.equipList.length>3)h+=`<button class="mh-all" onclick="showTab('income')">Вся техника (${F.equipList.length}) →</button>`;
   }
@@ -5086,11 +5225,11 @@ async function deleteWorkerShift(dateKey,docId){
   catch(e){alert('Ошибка: '+e.message);}
 }
 
-function renderPendingShifts(){
-  const el=document.getElementById('pendingShiftsPanel');
-  if(!el)return;
+// Ожидающие подтверждения заявки, видимые пользователю (диспетчер — только своя техника, canSeeEquip).
+// ЕДИНЫЙ источник для раздела «Смены», счётчика плитки и блока на мобильной Главной.
+function pendingShiftList(){
   const list=[];
-  for(const[eqId,dates] of Object.entries(pd.shifts)){
+  for(const[eqId,dates] of Object.entries(pd.shifts||{})){
     if(!canSeeEquip(eqId))continue;
     for(const[date,cell] of cellEntries(dates)){
       if(cell.status==='pending'){
@@ -5100,6 +5239,12 @@ function renderPendingShifts(){
       }
     }
   }
+  return list;
+}
+function renderPendingShifts(){
+  const el=document.getElementById('pendingShiftsPanel');
+  if(!el)return;
+  const list=pendingShiftList();
   list.sort((a,b)=>a.date.localeCompare(b.date));
   el.style.display='';
   if(!list.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 2px">✓ Нет заявок на подтверждение</div>';return;}
@@ -5147,9 +5292,20 @@ async function deleteShiftDoc(docId){
   if(!confirm('Удалить эту запись смены?'))return;
   try{await db.collection('shifts').doc(docId).delete();}catch(e){alert('Ошибка: '+e.message);}
 }
+// Записи смен, по которым сейчас идёт подтверждение/отклонение (защита от двойного нажатия)
+const _shiftReviewBusy=new Set();
+function _shiftCellByDocId(docId){
+  for(const[eqId,dates] of Object.entries(pd.shifts||{}))for(const[date,c] of cellEntries(dates))if(shiftDocId(eqId,date,c)===docId)return c;
+  return null;
+}
 async function approveShift(docId,newStatus){
   const eqId=docId.substring(0,docId.indexOf('_'));
   if(!canApproveShiftFor(eqId)){alert('Нет прав на подтверждение смен по этой технике');return;}
+  if(_shiftReviewBusy.has(docId))return;                       // операция по этой записи уже выполняется
+  const _cur=_shiftCellByDocId(docId);
+  if(_cur&&_cur.status!=='pending'){scheduleRender();return;}  // уже подтверждена/отклонена — повторно не пишем
+  _shiftReviewBusy.add(docId);
+  try{
   let reviewNote;
   if(newStatus==='rejected'){
     // При отклонении причина обязательна (#8)
@@ -5170,6 +5326,7 @@ async function approveShift(docId,newStatus){
       reviewedAt:new Date().toISOString()
     });
   }catch(e){alert('Ошибка: '+e.message);}
+  }finally{_shiftReviewBusy.delete(docId);}
 }
 
 // ═══════════════════════════════════════════════
