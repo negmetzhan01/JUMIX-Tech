@@ -556,6 +556,47 @@ body{padding-left:var(--sidebar-w)}
 /* Заявки на смены: таблица на desktop, карточки на телефоне */
 .pending-mobile{display:none}
 @media(max-width:768px){.pending-desktop{display:none}.pending-mobile{display:block}}
+/* ── Мобильная Главная: центр управления (≤768px). Desktop-Главная — прежняя (.dash-dt) ── */
+.dash-mb{display:none}
+@media(max-width:768px){
+  .dash-dt{display:none}
+  .dash-mb{display:block;max-width:560px;margin:0 auto}
+}
+.mh-head{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
+.mh-head img{height:30px;width:auto}
+.mh-brand{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
+.mh-period{font-size:12px;color:var(--muted);margin-top:2px}
+.mh-sec{font-size:15px;font-weight:800;margin:4px 0 10px;letter-spacing:-.2px}
+.mh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
+.mh-tile{position:relative;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);
+  padding:14px 6px 12px;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  text-align:center;cursor:pointer;font-family:inherit;color:var(--text);touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-width:0}
+.mh-tile:active{transform:scale(.97);background:var(--card2)}
+.mh-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px;
+  background:rgba(91,91,246,.09);margin-bottom:7px}
+.mh-t{font-size:13px;font-weight:700;line-height:1.15}
+.mh-s{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.25;overflow-wrap:anywhere;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.mh-s.warn{color:#d97706;font-weight:700}
+.mh-badge{position:absolute;top:7px;right:7px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#f59e0b;
+  color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.mh-wide{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;
+  box-shadow:var(--shadow-sm);padding:12px 14px;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;margin-bottom:18px;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.mh-wide:active{background:var(--card2)}
+.mh-wide .mh-ic{margin:0;flex:none}
+.mh-wide .mh-arrow{margin-left:auto;color:var(--muted);font-size:20px}
+.mh-eq{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);padding:12px 14px;margin-bottom:10px}
+.mh-eq-n{font-weight:800;text-transform:uppercase;font-size:13px;color:var(--accent);overflow-wrap:anywhere}
+.mh-eq-o{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.mh-eq-dn{font-weight:700;font-size:14px;margin:4px 0 6px}
+.mh-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0}
+.mh-row span:first-child{color:var(--muted)}
+.mh-row.tot{border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800;font-size:13px}
+.mh-row.tot span:first-child{color:var(--text)}
+.mh-row.tot span:last-child{color:var(--blue)}
+.mh-all{display:block;width:100%;text-align:center;padding:12px;border-radius:14px;border:1px dashed var(--border);background:none;
+  color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:12px}
 /* Финансы: таблица на desktop, карточки на телефоне */
 .fin-mb{display:none}
 @media(max-width:768px){.fin-dt{display:none}.fin-mb{display:block}}
@@ -706,7 +747,10 @@ body{padding-left:var(--sidebar-w)}
 
 <!-- ═══════════ СМЕНЫ ═══════════ -->
 <div id="pane-smeny" class="tab-pane active">
-  <div id="pendingShiftsPanel" style="display:none;margin-bottom:14px"></div>
+  <!-- 1. Сводка: только техника, работавшая в выбранном периоде -->
+  <div class="ph"><h2>Смены за период</h2></div>
+  <div id="shiftSummary" style="margin-bottom:18px"></div>
+  <!-- 2. Табель смен (календарь) + легенда -->
   <div class="ph"><h2>Табель смен</h2>
     <div style="display:flex;gap:8px;align-items:center">
       <span style="font-size:12px;color:var(--muted)">Кран:</span>
@@ -724,7 +768,8 @@ body{padding-left:var(--sidebar-w)}
     <span><span class="cb cb-pending">?</span> Ожидает</span>
     <span><span class="cb cb-rejected">Н</span> Отклонено</span>
   </div>
-  <div id="shiftSummary"></div>
+  <!-- 3. Заявки работников на подтверждение -->
+  <div id="pendingShiftsPanel" style="display:none;margin-top:16px"></div>
 </div>
 
 <!-- ═══════════ МОИ СМЕНЫ (WORKER) ═══════════ -->
@@ -2702,6 +2747,12 @@ function openMoreSheet(){
   if(tabs.includes('workers'))h+=_sheetBtn('👥','Работники',"closeMo('moMore');showTab('workers')");
   if(tabs.includes('objects'))h+=_sheetBtn('🏢','Объекты',"closeMo('moMore');showTab('objects')");
   if(tabs.includes('partners'))h+=_sheetBtn('🤝','Партнёры',"closeMo('moMore');showTab('partners')");
+  // Архивы (Admin/Owner)
+  if(role==='admin'||role==='owner'){
+    h+=_sheetBtn('🗄','Архив работников',"closeMo('moMore');openWorkerArchive()");
+    h+=_sheetBtn('🗄','Архив объектов',"closeMo('moMore');openObjectArchive()");
+    h+=_sheetBtn('🗂','Архив табелей',"closeMo('moMore');openTsArchive()");
+  }
   if(tabs.includes('settings'))h+=_sheetBtn('⚙','Настройки',"closeMo('moMore');showTab('settings')");
   h+=_sheetBtn('👤','Профиль',"closeMo('moMore');showTab('profile')");
   h+=_sheetBtn('⏻','Выйти',"closeMo('moMore');doLogout()",'danger');
@@ -2880,28 +2931,37 @@ function openDayModal(key,mode){
 // Нижние карточки «Смены»: по каждой технике — фактические Дни и Ночи за период + ИТОГО.
 // Дни: автокран/worked_time — подтверждённые дневные смены (Half = 0,5); башенный — дни техники
 // (daysOnObject / ручная корректировка). Ночи — только подтверждённые ночные. Pending — отдельной подписью.
-function _shiftFactCardHTML(title,st,cls,sub){
-  const pend=(st.pendDays||st.pendNights)?`<div class="ks" style="color:var(--yellow)">ожидают: ${st.pendDays?fmtQty(st.pendDays)+' дн.':''}${st.pendDays&&st.pendNights?' · ':''}${st.pendNights?fmtQty(st.pendNights)+' ноч.':''}</div>`:'';
-  return `<div class="kpi ${cls}" style="flex:1;min-width:140px"><div class="kl">${_tsEsc(title)}</div>
-    <div style="display:flex;gap:14px;align-items:baseline;margin-top:4px">
-      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Дни</div><div class="kv ${cls}" style="font-size:18px">${fmtQty(st.days)}</div></div>
-      <div><div style="font-size:10px;color:var(--muted);text-transform:uppercase">Ночи</div><div class="kv bl" style="font-size:18px">${fmtQty(st.nights)}</div></div>
-    </div>${sub?`<div class="ks">${sub}</div>`:''}${pend}</div>`;
+// Склонение: 1 день / 2 дня / 5 дней; дробные (10,5) — родительный ед. («10,5 дня»)
+function _plural(n,f){
+  if(!Number.isInteger(n))return f[1];
+  const a=Math.abs(n)%100,b=a%10;
+  if(a>10&&a<20)return f[2];if(b===1)return f[0];if(b>=2&&b<=4)return f[1];return f[2];
 }
+function _daysNightsLabel(d,n){return `${fmtQty(d)} ${_plural(d,['день','дня','дней'])} · ${fmtQty(n)} ${_plural(n,['ночь','ночи','ночей'])}`;}
+// Компактная карточка техники в сводке «Смены за период»
+function _shiftFactCardHTML(title,st,cls,sub){
+  const pend=(st.pendDays||st.pendNights)?`<div style="color:var(--yellow);font-size:11px;margin-top:3px">ожидают: ${st.pendDays?fmtQty(st.pendDays)+' дн.':''}${st.pendDays&&st.pendNights?' · ':''}${st.pendNights?fmtQty(st.pendNights)+' ноч.':''}</div>`:'';
+  return `<div class="c-card" style="padding:10px 12px">
+    <div style="font-weight:800;text-transform:uppercase;font-size:13px;color:var(--accent);overflow-wrap:anywhere">${_tsEsc(title)}</div>
+    <div style="font-weight:700;font-size:15px;margin-top:4px">${_daysNightsLabel(st.days,st.nights)}</div>
+    ${sub?`<div style="color:var(--muted);font-size:11px;margin-top:3px">${sub}</div>`:''}${pend}
+  </div>`;
+}
+// Сводка «Смены за период»: только техника, относящаяся к периоду по общей логике активности v46
+// (equipActiveInPeriod) И имеющая фактические дни/ночи или ожидающие смены. Карточек «0 / 0» и «ИТОГО» нет.
 function _drawShiftSummaryAll(){
-  const n=getPeriodDates(curYear,curEM).length;
-  let html='<div style="display:flex;gap:10px;flex-wrap:wrap">';
-  const tot={days:0,nights:0,pendDays:0,pendNights:0};
+  let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,220px));gap:10px">';
+  let n=0;
   for(const e of visibleEquipment()){
     const st=equipFactStats(e);
-    tot.days+=st.days;tot.nights+=st.nights;tot.pendDays+=st.pendDays;tot.pendNights+=st.pendNights;
+    if(!equipActiveInPeriod(e))continue;
+    if(!st.days&&!st.nights&&!st.pendDays&&!st.pendNights)continue;
     const _od=equipObjDays(e).filter(x=>x.objectId);
-    const _sub=_od.length>1?_od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)}`).join(' · '):(st.shiftBased?'по подтверждённым сменам':'дни техники за период');
-    html+=_shiftFactCardHTML(e.name,st,'gn',_sub);
+    const _sub=_od.length>1?_od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)}`).join(' · '):(_od.length?_tsEsc(oName(_od[0].objectId)):'');
+    html+=_shiftFactCardHTML(e.name,st,'gn',_sub);n++;
   }
-  html+=_shiftFactCardHTML('ИТОГО',tot,'gn',`вся техника · ${n} дней периода`);
   html+='</div>';
-  document.getElementById('shiftSummary').innerHTML=html;
+  document.getElementById('shiftSummary').innerHTML=n?html:'<div class="empty" style="padding:10px 0">Нет техники со сменами за период</div>';
 }
 
 function _drawShiftSummary(equip){
@@ -2914,8 +2974,8 @@ function _drawShiftSummary(equip){
     money=`<div class="kpi gn" style="flex:1;min-width:160px"><div class="kl">Ночной доход</div><div class="kv gn">${fmt(Math.round(st.nights*(nightRate/n)))} ₸</div><div class="ks">${fmtQty(st.nights)} × ${fmt(Math.round(nightRate/n))} ₸/ночь</div></div>
     <div class="kpi bl" style="flex:1;min-width:160px"><div class="kl">Базовый доход (день)</div><div class="kv bl">${fmt(monthRate)} ₸</div><div class="ks">договор/месяц</div></div>`;
   }
-  const html=`<div style="display:flex;gap:12px;flex-wrap:wrap">
-    ${_shiftFactCardHTML(equip.name,st,'gn',(st.shiftBased?'по подтверждённым сменам':'дни техники за период')+` · ${n} дней периода`)}${money}
+  const html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,220px));gap:10px">
+    ${_shiftFactCardHTML(equip.name,st,'gn',(st.shiftBased?'по подтверждённым сменам':'дни техники за период')+` · ${n} дн. периода`)}${money}
   </div>`;
   document.getElementById('shiftSummary').innerHTML=html;
 }
@@ -3469,8 +3529,11 @@ async function confirmSettle(){
     createdBy:currentUser.uid,createdByName:who,createdAt:now,paidBy:who,history:[],period:curPK()};
   try{
     await db.collection('payments').doc(docId).set(pay);
-    // оптимистично — остаток сразу 0 (снимок Firestore придёт следом)
-    (pd.payments[w.id]=pd.payments[w.id]||[]).push({...pay,_docId:docId});
+    // Оптимистично — остаток сразу 0. ВАЖНО: слушатель onSnapshot срабатывает на локальную запись ещё ДО
+    // завершения set() и уже кладёт этот документ в pd.payments. Повторное добавление без проверки давало
+    // двойной учёт выплаты (Выплачено +740 000 дважды → «Переплата»). Добавляем только если документа ещё нет.
+    const arr=(pd.payments[w.id]=pd.payments[w.id]||[]);
+    if(!arr.some(p=>p._docId===docId))arr.push({...pay,_docId:docId});
     closeMo('moSettle');scheduleRender();
   }catch(e){ok.disabled=false;document.getElementById('stError').textContent='Ошибка: '+e.message;}
 }
@@ -4165,16 +4228,70 @@ function renderDashboard(){
   const greeting=h<6?'Доброй ночи':h<12?'Доброе утро':h<18?'Добрый день':'Добрый вечер';
   const pl=periodLabel(curYear,curEM);
   const name=(currentUser?.name||currentUser?.email||'').split(' ')[0];
-  let html=`<div style="margin-bottom:18px">
+  const greet=`<div style="margin-bottom:18px">
     <div class="dash-greeting">${greeting}, ${name}!</div>
     <div class="dash-greeting-sub">${pl.main}</div>
   </div>`;
-  if(role==='worker')html+=_workerDash();
-  else if(role==='admin'||role==='owner')html+=_adminDash();
-  else if(role==='dispatcher')html+=_dispatcherDash();
-  else if(role==='accountant')html+=_accountantDash();
-  else if(role==='partner')html+=_partnerDash();
+  let html='';
+  if(role==='worker')html=greet+_workerDash();          // Worker — свой мобильный экран (без изменений)
+  else if(role==='partner')html=greet+_partnerDash();
+  else{
+    // Desktop — прежняя информативная Главная; телефон (≤768px) — центр управления (_mobileHome)
+    let desk=greet;
+    if(role==='admin'||role==='owner')desk+=_adminDash();
+    else if(role==='dispatcher')desk+=_dispatcherDash();
+    else if(role==='accountant')desk+=_accountantDash();
+    html=`<div class="dash-dt">${desk}</div><div class="dash-mb">${_mobileHome(role)}</div>`;
+  }
   el.innerHTML=html;
+}
+// ── МОБИЛЬНАЯ ГЛАВНАЯ: центр управления. Только UI — все цифры из существующих функций v48
+// (_pendingShiftsCount, tsPendingCount, homeFleetKpi, periodFinance). Плитки — по правам роли (ROLE_TABS / can()).
+function _mobileHome(role){
+  const tabs=ROLE_TABS[role]||[];
+  const pl=periodLabel(curYear,curEM);
+  const dts=getPeriodDates(curYear,curEM);const last=dts[dts.length-1];
+  const disp=role==='dispatcher';
+  // Для диспетчера — только его техника/объекты/работники (существующие visible*-фильтры)
+  const K=homeFleetKpi(disp?visibleEquipment():null,disp?visibleObjects():null,disp?visibleWorkers():null);
+  const tile=(ic,t,sub,act,badge,warn)=>`<button class="mh-tile" onclick="${act}">${badge?`<span class="mh-badge">${badge>99?'99+':badge}</span>`:''}
+    <span class="mh-ic">${ic}</span><span class="mh-t">${t}</span><span class="mh-s${warn?' warn':''}">${sub}</span></button>`;
+  let tiles='';
+  if(tabs.includes('smeny')){
+    const n=_pendingShiftsCount();
+    tiles+=tile('📅','Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n);
+  }
+  if(tabs.includes('smeny')&&(role==='admin'||role==='owner'||disp)){
+    const n=tsPendingCount();
+    tiles+=tile('📋','Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n);
+  }
+  if(tabs.includes('workers'))tiles+=tile('👷','Работники',`${K.workers} активных`,"showTab('workers')");
+  if(tabs.includes('equip'))tiles+=tile('🏗️','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')");
+  if(tabs.includes('objects'))tiles+=tile('🏢','Объекты',`${K.objects} активных`,"showTab('objects')");
+  if(can('view_income')||can('view_expenses'))tiles+=tile('💰','Финансы','Доходы · расходы',"openFinanceSheet()");
+  let h=`<div class="mh-head"><img src="jumix-mark.png" alt=""><div><div class="mh-brand">JUMIX Tech</div><div class="mh-period">${pl.main}</div></div></div>`;
+  h+=`<div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div>`;
+  if(can('view_summary'))h+=`<button class="mh-wide" onclick="showTab('summary')"><span class="mh-ic">📊</span>
+    <span><span class="mh-t" style="display:block">Дашборд</span><span class="mh-s" style="display:block">Доходы · расходы · результаты</span></span><span class="mh-arrow">›</span></button>`;
+  else h+='<div style="height:8px"></div>';
+  // «Техника за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
+  if(can('view_income')){
+    const F=periodFinance();
+    h+=`<div class="mh-sec">Техника за период</div>`;
+    if(!F.equipList.length)h+='<div class="empty" style="padding:10px 0">Нет техники в работе за период</div>';
+    for(const r of F.equipList.slice(0,3)){
+      const m=money3(r.net,r.gross);
+      const od=(r.objDays||[]).filter(x=>x.objectId);
+      const obj=od.length>1?od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)} дн`).join(' · '):(od.length?_tsEsc(oName(od[0].objectId)):'Без объекта');
+      h+=`<div class="mh-eq"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div><div class="mh-eq-o">${obj}</div>
+        <div class="mh-eq-dn">${_daysNightsLabel(r.days||0,r.nights||0)}</div>
+        <div class="mh-row"><span>Основной доход</span><span>${fmt(Math.round(r.mainNet))} ₸</span></div>
+        ${r.svcNet?`<div class="mh-row"><span>Доп. услуги</span><span>${fmt(Math.round(r.svcNet))} ₸</span></div>`:''}
+        <div class="mh-row tot"><span>Итого с НДС</span><span>${fmt(m.gross)} ₸</span></div></div>`;
+    }
+    if(F.equipList.length>3)h+=`<button class="mh-all" onclick="showTab('income')">Вся техника (${F.equipList.length}) →</button>`;
+  }
+  return h;
 }
 
 // Бейдж вида смены в списках: Д / Н / П / Д+Н (легаси type 3)
@@ -4550,9 +4667,9 @@ function _adminDash(){
 // Техника «в работе» — на сегодня стоит на объекте (по истории назначений), объект не в архиве и активен сегодня;
 // иначе — «в простое». Техника с archived:true (если появится) в парк не входит.
 // Работник активен — не в архиве и работает сегодня (периоды работы). Объект активен — не в архиве и активен сегодня.
-function homeFleetKpi(){
+function homeFleetKpi(eqList,objList,wList){
   const today=todayISO();
-  const fleet=cfg.equipment.filter(e=>!e.archived);
+  const fleet=(eqList||cfg.equipment).filter(e=>!e.archived);
   let work=0;
   for(const e of fleet){
     const oid=equipObjectIdAt(e,today);
@@ -4560,8 +4677,8 @@ function homeFleetKpi(){
     if(o&&!o.archived&&objectActiveOn(o,today))work++;
   }
   return{equipTotal:fleet.length,equipWork:work,equipIdle:fleet.length-work,
-    workers:cfg.workers.filter(w=>!w.archived&&workerEmployedOn(w,today)).length,
-    objects:cfg.objects.filter(o=>!o.archived&&objectActiveOn(o,today)).length};
+    workers:(wList||cfg.workers).filter(w=>!w.archived&&workerEmployedOn(w,today)).length,
+    objects:(objList||cfg.objects).filter(o=>!o.archived&&objectActiveOn(o,today)).length};
 }
 function _dispatcherDash(){
   const myEquip=visibleEquipment();
@@ -4984,10 +5101,10 @@ function renderPendingShifts(){
     }
   }
   list.sort((a,b)=>a.date.localeCompare(b.date));
-  if(!list.length){el.style.display='none';return;}
   el.style.display='';
+  if(!list.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:8px 2px">✓ Нет заявок на подтверждение</div>';return;}
   let h=`<div class="set-group" style="border-color:rgba(245,166,35,.4);background:rgba(245,166,35,.04)">
-    <h3 style="color:var(--yellow);margin-bottom:12px">⏳ Заявки на смены (${list.length})</h3>`;
+    <h3 style="color:var(--yellow);margin-bottom:12px">⏳ Заявки на подтверждение (${list.length})</h3>`;
   // DESKTOP — таблица (как раньше)
   h+=`<div class="pending-desktop"><div class="tbl-wrap"><table><thead><tr><th>Работник</th><th>Техника</th><th>Дата</th><th>Тип</th><th>Комментарий</th><th style="text-align:right">Действие</th></tr></thead><tbody>`;
   for(const s of list){
