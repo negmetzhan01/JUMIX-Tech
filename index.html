@@ -599,8 +599,8 @@ body{padding-left:var(--sidebar-w)}
   font-size:18px;line-height:1;cursor:pointer;touch-action:manipulation;font-family:inherit}
 .mh-hero-per button:active{background:rgba(255,255,255,.3)}
 .mh-hero-per span{font-size:12.5px;font-weight:600;padding:0 8px;white-space:nowrap}
-.mh-hero-t{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.15;margin-top:12px;text-shadow:0 1px 8px rgba(0,0,0,.25)}
-.mh-hero-s{font-size:11.5px;opacity:.85;margin-top:4px}
+.mh-hero-t{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.15;margin-top:12px;text-shadow:0 1px 8px rgba(0,0,0,.25);
+  overflow-wrap:anywhere}
 .mh-svc{position:relative;margin-top:-22px;background:var(--card);border-radius:22px;
   box-shadow:0 8px 28px rgba(20,30,80,.10),0 1px 3px rgba(20,30,80,.06);padding:14px 12px 12px;margin-bottom:16px}
 .mh-sec{font-size:16px;font-weight:800;margin:0 0 10px;letter-spacing:-.3px}
@@ -609,7 +609,69 @@ body{padding-left:var(--sidebar-w)}
 .mh-head2 .mh-sec{margin:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .mh-link{flex:none;background:none;border:0;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;
   white-space:nowrap;padding:4px 0;touch-action:manipulation}
-.mh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mh-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px}
+.mh-tile.sp3{grid-column:span 3}.mh-tile.sp4{grid-column:span 4}.mh-tile.sp6{grid-column:span 6}.mh-tile.sp12{grid-column:span 12}
+.mh-tile.pri{min-height:112px;padding:11px 3px 9px}
+.mh-tile.sec{min-height:0;flex-direction:row;justify-content:center;gap:7px;padding:9px 6px;text-align:left}
+.mh-tile.sec .mh-ic{width:32px;height:32px;border-radius:10px;margin:0}
+.mh-tile.sec .mh-ic svg{width:19px;height:19px}
+.mh-tile.sec .mh-t{font-size:12.5px}
+.mh-tile.sec .mh-s{display:none}
+.mh-tile.sec .mh-badge{top:-6px;right:-4px}
+.mh-hero-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mh-bell{position:relative;width:36px;height:36px;border-radius:50%;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;touch-action:manipulation;flex:none;backdrop-filter:blur(6px)}
+.mh-bell svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.mh-bell-n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;
+  font-size:10.5px;font-weight:800;display:flex;align-items:center;justify-content:center;border:2px solid #16205a}
+/* Погода (v55): тёмная карточка, акцент — ветер и порывы */
+.mh-wx{position:relative;border-radius:20px;padding:12px 14px 10px;margin-bottom:16px;color:#fff;cursor:pointer;overflow:hidden;
+  background:linear-gradient(135deg,#17224f 0%,#24306a 55%,#2f3f86 100%);box-shadow:0 8px 24px rgba(20,30,80,.18);
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.mh-wx:active{filter:brightness(1.08)}
+.mh-wx::after{content:'';position:absolute;right:-30px;top:-40px;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(120,150,255,.25),rgba(120,150,255,0) 70%);pointer-events:none}
+.mh-wx-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mh-wx-loc{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;opacity:.75;white-space:nowrap}
+.mh-wx-st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;
+  background:rgba(255,255,255,.1);white-space:nowrap}
+.mh-wx-st i{width:8px;height:8px;border-radius:50%;background:#34d399;box-shadow:0 0 0 3px rgba(52,211,153,.2)}
+.mh-wx.st-warn .mh-wx-st i{background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.25)}
+.mh-wx.st-crit .mh-wx-st i{background:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.3)}
+.mh-wx.st-warn{background:linear-gradient(135deg,#2a2550 0%,#3a2f5e 55%,#5a3b4f 100%)}
+.mh-wx.st-crit{background:linear-gradient(135deg,#3a1d34 0%,#4f2034 55%,#6b2430 100%)}
+.mh-wx-main{display:flex;align-items:center;gap:12px;margin-top:8px}
+.mh-wx-tmp{flex:none;min-width:78px}
+.mh-wx-tmp b{display:block;font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.05}
+.mh-wx-tmp span{display:block;font-size:11px;opacity:.75;margin-top:2px;line-height:1.2;max-width:96px}
+.mh-wx-wind{flex:1;min-width:0;border-left:1px solid rgba(255,255,255,.14);padding-left:12px}
+.mh-wx-row{display:flex;align-items:center;gap:7px;white-space:nowrap;padding:2px 0}
+.mh-wx-row span{font-size:12px;opacity:.8;min-width:50px}
+.mh-wx-row b{font-size:21px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
+.mh-wx-row b small{font-size:11px;font-weight:600;opacity:.75}
+.mh-wx-row em{font-style:normal;font-size:11px;opacity:.7}
+.mh-wx-i{width:17px;height:17px;flex:none;fill:none;stroke:#a5b8ff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mh-wx-arr{width:15px;height:15px;flex:none;fill:none;stroke:#fff;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.mh-wx-row.lv-warn b{color:#fcd34d}.mh-wx-row.lv-crit b{color:#fca5a5}
+.mh-wx-row.lv-warn .mh-wx-i{stroke:#fcd34d}.mh-wx-row.lv-crit .mh-wx-i{stroke:#fca5a5}
+.mh-wx-foot{display:flex;justify-content:space-between;gap:8px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(255,255,255,.1);
+  font-size:10.5px;opacity:.7}
+.mh-wx-foot span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mh-wx-foot span:last-child{flex:none}
+.mh-wx-alert{color:#fca5a5;font-weight:700;opacity:1}
+.mh-wx-na{display:flex;align-items:center;gap:10px;cursor:default;font-size:13px;color:#cdd6f6}
+.mh-wx-na .mh-ic{margin:0;width:34px;height:34px}
+/* Прогноз ветра (лист) */
+.wx-h{display:grid;grid-template-columns:58px 1fr 1fr 56px;align-items:center;gap:6px;padding:9px 4px;border-bottom:1px solid var(--border);font-size:13px}
+.wx-h.now{background:rgba(91,91,246,.06);border-radius:10px;font-weight:700}
+.wx-h-t{color:var(--muted);font-weight:700}
+.wx-h-w b{font-size:17px}
+.wx-h-g{color:var(--muted)}.wx-h-g b{color:var(--text);font-size:14px}
+.wx-h-d{display:flex;align-items:center;gap:3px;justify-content:flex-end;color:var(--muted);font-size:12px}
+.wx-h-d .mh-wx-arr{stroke:var(--accent)}
+.wx-h .lv-warn b{color:#d97706}.wx-h .lv-crit b{color:#dc2626}
+.wx-note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.4}
+.wx-src{font-size:11px;color:var(--muted);margin-top:6px}
 .mh-tile{position:relative;background:var(--card);border:1px solid #eef0f5;border-radius:16px;box-shadow:0 2px 8px rgba(20,30,80,.05);
   padding:12px 4px 10px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
   text-align:center;cursor:pointer;font-family:inherit;color:var(--text);touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-width:0}
@@ -652,6 +714,91 @@ body{padding-left:var(--sidebar-w)}
 @media(max-width:600px){
   .mh-hero{margin:-10px -10px 0;border-radius:0 0 24px 24px;padding-top:env(safe-area-inset-top,0px)}
 }
+/* ── WORKER v56: мобильная Главная и «Мои смены» ── */
+@keyframes mhFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.mh-fade{animation:mhFade .28s ease-out both}
+.wk-card{background:var(--card);border-radius:18px;padding:14px;margin-bottom:12px;
+  box-shadow:0 4px 18px rgba(20,30,80,.07),0 1px 2px rgba(20,30,80,.05)}
+.wk-cap{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted)}
+.wk-sec{margin:6px 2px 10px!important;font-size:16px}
+.wk-empty,.wk-none{color:var(--muted);font-size:13px;text-align:center;padding:16px}
+.wk-hero{margin-bottom:-22px}
+.wk-hero .mh-hero-in{padding-bottom:40px}
+.wk-eq{position:relative;z-index:2;display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:0}
+.wk-eq .mh-ic{margin:0;width:48px;height:48px;border-radius:14px}
+.wk-eq-l{flex:1;min-width:0}
+.wk-eq-n{font-size:18px;font-weight:800;letter-spacing:-.3px;text-transform:uppercase;color:#2f6bff;margin-top:1px}
+.wk-eq-t{font-size:12px;color:var(--muted)}
+.wk-eq-o{flex-basis:100%;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding-top:9px;border-top:1px solid #eef0f5}
+.wk-eq-o svg{width:16px;height:16px;flex:none;fill:none;stroke:#f26a1b;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.wk-acts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:12px}
+.wk-act{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:76px;
+  padding:10px 8px;border-radius:18px;border:1px solid #e6e9f2;background:var(--card);color:var(--text);font-family:inherit;
+  cursor:pointer;box-shadow:0 2px 8px rgba(20,30,80,.05);touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+  transition:background .25s,border-color .25s,color .25s,transform .12s}
+.wk-act:active{transform:scale(.97)}
+.wk-act.wk-main{grid-column:1 / -1;min-height:84px;flex-direction:row;gap:12px;color:#fff;border:0;
+  background:linear-gradient(135deg,#2f6bff 0%,#5b5bf6 100%);box-shadow:0 8px 22px rgba(47,107,255,.32)}
+.wk-act.wk-wide{grid-column:1 / -1;flex-direction:row;min-height:56px;gap:10px}
+.wk-act-i{width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.wk-act-i svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.wk-act-t{font-size:15px;font-weight:800;letter-spacing:.4px}
+.wk-act.wk-main .wk-act-t{font-size:19px}
+.wk-act-s{font-size:11px;font-weight:700;opacity:.85}
+.wk-act.wk-main .wk-act-s{margin-left:auto;background:rgba(255,255,255,.2);padding:3px 9px;border-radius:999px}
+.wk-act.is-pend{background:#fff8eb;border-color:#fbd38d;color:#b45309;box-shadow:none}
+.wk-act.is-ok{background:#ecfdf5;border-color:#a7f3d0;color:#047857;box-shadow:none}
+.wk-act.is-rej{background:#fff1f2;border-color:#fecdd3;color:#be123c;box-shadow:none}
+.wk-act:disabled{cursor:default;opacity:1}
+.wk-act.wk-main.is-pend .wk-act-s,.wk-act.wk-main.is-ok .wk-act-s,.wk-act.wk-main.is-rej .wk-act-s{background:rgba(0,0,0,.06)}
+.wk-dot{flex:none;width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;color:#fff}
+.wk-dot.k-day{background:#10b981}.wk-dot.k-night{background:#3b82f6}.wk-dot.k-over{background:#8b5cf6}
+.wk-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid #eef0f5}
+.wk-today .wk-row:first-of-type{border-top:0}
+.wk-today .wk-cap{margin-bottom:4px}
+.wk-row-l{flex:1;min-width:0}
+.wk-row-t{font-weight:700;font-size:13.5px}
+.wk-st{font-size:12px;font-weight:600;margin-top:1px;transition:color .3s}
+.st-approved{color:#059669}.st-pending{color:#d97706}.st-rejected{color:#dc2626}
+.wk-amt{font-size:14px;color:#059669;white-space:nowrap}
+.wk-period .wk-dn{display:flex;gap:10px}
+.wk-dn>div{flex:1;background:var(--card2);border-radius:14px;padding:10px 12px}
+.wk-dn b{display:block;font-size:26px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.wk-dn span{font-size:12px;color:var(--muted);font-weight:600}
+.wk-dn .wk-dn-p{background:#fff8eb}.wk-dn .wk-dn-p b{color:#d97706}
+.wk-money{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
+.wk-money div{min-width:0}
+.wk-money span{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.wk-money b{display:block;font-size:14.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-money div:last-child b{color:#2f6bff}.wk-money b.neg{color:#dc2626}
+.wk-link{display:block;width:100%;margin-top:12px;padding:11px;border-radius:12px;border:0;background:rgba(91,91,246,.08);
+  color:var(--accent);font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.wk-rd{padding:8px 0;border-top:1px solid #eef0f5}.wk-rd:first-child{border-top:0;padding-top:0}
+.wk-rd-d{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.wk-rd-r{display:flex;align-items:center;gap:8px;font-size:13px;padding:2px 0;min-width:0}
+.wk-rd-r .wk-rd-l{font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-rd-r em{font-style:normal;font-size:11.5px;font-weight:700;white-space:nowrap}
+.wk-ms-head{padding:12px 14px}
+.wk-ms-eq{font-size:14px;color:var(--muted);overflow-wrap:anywhere}.wk-ms-eq b{color:var(--text);text-transform:uppercase}
+.wk-ms-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.wk-ms-stats div{background:var(--card2);border-radius:12px;padding:8px 10px;text-align:center}
+.wk-ms-stats b{display:block;font-size:22px;font-weight:800;line-height:1.1}
+.wk-ms-stats span{font-size:11px;color:var(--muted);font-weight:600}
+.wk-ms-stats .p{background:#fff8eb}.wk-ms-stats .p b{color:#d97706}
+.wk-legend{margin-top:10px}
+.wk-claims{padding:4px 12px}
+.wk-claim{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid #eef0f5}
+.wk-claim:first-child{border-top:0}
+.wk-cl-d{flex:none;width:46px;text-align:center}
+.wk-cl-d b{display:block;font-size:18px;font-weight:800;line-height:1.1}
+.wk-cl-d span{font-size:10px;color:var(--muted);font-weight:600;white-space:nowrap}
+.wk-cl-m{flex:1;min-width:0}
+.wk-cl-eq{font-size:11px;color:var(--muted);font-weight:600}
+.wk-cl-n{font-size:11.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
+.wk-cl-a{flex:none;display:flex;gap:4px}
+/* Worker на телефоне: заголовок раздела — в мобильной шапке; добавление — нажатием на дату календаря */
+@media(max-width:768px){body.nav-worker #pane-myshifts>.ph{display:none}}
 /* «Смены за период»: карточка-фильтр календаря */
 .sh-card.clk{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .sh-card.clk:active{transform:scale(.98)}
@@ -748,6 +895,14 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-title">Финансы</div>
     <div class="sheet-list" id="financeSheet"></div>
     <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moFinance')">Закрыть</button></div>
+  </div>
+</div>
+<!-- Прогноз ветра (мобильная Главная) -->
+<div class="mo hidden" id="moWeather" onclick="closeMoCheck('moWeather',event)">
+  <div class="mo-box">
+    <div class="mo-title" id="wxTitle">Погода</div>
+    <div id="wxBody"></div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moWeather')">Закрыть</button></div>
   </div>
 </div>
 <!-- Нижний лист «Ещё» (Admin/Owner) -->
@@ -956,6 +1111,14 @@ body{padding-left:var(--sidebar-w)}
     <h3>Налоги</h3>
     <div class="set-row"><span class="set-label">Ставка НДС (%)</span>
       <input class="set-val" type="number" id="sVat" onchange="saveSetting('vatRate',this.value)"></div>
+  </div>
+  <div class="set-group">
+    <h3>Погода и ветер (пороги JUMIX)</h3>
+    <div class="set-row"><span class="set-label" style="color:var(--muted);font-size:12px">Пользовательские пороги подсветки на Главной, м/с. Не нормативные ограничения эксплуатации — допустимый ветер определяется паспортом крана.</span><span></span></div>
+    <div class="set-row"><span class="set-label">Ветер — предупреждение</span><input class="set-val" type="number" min="1" step="0.5" id="sWindWarn" onchange="saveSetting('windWarnMs',this.value)"></div>
+    <div class="set-row"><span class="set-label">Ветер — сильный</span><input class="set-val" type="number" min="1" step="0.5" id="sWindCrit" onchange="saveSetting('windCritMs',this.value)"></div>
+    <div class="set-row"><span class="set-label">Порывы — предупреждение</span><input class="set-val" type="number" min="1" step="0.5" id="sGustWarn" onchange="saveSetting('gustWarnMs',this.value)"></div>
+    <div class="set-row"><span class="set-label">Порывы — сильные</span><input class="set-val" type="number" min="1" step="0.5" id="sGustCrit" onchange="saveSetting('gustCritMs',this.value)"></div>
   </div>
   <div class="set-group">
     <h3>Реквизиты</h3>
@@ -2753,7 +2916,8 @@ function _syncMobileNav(){
   // Панель действий Worker показываем только на Главной И только если действия «worked_time» доступны
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   const myEquip=myW?cfg.equipment.find(e=>e.id===myW.equipmentId):null;
-  const showAction=role==='worker'&&activeTab==='dashboard'&&!!(myEquip&&isWorkedTimeAssign(myW.id,myEquip.id));
+  // v56: действия День/Ночь/Аванс — в одном месте (блок «Сегодня» Главной); sticky-дубль не показываем
+  const showAction=false&&role==='worker'&&!!(myEquip&&isWorkedTimeAssign(myW.id,myEquip.id));
   document.body.classList.toggle('on-home',showAction);
   if(role==='worker')_syncCraneActionBtns();
   _updateNavBadges();
@@ -2927,7 +3091,7 @@ function _renderMobileHead(){
   const rec=(rb&&rb.style.display!=='none'&&['income','expenses','summary'].includes(activeTab))?`<div class="mhead-rec"><button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button></div>`:'';
   el.innerHTML=`<div class="mhead-row">${title}</div>${per}${rec}`;
   // на Главной Admin/Owner/Dispatcher шапку заменяет hero (_mobileHome)
-  el.classList.toggle('mhead-hide',home&&(document.body.classList.contains('nav-admin')||document.body.classList.contains('nav-disp')));
+  el.classList.toggle('mhead-hide',home&&(document.body.classList.contains('nav-admin')||document.body.classList.contains('nav-disp')||document.body.classList.contains('nav-worker')));
 }
 
 // ═══════════════════════════════════════════════
@@ -4375,7 +4539,7 @@ function renderDashboard(){
     <div class="dash-greeting-sub">${pl.main}</div>
   </div>`;
   let html='';
-  if(role==='worker')html=greet+_workerDash();          // Worker — свой мобильный экран (без изменений)
+  if(role==='worker')html=`<div class="dash-dt">${greet+_workerDash()}</div><div class="dash-mb">${_workerHome()}</div>`; // Worker: desktop прежний, телефон — новая Главная
   else if(role==='partner')html=greet+_partnerDash();
   else{
     // Desktop — прежняя информативная Главная; телефон (≤768px) — центр управления (_mobileHome)
@@ -4386,6 +4550,129 @@ function renderDashboard(){
     html=`<div class="dash-dt">${desk}</div><div class="dash-mb">${_mobileHome(role)}</div>`;
   }
   el.innerHTML=html;
+}
+// ═══════════════════════════════════════════════
+// WORKER (крановщик): ЕДИНЫЙ набор смен и мобильная Главная
+// ═══════════════════════════════════════════════
+// Записи смен работника за загруженный период по ВСЕЙ технике: основные shifts/{equipId_date} и отдельные
+// _d/_n/_o (cellEntries), legacy type 3 = День+Ночь. Запись — «моя», если workerId = работник, или смена
+// без workerId на технике, где он основной НА ДАТУ (primaryWorkerAt), или заявка, созданная им.
+// ОДИН источник для Главной, календаря, «Мои заявки», «Сегодня», «Последние смены».
+// Дни/ночи — существующая workerFactStats(), деньги — существующая calcWorkerEarnings().
+function workerShiftEntries(w){
+  const out=[];if(!w)return out;
+  const uid=currentUser?.uid;
+  for(const e of cfg.equipment){
+    for(const[date,c] of cellEntries(pd.shifts[e.id])){
+      if(!c.type)continue;
+      const mine=c.workerId===w.id||(!c.workerId&&primaryWorkerAt(e,date)===w.id)||(!!uid&&c.createdBy===uid);
+      if(mine)out.push({date,cell:c,equip:e,docId:shiftDocId(e.id,date,c)});
+    }
+  }
+  return out;
+}
+function _wkOrd(c){const t=c.type||0;return t===1||t===3?0:t===2?1:2;}   // порядок: день → ночь → переработка
+function _wkKind(c){const t=c.type||0;return t===2?'night':t===4?'over':'day';}
+// Подпись записи (существующие названия типов) + подмена
+function _wkLabel(x){
+  let l=_craneShiftLabel(x.cell);
+  if(x.cell.workerId&&!String(x.cell.workerId).startsWith('p_')&&x.cell.workerId!==primaryWorkerAt(x.equip,x.date))l+=' · Подмена';
+  return l;
+}
+// Статус записи: без status (создано Admin/диспетчером) = подтверждено
+function _wkStatus(c){return c.status==='pending'?'pending':c.status==='rejected'?'rejected':'approved';}
+const WK_ST={pending:'Ожидает подтверждения',approved:'Подтверждено',rejected:'Отклонено'};
+function _wkDate(iso){const[,m,d]=iso.split('-').map(Number);return `${d} ${MGEN[m].toLowerCase()}`;}
+function _wkDot(c){const k=_wkKind(c);return `<span class="wk-dot k-${k}">${k==='day'?'Д':k==='night'?'Н':'П'}</span>`;}
+// Кнопка действия «Сегодня»: состояние — по сегодняшней записи ЭТОГО вида (День и Ночь независимы)
+function _wkActBtn(kind,cls,icon,title,act,todayCells){
+  const c=todayCells.find(x=>shiftKinds(x.cell.type||0).includes(kind));
+  let st='',sub='',dis=false;
+  if(c){
+    const s=_wkStatus(c.cell),own=c.cell.createdBy===currentUser?.uid;
+    if(s==='approved'){st='is-ok';sub='Подтверждено';dis=true;}
+    else if(s==='pending'){st='is-pend';sub='Ожидает';dis=!own;}
+    else{st='is-rej';sub='Отклонено';dis=!own;}
+  }
+  return `<button class="wk-act ${cls} ${st}" ${dis?'disabled':''} onclick="${act}">
+    <span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS[icon]}</svg></span>
+    <span class="wk-act-t">${st==='is-ok'?'✓ ':''}${title}</span>${sub?`<span class="wk-act-s">${sub}</span>`:''}</button>`;
+}
+function _workerHome(){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  let h=`<div class="mh-hero wk-hero"><div class="mh-hero-in">
+    <div class="mh-hero-top"><div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div></div>
+    <div class="mh-hero-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button></div>
+    <div class="mh-hero-t">${_mhGreeting()}</div></div></div>`;
+  if(!myW)return h+`<div class="wk-card wk-empty mh-fade">Вы не привязаны к работнику.<br>Обратитесь к администратору.</div>`;
+  const myEquip=cfg.equipment.find(e=>e.id===myW.equipmentId);
+  const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
+  // МОЯ ТЕХНИКА (текущее назначение)
+  if(myEquip){
+    const tl={mobile_crane:'Автокран',tower_crane:'Башенный кран'}[myEquip.type]||'Техника';
+    h+=`<div class="wk-card wk-eq mh-fade">${_mhIc('crane','#f26a1b','#fff0e6')}
+      <div class="wk-eq-l"><div class="wk-cap">Моя техника</div><div class="wk-eq-n">${_tsEsc(myEquip.name)}</div><div class="wk-eq-t">${tl}</div></div>
+      ${myObj?`<div class="wk-eq-o"><svg viewBox="0 0 24 24">${MH_ICONS.pin}</svg><span>${_tsEsc(myObj.name)}</span></div>`:''}</div>`;
+  }else h+=`<div class="wk-card wk-empty mh-fade">Техника не назначена. Обратитесь к администратору.</div>`;
+  // ПОГОДА (Open-Meteo, v55): любой сбой скрывает только её
+  try{h+=_mhWeatherHTML();}catch(e){}
+  const today=todayISO();
+  const all=workerShiftEntries(myW);
+  const todayCells=all.filter(x=>x.date===today).sort((a,b)=>_wkOrd(a.cell)-_wkOrd(b.cell));
+  // СЕГОДНЯ: одно место действий (существующие механизмы записи)
+  if(myEquip){
+    const crane=isWorkedTimeAssign(myW.id,myEquip.id);
+    h+=`<div class="mh-sec wk-sec">Сегодня</div><div class="wk-acts mh-fade">`;
+    if(crane){
+      h+=_wkActBtn('day','wk-main','sun','ДЕНЬ',"openCraneDayModal()",todayCells);
+      h+=_wkActBtn('night','','moon','НОЧЬ',"openCraneNightModal()",todayCells);
+    }else{
+      h+=_wkActBtn('night','','moon','НОЧЬ',"_quickShift(2)",todayCells);
+      h+=_wkActBtn('over','','over','ПЕРЕРАБОТКА',"_quickShift(4)",todayCells);
+    }
+    h+=`<button class="wk-act${crane?'':' wk-wide'}" onclick="openAdvanceRequestModal()"><span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS.coin}</svg></span><span class="wk-act-t">АВАНС</span></button></div>`;
+    // статус сегодняшних записей (только существующие)
+    h+=`<div class="wk-card wk-today mh-fade"><div class="wk-cap">Сегодня · ${_wkDate(today)}</div>`;
+    if(!todayCells.length)h+='<div class="wk-none">Сегодня смен пока нет</div>';
+    for(const x of todayCells){
+      const s=_wkStatus(x.cell);
+      let amt='';
+      if(s==='approved'&&assignmentModeAt(myW.id,x.equip.id,x.date)==='worked_time'){
+        const a=craneShiftAmount(x.cell,x.date,myW.id,x.equip.id);if(a)amt=`<b class="wk-amt">${fmt(a)} ₸</b>`;}
+      h+=`<div class="wk-row">${_wkDot(x.cell)}<div class="wk-row-l"><div class="wk-row-t">${_tsEsc(_wkLabel(x))}</div>
+        <div class="wk-st st-${s}">${WK_ST[s]}${s==='rejected'&&x.cell.reviewNote?' · '+_tsEsc(x.cell.reviewNote):''}</div></div>${amt}</div>`;
+    }
+    h+='</div>';
+  }
+  // ТЕКУЩИЙ ПЕРИОД: факт (workerFactStats) и деньги (calcWorkerEarnings) — как во вкладке «Выплаты»
+  const fs=workerFactStats(myW),earn=calcWorkerEarnings(myW);
+  const pays=pd.payments[myW.id]||[];
+  const paidAmt=pays.filter(p=>!p.status||p.status==='paid').reduce((a,p)=>a+p.amount,0);
+  const pend=all.filter(x=>x.cell.status==='pending').length;
+  h+=`<div class="mh-sec wk-sec">Текущий период</div><div class="wk-card wk-period mh-fade">
+    <div class="wk-dn"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div>
+      <div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div>
+      ${pend?`<div class="wk-dn-p"><b>${pend}</b><span>ожидают</span></div>`:''}</div>
+    <div class="wk-money"><div><span>Заработано</span><b>${fmt(earn.totalAccrued)} ₸</b></div>
+      <div><span>Авансы</span><b>${fmt(paidAmt)} ₸</b></div>
+      <div><span>К выплате</span><b class="${earn.balance<0?'neg':''}">${fmt(earn.balance)} ₸</b></div></div>
+    <button class="wk-link" onclick="showTab('mypay')">Мои выплаты →</button></div>`;
+  // ПОСЛЕДНИЕ СМЕНЫ (3 последние даты)
+  const past=all.filter(x=>x.date<=today);
+  const dates=[...new Set(past.map(x=>x.date))].sort().reverse().slice(0,3);
+  if(dates.length){
+    h+=`<div class="mh-head2"><div class="mh-sec">Последние смены</div><button class="mh-link" onclick="showTab('myshifts')">Все смены →</button></div><div class="wk-card wk-recent mh-fade">`;
+    for(const d of dates){
+      h+=`<div class="wk-rd"><div class="wk-rd-d">${_wkDate(d)}</div>`;
+      for(const x of past.filter(y=>y.date===d).sort((a,b)=>_wkOrd(a.cell)-_wkOrd(b.cell))){
+        const s=_wkStatus(x.cell);
+        h+=`<div class="wk-rd-r">${_wkDot(x.cell)}<span class="wk-rd-l">${_tsEsc(_wkLabel(x))}</span><em class="st-${s}">${s==='approved'?'✓ ':''}${WK_ST[s]}</em></div>`;
+      }
+      h+='</div>';
+    }
+    h+='</div>';
+  }
+  return h;
 }
 // ── МОБИЛЬНАЯ ГЛАВНАЯ: центр управления. Только UI — все цифры из существующих функций v48
 // (_pendingShiftsCount, tsPendingCount, homeFleetKpi, periodFinance). Плитки — по правам роли (ROLE_TABS / can()).
@@ -4453,8 +4740,193 @@ const MH_ICONS={
   worker:'<path d="M6.5 11a5.5 5.5 0 0 1 11 0"/><path d="M5 11h14"/><path d="M12 5.5V8"/><circle cx="12" cy="14.3" r="2.7"/><path d="M6.5 21c.7-2.6 2.9-4 5.5-4s4.8 1.4 5.5 4"/>',
   crane:'<path d="M7 21V5M9.5 21V5M7 8l2.5 3M9.5 8 7 11M7 14l2.5 3M9.5 14 7 17"/><path d="M3 5h19M5 3l3.2 2M8.3 3 22 5"/><path d="M17 5v5"/><rect x="15.5" y="10" width="3" height="2.4" rx=".4"/><path d="M5 21h7"/>',
   bld:'<rect x="4.5" y="3.5" width="10" height="17" rx="1.2"/><path d="M14.5 9h4.3c.4 0 .7.3.7.7v10.8"/><path d="M7.5 7h1M11 7h1M7.5 10.5h1M11 10.5h1M7.5 14h1M11 14h1"/><path d="M8.5 20.5V17h2v3.5M3 20.5h18"/>',
-  wallet:'<path d="M4 7.5h14.5a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 19V7.5Z"/><path d="M4 7.5 15.5 4c.8-.2 1.5.4 1.5 1.2V7.5"/><path d="M15 13.5h5v3h-5a1.5 1.5 0 0 1 0-3Z"/>'
+  wallet:'<path d="M4 7.5h14.5a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 19V7.5Z"/><path d="M4 7.5 15.5 4c.8-.2 1.5.4 1.5 1.2V7.5"/><path d="M15 13.5h5v3h-5a1.5 1.5 0 0 1 0-3Z"/>',
+  more:'<rect x="4" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.8"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.8"/><circle cx="16.75" cy="16.75" r="3.25"/>',
+  bell:'<path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 1.8H4.5L6 16.5Z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/>',
+  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5Z"/>',
+  coin:'<circle cx="12" cy="12" r="8.5"/><path d="M14.6 9.2c-.5-.8-1.5-1.3-2.6-1.3-1.5 0-2.6.8-2.6 2s1.1 1.7 2.6 2 2.7.8 2.7 2.1-1.2 2.1-2.7 2.1c-1.2 0-2.2-.5-2.7-1.4M12 6.3v1.6M12 16.1v1.6"/>',
+  over:'<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/>',
+  pin:'<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
+  wind:'<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 13h15a3 3 0 1 1-3 3"/><path d="M3 17h7"/>'
 };
+// Персональное приветствие по локальному времени: 05–11 утро, 12–17 день, 18–04 вечер.
+// Имя — из профиля текущего пользователя: отдельное поле firstName, иначе первое слово name (не ФИО целиком).
+function _mhGreeting(){
+  const h=new Date().getHours();
+  const g=h>=5&&h<12?'Доброе утро':h>=12&&h<18?'Добрый день':'Добрый вечер';
+  const u=currentUser||{};
+  let n=(u.firstName||'').trim();
+  if(!n){const full=(u.name||'').trim();n=full&&!full.includes('@')?full.split(/\s+/)[0]:'';}
+  return n?`${g}, ${_tsEsc(n)}!`:`${g}!`;
+}
+// ═══════════════════════════════════════════════
+// ПОГОДА (Open-Meteo) — контроль ВЕТРА для работы башенных и автокранов. Только мобильная Главная.
+// Данные НЕ пишутся в Firebase. Кэш — память + localStorage (ключ jumix_weather_v1:lat,lon) с отметкой времени.
+// Без данных — карточка скрыта или «Погода временно недоступна»; выдуманных значений нет.
+// ═══════════════════════════════════════════════
+const WEATHER_API='https://api.open-meteo.com/v1/forecast';
+// Точка по умолчанию — Астана. Позже: координаты объекта → loadWeather(lat, lon, locationName).
+const WEATHER_DEFAULT_LOC={lat:51.1694,lon:71.4491,name:'Астана'};
+const WEATHER_TTL_MS=12*60*1000;       // данные считаются свежими 12 мин — чаще не запрашиваем
+const WEATHER_RETRY_MS=60*1000;        // после ошибки — повтор не чаще раза в минуту
+const WEATHER_FORECAST_HOURS=6;        // прогноз ветра на ближайшие часы
+// ПОРОГИ JUMIX — пользовательские ориентиры для подсветки статуса (м/с). Это НЕ нормативные ограничения
+// эксплуатации крана: допустимый ветер зависит от паспорта конкретной техники и условий.
+// Переопределяются в «Настройки → Погода и ветер» (settings: windWarnMs, windCritMs, gustWarnMs, gustCritMs).
+const WIND_THRESHOLDS_DEFAULT={windWarn:10,windCrit:14,gustWarn:15,gustCrit:20};
+function windThresholds(){
+  const st=(cfg&&cfg.settings)||{},d=WIND_THRESHOLDS_DEFAULT;
+  const v=(k,def)=>{const x=+st[k];return x>0?x:def;};
+  return{windWarn:v('windWarnMs',d.windWarn),windCrit:v('windCritMs',d.windCrit),gustWarn:v('gustWarnMs',d.gustWarn),gustCrit:v('gustCritMs',d.gustCrit)};
+}
+// Официальные штормовые предупреждения (МЧС / Казгидромет) — отдельный источник, пока НЕ подключён.
+// Open-Meteo таких предупреждений не даёт → «Официальные предупреждения не подключены» (без «Шторма нет»).
+// Подключение позже: officialWeatherAlerts = (loc) => [{level, title, until}] | null
+let officialWeatherAlerts=null;
+const _wx={data:null,loading:false,error:null,lastTry:0,timer:null};
+function _wxKey(lat,lon){return 'jumix_weather_v1:'+(+lat).toFixed(3)+','+(+lon).toFixed(3);}
+function _wxReadCache(lat,lon){try{const r=localStorage.getItem(_wxKey(lat,lon));return r?JSON.parse(r):null;}catch(e){return null;}}
+function _wxWriteCache(d){try{localStorage.setItem(_wxKey(d.loc.lat,d.loc.lon),JSON.stringify(d));}catch(e){}}
+// URL запроса: единицы задаются в API (м/с, °C, мм) — визуального пересчёта нет
+function weatherUrl(lat,lon){
+  const q={latitude:lat,longitude:lon,
+    current:'temperature_2m,weather_code,precipitation,wind_speed_10m,wind_gusts_10m,wind_direction_10m',
+    hourly:'wind_speed_10m,wind_gusts_10m,wind_direction_10m',
+    wind_speed_unit:'ms',temperature_unit:'celsius',precipitation_unit:'mm',timezone:'auto',forecast_hours:WEATHER_FORECAST_HOURS+2};
+  return WEATHER_API+'?'+Object.entries(q).map(([k,v])=>k+'='+encodeURIComponent(v)).join('&');
+}
+function _wxParse(j,loc){
+  const c=j.current||{},h=j.hourly||{};
+  const cur={time:c.time,temp:c.temperature_2m,code:c.weather_code,precip:c.precipitation,
+    wind:c.wind_speed_10m,gust:c.wind_gusts_10m,dir:c.wind_direction_10m};
+  const hours=[];
+  for(let i=0;i<(h.time||[]).length&&hours.length<WEATHER_FORECAST_HOURS;i++){
+    if(cur.time&&h.time[i]<=cur.time)continue;           // только следующие часы после «сейчас»
+    hours.push({time:h.time[i],wind:h.wind_speed_10m[i],gust:h.wind_gusts_10m[i],dir:h.wind_direction_10m[i]});
+  }
+  return{loc,current:cur,hours,fetchedAt:Date.now(),source:'Open-Meteo'};
+}
+// Загрузка погоды для точки (по умолчанию — Астана). Свежие данные (< TTL) берутся из кэша без запроса.
+async function loadWeather(lat,lon,locationName,force){
+  lat=lat??WEATHER_DEFAULT_LOC.lat;lon=lon??WEATHER_DEFAULT_LOC.lon;const name=locationName||WEATHER_DEFAULT_LOC.name;
+  const same=_wx.data&&_wx.data.loc&&_wx.data.loc.lat===lat&&_wx.data.loc.lon===lon;
+  if(!same){const c=_wxReadCache(lat,lon);_wx.data=(c&&c.current)?c:null;}
+  const now=Date.now();
+  if(!force&&_wx.data&&now-_wx.data.fetchedAt<WEATHER_TTL_MS)return _wx.data;  // кэш свежий
+  if(_wx.loading)return _wx.data;
+  if(!force&&_wx.lastTry&&now-_wx.lastTry<WEATHER_RETRY_MS)return _wx.data;    // недавно пытались
+  _wx.loading=true;_wx.lastTry=now;
+  try{
+    const ctl=typeof AbortController!=='undefined'?new AbortController():null;
+    const to=ctl?setTimeout(()=>ctl.abort(),10000):null;
+    const res=await fetch(weatherUrl(lat,lon),{cache:'no-store',signal:ctl?ctl.signal:undefined});
+    if(to)clearTimeout(to);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    const j=await res.json();
+    const u=j.current_units||{};
+    if(u.wind_speed_10m!=='m/s'||u.wind_gusts_10m!=='m/s')throw new Error('Неверные единицы ветра: '+u.wind_speed_10m); // защита от км/ч
+    if(!j.current||j.current.wind_speed_10m==null)throw new Error('Нет данных о ветре');
+    _wx.data=_wxParse(j,{lat,lon,name});_wxWriteCache(_wx.data);_wx.error=null;
+  }catch(e){_wx.error=(e&&e.message)||'Ошибка загрузки';}  // приложение продолжает работать; остаются прежние данные
+  finally{_wx.loading=false;}
+  if(activeTab==='dashboard')scheduleRender();
+  return _wx.data;
+}
+// Запуск/поддержание погоды из мобильной Главной (только телефон): первый вызов + таймер ~12 мин +
+// обновление при возврате в приложение. Сама перерисовка запрос НЕ делает — loadWeather отдаёт кэш.
+function _wxEnsure(){
+  try{
+    if(typeof window==='undefined'||window.innerWidth>768)return;
+    if(!_wx.timer&&typeof setInterval==='function'){
+      _wx.timer=setInterval(()=>loadWeather(),WEATHER_TTL_MS);
+      if(document.addEventListener)document.addEventListener('visibilitychange',()=>{if(!document.hidden)loadWeather();});
+    }
+    const d=_wx.data;
+    if(!_wx.loading&&(!d||Date.now()-d.fetchedAt>=WEATHER_TTL_MS))setTimeout(()=>loadWeather(),0);
+  }catch(e){} // погода не должна мешать работе Главной
+}
+// Статус по порогам JUMIX: ok / warn / crit (нейтральные формулировки, без «можно/нельзя работать»)
+function windStatus(wind,gust){
+  const T=windThresholds();
+  if((+wind||0)>=T.windCrit||(+gust||0)>=T.gustCrit)return{k:'crit',t:'Сильный ветер'};
+  if((+wind||0)>=T.windWarn||(+gust||0)>=T.gustWarn)return{k:'warn',t:'Повышенный ветер'};
+  return{k:'ok',t:'Нормальные условия'};
+}
+function _wxLevel(v,warn,crit){v=+v||0;return v>=crit?'crit':v>=warn?'warn':'ok';}
+// Направление ветра (откуда дует): 8 румбов
+function windDirName(deg){if(deg==null)return'';return['С','СВ','В','ЮВ','Ю','ЮЗ','З','СЗ'][Math.round(((+deg%360)+360)%360/45)%8];}
+// Код погоды WMO → текст
+function weatherCodeText(c){
+  c=+c;if(c===0)return'Ясно';if(c===1)return'Преимущественно ясно';if(c===2)return'Переменная облачность';if(c===3)return'Пасмурно';
+  if(c===45||c===48)return'Туман';if(c>=51&&c<=57)return'Морось';if(c===66||c===67)return'Ледяной дождь';if(c>=61&&c<=65)return'Дождь';
+  if(c>=71&&c<=77)return'Снег';if(c>=80&&c<=82)return'Ливень';if(c===85||c===86)return'Снегопад';if(c===95)return'Гроза';if(c===96||c===99)return'Гроза с градом';
+  return'';
+}
+const _wxR=v=>Math.round(+v||0);
+function _wxTime(iso){return iso?String(iso).slice(11,16):'';}
+function _wxUpdated(ts){
+  if(!ts)return'';const d=new Date(ts),n=new Date();
+  const hm=`${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return d.toDateString()===n.toDateString()?hm:`${d.getDate()} ${MGEN[d.getMonth()+1].toLowerCase()} ${hm}`;
+}
+// стрелка направления: показывает, КУДА дует ветер (откуда + 180°)
+function _wxArrow(deg){return deg==null?'':`<svg class="mh-wx-arr" viewBox="0 0 24 24" style="transform:rotate(${(+deg+180)%360}deg)"><path d="M12 4v16M12 4l-5 5M12 4l5 5"/></svg>`;}
+// Карточка погоды на мобильной Главной
+function _mhWeatherHTML(){
+  _wxEnsure();
+  const d=_wx.data;
+  if(!d||!d.current){
+    return _wx.error?`<div class="mh-wx mh-wx-na">${_mhIc('wind','#9aa5c4','rgba(255,255,255,.08)')}<span>Погода временно недоступна</span></div>`:'';
+  }
+  const c=d.current,T=windThresholds(),st=windStatus(c.wind,c.gust);
+  const gl=_wxLevel(c.gust,T.gustWarn,T.gustCrit),wl=_wxLevel(c.wind,T.windWarn,T.windCrit);
+  const t=c.temp!=null?`${_wxR(c.temp)>0?'+':''}${_wxR(c.temp)}°`:'';
+  const alerts=typeof officialWeatherAlerts==='function'?officialWeatherAlerts(d.loc):null;
+  const alertLine=Array.isArray(alerts)&&alerts.length?`<span class="mh-wx-alert">⚠ ${_tsEsc(alerts[0].title||'Официальное предупреждение')}</span>`:'Официальные предупреждения не подключены';
+  const stale=_wx.error||Date.now()-d.fetchedAt>WEATHER_TTL_MS*2;
+  return `<div class="mh-wx st-${st.k}" onclick="openWeatherSheet()" role="button">
+    <div class="mh-wx-top"><span class="mh-wx-loc">Погода · ${_tsEsc(d.loc.name)}</span><span class="mh-wx-st"><i></i>${st.t}</span></div>
+    <div class="mh-wx-main">
+      <div class="mh-wx-tmp"><b>${t}</b><span>${_tsEsc(weatherCodeText(c.code))}</span></div>
+      <div class="mh-wx-wind">
+        <div class="mh-wx-row lv-${wl}"><svg class="mh-wx-i" viewBox="0 0 24 24">${MH_ICONS.wind}</svg><span>Ветер</span><b>${_wxR(c.wind)} <small>м/с</small></b>${_wxArrow(c.dir)}<em>${windDirName(c.dir)}</em></div>
+        <div class="mh-wx-row lv-${gl}"><svg class="mh-wx-i" viewBox="0 0 24 24"><path d="M4 17 10 11l4 4 6-8"/><path d="M15 7h5v5"/></svg><span>Порывы</span><b>${_wxR(c.gust)} <small>м/с</small></b></div>
+      </div>
+    </div>
+    <div class="mh-wx-foot"><span>${alertLine}</span><span>${stale?'Обновлено ':''}${_wxUpdated(d.fetchedAt)} ›</span></div>
+  </div>`;
+}
+// Нижний лист: ветер сейчас и на ближайшие часы (без лишних погодных данных)
+function openWeatherSheet(){
+  const d=_wx.data;if(!d||!d.current)return;
+  const T=windThresholds();
+  const row=(lbl,w,g,dir,now)=>`<div class="wx-h${now?' now':''}"><span class="wx-h-t">${lbl}</span>
+    <span class="wx-h-w lv-${_wxLevel(w,T.windWarn,T.windCrit)}"><b>${_wxR(w)}</b> м/с</span>
+    <span class="wx-h-g lv-${_wxLevel(g,T.gustWarn,T.gustCrit)}">порывы <b>${_wxR(g)}</b></span>
+    <span class="wx-h-d">${_wxArrow(dir)}${windDirName(dir)}</span></div>`;
+  let h=row('Сейчас',d.current.wind,d.current.gust,d.current.dir,true);
+  for(const x of d.hours)h+=row(_wxTime(x.time),x.wind,x.gust,x.dir,false);
+  if(!d.hours.length)h+='<div class="empty" style="padding:10px">Почасовой прогноз недоступен</div>';
+  document.getElementById('wxTitle').textContent='Погода · '+d.loc.name;
+  document.getElementById('wxBody').innerHTML=h+
+    `<div class="wx-note">Пороги JUMIX (пользовательские, не нормативные ограничения): ветер ${T.windWarn} / ${T.windCrit} м/с, порывы ${T.gustWarn} / ${T.gustCrit} м/с. Допустимый ветер — по паспорту крана.</div>
+     <div class="wx-src">Источник: Open-Meteo · обновлено ${_wxUpdated(d.fetchedAt)}${_wx.error?' · нет связи, показаны последние данные':''}</div>`;
+  openMo('moWeather');
+}
+// Колокольчик: уведомления = существующие счётчики (заявки на смены + табели на согласование)
+function _mhBellCount(role){
+  let n=0;
+  if((ROLE_TABS[role]||[]).includes('smeny'))n+=_pendingShiftsCount();
+  if(role==='admin'||role==='owner'||role==='dispatcher')n+=tsPendingCount();
+  return n;
+}
+function _mhBell(){
+  const role=currentUser?.role;
+  if(_pendingShiftsCount())return _mhAllPending();
+  if((role==='admin'||role==='owner'||role==='dispatcher')&&tsPendingCount())return openTsInbox('pending');
+  alert('Новых уведомлений нет');
+}
 // иконка в цветном контейнере (цвет — CSS-переменная --c / --b)
 function _mhIc(k,c,b){return `<span class="mh-ic" style="--c:${c};--b:${b}"><svg viewBox="0 0 24 24">${MH_ICONS[k]}</svg></span>`;}
 function _mobileHome(role){
@@ -4463,32 +4935,41 @@ function _mobileHome(role){
   const disp=role==='dispatcher';
   // Для диспетчера — только его техника/объекты/работники (существующие visible*-фильтры)
   const K=homeFleetKpi(disp?visibleEquipment():null,disp?visibleObjects():null,disp?visibleWorkers():null);
-  const tile=(ic,t,sub,act,badge,warn)=>`<button class="mh-tile" onclick="${act}">${badge?`<span class="mh-badge">${badge>99?'99+':badge}</span>`:''}
-    ${ic}<span class="mh-t">${t}</span><span class="mh-s${warn?' warn':''}">${sub}</span></button>`;
-  let tiles='';
+  const tile=(cls,ic,t,sub,act,badge,warn)=>`<button class="mh-tile ${cls}" onclick="${act}">${badge?`<span class="mh-badge">${badge>99?'99+':badge}</span>`:''}
+    ${ic}<span class="mh-t">${t}</span>${sub?`<span class="mh-s${warn?' warn':''}">${sub}</span>`:''}</button>`;
+  // Основные плитки (верхний ряд): Смены, Техника, Работники, Финансы — по правам роли
+  const pri=[],sec=[];
   if(tabs.includes('smeny')){
     const n=_pendingShiftsCount();
-    tiles+=tile(_mhIc('cal','#2f6bff','#eaf1ff'),'Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n);
+    pri.push(['cal','#2f6bff','#eaf1ff','Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n]);
   }
+  if(tabs.includes('equip'))pri.push(['crane','#f26a1b','#fff0e6','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')"]);
+  if(tabs.includes('workers'))pri.push(['worker','#0f9f6e','#e6f7f0','Работники',`${K.workers} активных`,"showTab('workers')"]);
+  // Финансы: доход С НДС за выбранный период из periodFinance() — только при праве view_income; плитка → «Доходы»
+  const F=can('view_income')?periodFinance():null;
+  if(can('view_income')||can('view_expenses'))pri.push(['wallet','#9b51e0','#f5ecfd','Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)}\u00a0₸`:'Доходы · расходы',can('view_income')?"showTab('income')":"openFinanceSheet()"]);
+  // Дополнительные (нижний ряд): Табель, Объекты, Ещё
   if(tabs.includes('smeny')&&(role==='admin'||role==='owner'||disp)){
     const n=tsPendingCount();
-    tiles+=tile(_mhIc('clip','#e08a00','#fff4df'),'Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n);
+    sec.push(['clip','#e08a00','#fff4df','Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n]);
   }
-  if(tabs.includes('workers'))tiles+=tile(_mhIc('worker','#0f9f6e','#e6f7f0'),'Работники',`${K.workers} активных`,"showTab('workers')");
-  if(tabs.includes('equip'))tiles+=tile(_mhIc('crane','#f26a1b','#fff0e6'),'Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')");
-  if(tabs.includes('objects'))tiles+=tile(_mhIc('bld','#5b5bf6','#efeefe'),'Объекты',`${K.objects} активных`,"showTab('objects')");
-  // Финансы: доход С НДС за выбранный период из periodFinance() — только при праве view_income
-  const F=can('view_income')?periodFinance():null;
-  if(can('view_income')||can('view_expenses'))tiles+=tile(_mhIc('wallet','#9b51e0','#f5ecfd'),'Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)} ₸`:'Доходы · расходы',can('view_income')?"showTab('income')":"openFinanceSheet()");
-  // HERO — только на мобильной Главной (общая мобильная шапка #mHead на Главной скрыта)
+  if(tabs.includes('objects'))sec.push(['bld','#5b5bf6','#efeefe','Объекты',`${K.objects} активных`,"showTab('objects')"]);
+  if(role==='admin'||role==='owner'||disp)sec.push(['more','#64748b','#f1f3f7','Ещё','Все разделы',"openMoreSheet()"]);
+  // ширина плитки = 12 колонок / число плиток в ряду (без «дыр» при любом наборе прав)
+  const mk=(arr,row)=>arr.map(x=>tile(`${row} sp${Math.max(3,Math.floor(12/arr.length))}`,_mhIc(x[0],x[1],x[2]),x[3],x[4],x[5],x[6],x[7])).join('');
+  const tiles=mk(pri,'pri')+mk(sec,'sec');
+  // HERO — только на мобильной Главной: бренд + колокольчик, период, персональное приветствие
+  const bell=_mhBellCount(role);
   let h=`<div class="mh-hero"><div class="mh-hero-in">
-    <div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div>
+    <div class="mh-hero-top"><div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div>
+      <button class="mh-bell" onclick="_mhBell()" aria-label="Уведомления"><svg viewBox="0 0 24 24">${MH_ICONS.bell}</svg>${bell?`<span class="mh-bell-n">${bell>99?'99+':bell}</span>`:''}</button></div>
     <div class="mh-hero-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button></div>
-    <div class="mh-hero-t">Техника под контролем</div>
-    <div class="mh-hero-s">${disp?'Смены · Техника · Объекты':'Смены · Техника · Объекты · Финансы'}</div>
+    <div class="mh-hero-t">${_mhGreeting()}</div>
   </div></div>`;
   // «Сервисы» — белая карточка, слегка заходит на hero
   h+=`<div class="mh-svc"><div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div></div>`;
+  // погода (Open-Meteo): любой сбой погоды скрывает только её карточку, Главная работает
+  try{h+=_mhWeatherHTML();}catch(e){}
   h+=_mobilePendingHTML(role);
   // «Работа за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
   if(F){
@@ -4796,7 +5277,7 @@ function _workerDash(){
   if(myEquip){
     const cs=pd.shifts[myEquip.id]||{};
     for(const[date,cell] of cellEntries(cs)){
-      const t=cell.type||0;if(!t||t===1)continue;
+      const t=cell.type||0;if(!t)continue; // все виды, включая День (раньше type 1 ошибочно отбрасывался)
       if(!cell.workerId||cell.workerId===myW.id||cell.createdBy===currentUser.uid)shiftList.push({date,...cell});
     }
     shiftList.sort((a,b)=>b.date.localeCompare(a.date));shiftList.splice(8);
@@ -4804,7 +5285,7 @@ function _workerDash(){
   if(shiftList.length){
     h+=`<div class="dash-section-title">Последние смены</div>`;
     h+='<div class="tbl-wrap"><table><thead><tr><th>Дата</th><th>Тип</th><th>Статус</th><th>Комментарий</th></tr></thead><tbody>';
-    const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
+    const TLAB={1:'Дневная',2:'Ночная',3:'День+Ночь',4:'Переработка'};
     for(const s of shiftList){
       const dp=s.date.split('-');
       const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
@@ -5032,73 +5513,60 @@ function renderMyShifts(){
   const listEl=document.getElementById('myShiftsList');
   const addBtn=document.getElementById('wsAddBtn');
   if(!myW){
-    infoEl.innerHTML=`<div class="empty" style="text-align:center;padding:32px 16px"><div style="font-size:36px;margin-bottom:10px">👤</div><div>Вы не привязаны к работнику.<br>Обратитесь к администратору.</div></div>`;
+    infoEl.innerHTML=`<div class="empty" style="text-align:center;padding:32px 16px"><div>Вы не привязаны к работнику.<br>Обратитесь к администратору.</div></div>`;
     listEl.innerHTML='';
     if(addBtn)addBtn.style.display='none';
     return;
   }
   if(!myEquip){
-    infoEl.innerHTML=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body"><div style="font-weight:700">${myW.name}</div><div style="color:var(--muted);margin-top:4px;font-size:13px">Техника не назначена. Обратитесь к администратору.</div></div></div>`;
+    infoEl.innerHTML=`<div class="wk-card"><div style="font-weight:700">${_tsEsc(myW.name)}</div><div style="color:var(--muted);margin-top:4px;font-size:13px">Техника не назначена. Обратитесь к администратору.</div></div>`;
     listEl.innerHTML='';
     if(addBtn)addBtn.style.display='none';
     return;
   }
   if(addBtn)addBtn.style.display='';
-  const pl=periodLabel(curYear,curEM);
-  infoEl.innerHTML=`<div class="c-card" style="margin-bottom:14px"><div class="c-card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:13px">
-    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">РАБОТНИК</div><div style="font-weight:700">${myW.name}</div></div>
-    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">ТЕХНИКА</div><div style="font-weight:700;color:var(--accent)">${myEquip.name}</div></div>
-    <div><div style="color:var(--muted);font-size:11px;margin-bottom:3px">ОБЪЕКТ</div><div style="font-weight:700">${myObj?myObj.name:'—'}</div></div>
-  </div></div>`;
-  const cs=pd.shifts[myEquip.id]||{};
-  const myShifts=[];
-  for(const[date,cell] of cellEntries(cs)){
-    const t=cell.type||0;if(!t||t===1)continue;
-    if(!cell.workerId||cell.workerId===myW.id||cell.createdBy===currentUser.uid)
-      myShifts.push({date,...cell,_docId:shiftDocId(myEquip.id,date,cell)});
-  }
-  myShifts.sort((a,b)=>a.date.localeCompare(b.date));
-  let pendingN=0,approvedN=0;
-  myShifts.forEach(s=>{if(s.status==='pending')pendingN++;else if(!s.status||s.status==='approved')approvedN++;});
-  const TLAB={2:'Ночная',3:'День+Ночь',4:'Переработка'};
-  let h=`<div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
-    <div class="kpi yw" style="flex:1;min-width:110px"><div class="kl">Ожидают</div><div class="kv yw">${pendingN}</div><div class="ks">заявок</div></div>
-    <div class="kpi gn" style="flex:1;min-width:110px"><div class="kl">Подтверждено</div><div class="kv gn">${approvedN}</div><div class="ks">смен</div></div>
-    <div class="kpi bl" style="flex:1;min-width:110px"><div class="kl">Период</div><div class="kv bl" style="font-size:11px">${pl.short}</div><div class="ks">${pl.main}</div></div>
-  </div>`;
-  h+=`<div class="cal-legend" style="margin-top:0">
+  // ЕДИНЫЙ источник: те же записи и тот же факт, что на Главной
+  const all=workerShiftEntries(myW);
+  const fs=workerFactStats(myW);
+  const pend=all.filter(x=>x.cell.status==='pending').length;
+  infoEl.innerHTML=`<div class="wk-card wk-ms-head">
+    <div class="wk-ms-eq"><b>${_tsEsc(myEquip.name)}</b>${myObj?` · ${_tsEsc(myObj.name)}`:''}</div>
+    <div class="wk-ms-stats">
+      <div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div>
+      <div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div>
+      <div class="${pend?'p':''}"><b>${pend}</b><span>ожидают</span></div>
+    </div></div>`;
+  let h='';
+  h+=_drawWorkerCalendar(myW,myEquip);
+  h+=`<div class="cal-legend wk-legend">
+    <span><span class="cb cb-day">Д</span> День</span>
     <span><span class="cb cb-night">Н</span> Ночь</span>
     <span><span class="cb cb-over">П</span> Переработка</span>
     <span><span class="cb cb-sub">⇄</span> Подмена</span>
     <span><span class="cb cb-pending">?</span> Ожидает</span>
     <span><span class="cb cb-rejected">Н</span> Отклонено</span>
   </div>`;
-  h+=_drawWorkerCalendar(myW,myEquip);
-  const TLAB2={1:'Дневная',2:'Ночная',3:'День+Ночь',4:'Переработка'};
-  if(myShifts.length){
-    h+='<div class="dash-section-title" style="margin-top:22px">Мои заявки</div><div class="ms-list">';
-    for(const s of myShifts){
-      const dp=s.date.split('-');
-      const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
-      const sub=s.workerId&&s.workerId!==primaryWorkerAt(myEquip,s.date);
-      let st,stcls;
-      if(!s.status||(!s.createdBy&&s.status!=='pending')){st='Админ';stcls='pay-approved';}
-      else if(s.status==='pending'){st='⏳ Ожидает';stcls='pay-pending';}
-      else if(s.status==='approved'){st='✓ Подтверждено';stcls='pay-paid';}
-      else{st='✕ Отклонено';stcls='pay-rejected';}
-      const canEdit=s.createdBy===currentUser.uid&&s.status==='pending';
-      h+=`<div class="ms-card">
-        <div class="ms-date"><div class="ms-d">${+dp[2]}</div><div class="ms-m">${MSHO[+dp[1]]}<br>${dow}</div></div>
-        <div class="ms-mid"><div>${shiftChips(s,{sub})} <span style="font-weight:600">${TLAB2[s.type]||''}</span></div>
-          ${s.note?`<div class="day-row-note">📝 ${s.note}</div>`:''}
-          ${s.reviewNote?`<div class="day-row-note">💬 ${s.reviewNote}</div>`:''}</div>
-        <div class="ms-right"><span class="pay-badge ${stcls}">${st}</span>
-          ${canEdit?`<div style="margin-top:6px"><button class="edit-btn" onclick="openWorkerShiftModal('${s.date}',null,null,'${s._docId}')">✏</button><button class="del-btn" onclick="deleteWorkerShift('${s.date}','${s._docId}')">✕</button></div>`:''}</div>
+  // «Мои заявки»: ВСЕ виды (День, Полдня, Ночь, Переработка, Подмена); День и Ночь одной даты — две записи
+  const list=[...all].sort((a,b)=>b.date.localeCompare(a.date)||_wkOrd(a.cell)-_wkOrd(b.cell));
+  if(list.length){
+    h+='<div class="mh-sec wk-sec" style="margin-top:18px">Мои заявки</div><div class="wk-card wk-claims">';
+    for(const x of list){
+      const s=_wkStatus(x.cell);
+      const dp=x.date.split('-');const dow=DOW[new Date(+dp[0],+dp[1]-1,+dp[2]).getDay()];
+      const canEdit=x.cell.createdBy===currentUser.uid&&x.cell.status==='pending';
+      h+=`<div class="wk-claim">
+        <div class="wk-cl-d"><b>${+dp[2]}</b><span>${MSHO[+dp[1]]} · ${dow}</span></div>
+        ${_wkDot(x.cell)}
+        <div class="wk-cl-m"><div class="wk-row-t">${_tsEsc(_wkLabel(x))}${x.equip.id!==myEquip.id?` <span class="wk-cl-eq">${_tsEsc(x.equip.name)}</span>`:''}</div>
+          <div class="wk-st st-${s}">${s==='approved'?'✓ ':s==='pending'?'⏳ ':'✕ '}${WK_ST[s]}</div>
+          ${x.cell.note?`<div class="wk-cl-n">${_tsEsc(x.cell.note)}</div>`:''}
+          ${x.cell.reviewNote?`<div class="wk-cl-n">💬 ${_tsEsc(x.cell.reviewNote)}</div>`:''}</div>
+        ${canEdit?`<div class="wk-cl-a"><button class="edit-btn" onclick="openWorkerShiftModal('${x.date}',null,null,'${x.docId}')">✏</button><button class="del-btn" onclick="deleteWorkerShift('${x.date}','${x.docId}')">✕</button></div>`:''}
       </div>`;
     }
     h+='</div>';
   }else{
-    h+='<div class="empty" style="margin-top:16px">Нет смен. Нажмите «+ Добавить смену» или выберите день в календаре.</div>';
+    h+='<div class="wk-card wk-none" style="margin-top:16px">Смен за период пока нет. Нажмите на дату в календаре, чтобы отправить заявку.</div>';
   }
   listEl.innerHTML=h;
 }
@@ -5107,7 +5575,7 @@ function renderMyShifts(){
 function _drawWorkerCalendar(myW,myEquip){
   const dates=getPeriodDates(curYear,curEM);
   if(!dates.length)return'';
-  const cs=pd.shifts[myEquip.id]||{};
+  const byDate={};for(const x of workerShiftEntries(myW))(byDate[x.date]=byDate[x.date]||[]).push(x);
   const today=new Date();
   const todayKey=`${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
   const lead=(new Date(dates[0].y,dates[0].m-1,dates[0].d).getDay()+6)%7;
@@ -5118,11 +5586,11 @@ function _drawWorkerCalendar(myW,myEquip){
     const key=dk(dt);
     const dow=new Date(dt.y,dt.m-1,dt.d).getDay();const we=dow===0||dow===6;
     const isToday=key===todayKey;const firstOfMonth=dt.d===1||idx===0;
-    // День и Ночь одной даты — отдельные записи, показываем обе
-    const cl=cellsAt(cs,key).filter(cell=>cell.type&&(!cell.workerId||cell.workerId===myW.id||cell.createdBy===currentUser.uid));
+    // День и Ночь одной даты — отдельные записи, показываем обе (единый источник workerShiftEntries)
+    const cl=(byDate[key]||[]).sort((a,b)=>_wkOrd(a.cell)-_wkOrd(b.cell));
     let content='';
     if(cl.length){
-      content=`<div class="cal-badges">${cl.map(cell=>shiftChips(cell,{sub:cell.workerId&&cell.workerId!==primaryWorkerAt(myEquip,key)})).join('')}</div>`;
+      content=`<div class="cal-badges">${cl.map(x=>shiftChips(x.cell,{sub:x.cell.workerId&&!String(x.cell.workerId).startsWith('p_')&&x.cell.workerId!==primaryWorkerAt(x.equip,key)})).join('')}</div>`;
     }
     const mon=firstOfMonth?`<span class="cal-mon">${MSHO[dt.m]}</span>`:'';
     cells+=`<div class="cal-cell${we?' we':''}${isToday?' today':''}" onclick="onMyCalDay('${key}')">
@@ -8616,7 +9084,11 @@ function renderSettings(){
   document.getElementById('sVat').value=s.vatRate||16;
   document.getElementById('sCompany').value=s.companyName||'ТОО';
   const editable=can('edit_config');
-  ['sPeriodStart','sPeriodEnd','sVat','sCompany'].forEach(id=>{
+  // пороги ветра (пользовательские пороги JUMIX; пусто → значения по умолчанию)
+  const _T=windThresholds();
+  document.getElementById('sWindWarn').value=_T.windWarn;document.getElementById('sWindCrit').value=_T.windCrit;
+  document.getElementById('sGustWarn').value=_T.gustWarn;document.getElementById('sGustCrit').value=_T.gustCrit;
+  ['sPeriodStart','sPeriodEnd','sVat','sCompany','sWindWarn','sWindCrit','sGustWarn','sGustCrit'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.disabled=!editable;
   });
   const note=document.getElementById('settingsViewOnlyNote');
