@@ -797,6 +797,30 @@ body{padding-left:var(--sidebar-w)}
 .wk-cl-eq{font-size:11px;color:var(--muted);font-weight:600}
 .wk-cl-n{font-size:11.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
 .wk-cl-a{flex:none;display:flex;gap:4px}
+/* v57: замена, возможности */
+.rr-box{border-left:3px solid #7c3aed}
+.rr-card{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px 10px;padding:12px;border-bottom:1px solid #eef0f5}
+.rr-card:last-child{border-bottom:0}
+.rr-card .mh-ic{margin:0;width:38px;height:38px;border-radius:12px}
+.rr-l{flex:1 1 160px;min-width:0}
+.rr-dates{font-size:13px;font-weight:800;color:#7c3aed;margin-top:3px}
+.rr-a{margin-left:auto}
+.rr-ok{background:#7c3aed;color:#fff;border:1px solid #7c3aed;box-shadow:0 2px 8px rgba(124,58,237,.3)}
+.wk-rr-r{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-top:1px solid #eef0f5}
+.wk-rr-r:first-child{border-top:0;padding-top:0}
+.wk-rr-i{flex:none;width:24px;height:24px;border-radius:8px;background:#f3e8ff;display:flex;align-items:center;justify-content:center}
+.wk-rr-i svg{width:16px;height:16px;fill:none;stroke:#7c3aed;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.rr-pending{color:#d97706}.rr-approved{color:#059669}.rr-rejected{color:#dc2626}
+.wk-jobs{display:flex;align-items:center;gap:12px;width:100%;border:0;text-align:left;font-family:inherit;color:var(--text);cursor:pointer;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.wk-jobs:active{transform:scale(.98)}
+.wk-jobs .mh-ic{margin:0;width:46px;height:46px}
+.wk-jobs-l{flex:1;min-width:0;display:flex;flex-direction:column}
+.wk-jobs-l b{font-size:15px}.wk-jobs-l span{font-size:12.5px;color:var(--muted)}.wk-jobs-l small{font-size:11px;color:var(--muted)}
+.wk-jobs-soon{flex:none;font-size:12px;font-weight:700;color:var(--accent);background:rgba(91,91,246,.08);padding:5px 10px;border-radius:999px}
+.rq-info{display:grid;grid-template-columns:1fr 1fr;gap:8px;background:var(--card2);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.rq-info span{display:block;font-size:11px;color:var(--muted)}.rq-info b{font-size:14px;overflow-wrap:anywhere}
+.jobs-dev{margin:14px 0 4px;text-align:center;font-weight:800;color:#d97706;background:#fff8eb;border-radius:12px;padding:10px}
 /* Worker на телефоне: заголовок раздела — в мобильной шапке; добавление — нажатием на дату календаря */
 @media(max-width:768px){body.nav-worker #pane-myshifts>.ph{display:none}}
 /* «Смены за период»: карточка-фильтр календаря */
@@ -895,6 +919,36 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-title">Финансы</div>
     <div class="sheet-list" id="financeSheet"></div>
     <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moFinance')">Закрыть</button></div>
+  </div>
+</div>
+<!-- Запрос замены (Worker) -->
+<div class="mo hidden" id="moReplace" onclick="closeMoCheck('moReplace',event)">
+  <div class="mo-box">
+    <div class="mo-title">Запросить замену</div>
+    <div class="rq-info"><div><span>Техника</span><b id="rqEquip">—</b></div><div><span>Объект</span><b id="rqObj">—</b></div></div>
+    <div class="frow frow-2">
+      <div class="fg"><label class="fl">С</label><input class="fi" type="date" id="rqFrom" onchange="_rqPreview()"></div>
+      <div class="fg"><label class="fl">По</label><input class="fi" type="date" id="rqTo" onchange="_rqPreview()"></div>
+    </div>
+    <div id="rqDays" style="font-size:12px;color:var(--muted);margin:-4px 0 8px"></div>
+    <div class="fg"><label class="fl">Причина <span style="color:var(--muted);font-weight:400">(необязательно)</span></label><input class="fi" id="rqReason" placeholder="Например: семейные обстоятельства"></div>
+    <div id="rqError" style="color:var(--red);font-size:12px;min-height:18px"></div>
+    <div class="mo-acts">
+      <button class="btn btn-secondary" onclick="closeMo('moReplace')">Отмена</button>
+      <button class="btn btn-primary" id="rqOk" onclick="submitReplaceRequest()">Отправить запрос</button>
+    </div>
+  </div>
+</div>
+<!-- Биржа крановщиков (в разработке) -->
+<div class="mo hidden" id="moJobs" onclick="closeMoCheck('moJobs',event)">
+  <div class="mo-box">
+    <div class="mo-title">Биржа крановщиков</div>
+    <div style="font-size:13.5px;line-height:1.55">Скоро здесь можно будет:
+      <ul style="margin:8px 0 0 18px;padding:0">
+        <li>находить свободные смены;</li><li>брать подмены;</li><li>искать постоянную работу;</li><li>получать предложения от владельцев техники.</li>
+      </ul></div>
+    <div class="jobs-dev">В разработке</div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moJobs')">Закрыть</button></div>
   </div>
 </div>
 <!-- Прогноз ветра (мобильная Главная) -->
@@ -2136,6 +2190,9 @@ function listenConfig() {
   }else if(_crRole==='worker'&&currentUser?.workerId){
     _cfgUnsubs.push(db.collection('craneRates').where('workerId','==',currentUser.workerId).onSnapshot(snap=>{cfg.craneRates=snap.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();},()=>{}));
   }
+  // Запросы замены крановщика (не зависят от периода). Worker — свои; Admin/Owner/Dispatcher — ожидающие.
+  // Однополевые запросы — составной индекс не нужен. Диспетчеру UI показывает только его технику.
+  _rrListen();
   // Диспетчер: постоянные (не зависящие от периода) слушатели согласований — за все периоды.
   //  A) адресные лично ему (assignedDispatcherUid == uid) — покрывает старые одиночные документы;
   //  B) все документы ГРУПП, где он получатель (recipientUids array-contains uid) — включая
@@ -3559,7 +3616,10 @@ function calcWorkerEarnings(w){
       const isSub=directAssign&&!isMain;
       if(isMain&&noAssign){if(t===2||t===3)nightCount++;if(t===4)overCount++;}
       else if(directAssign){
-        if(isSub){if(t===2||t===3)subNightCount++;if(t===1||t===3)subDayCount++;if(t===4)overCount++;}
+        // Дневная запись «Начать смену» (source:'worker_day') на технике самого работника — факт выхода, а не
+        // подмена: дневная доплата за неё не начисляется (оклад уже покрывает). Старые записи — без изменений.
+        const ownDay=cell.source==='worker_day'&&w.equipmentId===equip.id;
+        if(isSub){if(t===2||t===3)subNightCount++;if((t===1||t===3)&&!ownDay)subDayCount++;if(t===4)overCount++;}
         else{if(t===2||t===3)nightCount++;if(t===4)overCount++;}
       }
     }
@@ -4598,6 +4658,173 @@ function _wkActBtn(kind,cls,icon,title,act,todayCells){
     <span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS[icon]}</svg></span>
     <span class="wk-act-t">${st==='is-ok'?'✓ ':''}${title}</span>${sub?`<span class="wk-act-s">${sub}</span>`:''}</button>`;
 }
+// ── ЕДИНЫЙ WORKER UI: одинаковые действия для любой техники. Способ оплаты решает ТОЛЬКО расчёт. ──
+// «НАЧАТЬ СМЕНУ» = дневная запись (факт выхода). Деньги за неё — только если оплата по отработанному
+// времени (worked_time, calcCraneEarnings). Фиксированный оклад / старая модель дневную запись основного
+// крановщика НЕ оплачивают (только ночи/переработки) — второго начисления нет.
+function _wkStartDay(){
+  const e=_craneMyEquip();if(!e){alert('Техника не назначена. Обратитесь к администратору.');return;}
+  if(isWorkedTimeAssign(currentUser?.workerId,e.id))return openCraneDayModal(); // прежний диалог (полная/половина)
+  return _wkDayPresence(e);
+}
+function _wkStartNight(){
+  const e=_craneMyEquip();if(!e){alert('Техника не назначена. Обратитесь к администратору.');return;}
+  if(isWorkedTimeAssign(currentUser?.workerId,e.id))return openCraneNightModal();
+  return _quickShift(2); // существующая заявка на ночную смену
+}
+let _wkDayBusy=false;
+// Дневная запись для техники без посменной оплаты: та же модель shifts (type 1, pending, _shiftSlotFor),
+// БЕЗ shiftFraction (иначе техника стала бы «посменной» в статистике). source:'worker_day' — метка «Начать смену».
+async function _wkDayPresence(e){
+  if(_wkDayBusy)return;
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);if(!myW)return;
+  const today=todayISO();
+  if(!workerEmployedOn(myW,today)){alert('На эту дату вы не числитесь работающим (архив). Обратитесь к администратору.');return;}
+  const slot=_shiftSlotFor(e.id,today,1);
+  if(slot.same){
+    const st=slot.same.status||'approved';
+    alert(st==='pending'?'Дневная смена на сегодня уже отправлена и ожидает подтверждения.':st==='rejected'?'Дневная смена на сегодня отклонена. Обратитесь к диспетчеру.':'Дневная смена на сегодня уже подтверждена.');
+    return;
+  }
+  if(!confirm(`Начать смену на сегодня (${_wkDate(today)})?\n${e.name} — заявка уйдёт на подтверждение.`))return;
+  _wkDayBusy=true;
+  try{
+    await db.collection('shifts').doc(slot.docId).set({period:curPK(),equipId:e.id,date:today,type:1,workerId:myW.id,
+      note:'',status:'pending',source:'worker_day',createdBy:currentUser.uid,createdAt:new Date().toISOString()});
+  }catch(err){alert('Ошибка: '+err.message);}
+  finally{_wkDayBusy=false;}
+}
+
+// ═══ ЗАПРОСЫ ЗАМЕНЫ (replacementRequests) — отдельная сущность, НЕ смены ═══
+// {workerId, workerName, equipmentId, objectId, dateFrom, dateTo, reason, status, createdAt, createdByUid,
+//  reviewedAt, reviewedBy, reviewedByUid, reviewComment, history[]}
+// status: pending | approved | rejected. Зарезервировано для биржи (НЕ реализовано): published, searching,
+// matched, completed + replacementWorkerId — цепочка «одобрено → опубликовано → отклик → назначение → возврат».
+const RR_STATUS={pending:'Ожидает решения',approved:'Одобрено',rejected:'Отклонено',published:'Опубликовано',searching:'Поиск',matched:'Найден сменщик',completed:'Завершено'};
+let rrList=[];let _rrUnsub=null;
+function _rrListen(){
+  if(_rrUnsub){_rrUnsub();_rrUnsub=null;}
+  const r=currentUser?.role;let q=null;
+  if(r==='worker'&&currentUser?.workerId)q=db.collection('replacementRequests').where('workerId','==',currentUser.workerId);
+  else if(r==='admin'||r==='owner'||r==='dispatcher')q=db.collection('replacementRequests').where('status','==','pending');
+  if(!q)return;
+  _rrUnsub=q.onSnapshot(snap=>{rrList=snap.docs.map(d=>({id:d.id,...d.data()}));scheduleRender();},()=>{});
+  _cfgUnsubs.push(()=>{if(_rrUnsub){_rrUnsub();_rrUnsub=null;}});
+}
+function _rrDays(a,b){return Math.round((Date.parse(b)-Date.parse(a))/86400000)+1;}
+function _rrRange(r){
+  const n=_rrDays(r.dateFrom,r.dateTo);
+  const[,m1,d1]=r.dateFrom.split('-').map(Number),[,m2,d2]=r.dateTo.split('-').map(Number);
+  const dates=r.dateFrom===r.dateTo?`${d1} ${MGEN[m1].toLowerCase()}`:m1===m2?`${d1}–${d2} ${MGEN[m2].toLowerCase()}`:`${d1} ${MGEN[m1].toLowerCase()} – ${d2} ${MGEN[m2].toLowerCase()}`;
+  return `${dates} · ${n} ${_plural(n,['день','дня','дней'])}`;
+}
+// Ожидающие запросы, видимые пользователю (диспетчер — только его техника, canSeeEquip)
+function rrPendingVisible(){return rrList.filter(r=>r.status==='pending'&&canSeeEquip(r.equipmentId));}
+function openReplaceSheet(){
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
+  const e=_craneMyEquip();
+  if(!myW||!e){alert('Техника не назначена. Обратитесь к администратору.');return;}
+  const o=cfg.objects.find(x=>x.id===e.objectId);
+  document.getElementById('rqEquip').textContent=e.name;
+  document.getElementById('rqObj').textContent=o?o.name:'—';
+  const t=todayISO();
+  document.getElementById('rqFrom').value=t;document.getElementById('rqTo').value=t;
+  document.getElementById('rqFrom').min=t;document.getElementById('rqTo').min=t;
+  document.getElementById('rqReason').value='';document.getElementById('rqError').textContent='';
+  document.getElementById('rqOk').disabled=false;
+  _rqPreview();
+  openMo('moReplace');
+}
+function _rqPreview(){
+  const f=document.getElementById('rqFrom').value,t=document.getElementById('rqTo').value;
+  const el=document.getElementById('rqDays');
+  el.textContent=(f&&t&&t>=f)?(f===t?'Замена на один день':`Замена на ${_rrDays(f,t)} ${_plural(_rrDays(f,t),['день','дня','дней'])}`):'';
+}
+let _rqBusy=false;
+async function submitReplaceRequest(){
+  if(_rqBusy)return;
+  const err=document.getElementById('rqError');
+  const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);const e=_craneMyEquip();
+  if(!myW||!e){err.textContent='Техника не назначена';return;}
+  const f=document.getElementById('rqFrom').value,t=document.getElementById('rqTo').value;
+  const reason=document.getElementById('rqReason').value.trim();
+  if(!f||!t){err.textContent='Укажите даты';return;}
+  if(f<todayISO()){err.textContent='Дата начала не может быть в прошлом';return;}
+  if(t<f){err.textContent='«По» не может быть раньше «С»';return;}
+  if(_rrDays(f,t)>92){err.textContent='Слишком длинный период (максимум 92 дня)';return;}
+  // защита от дубля: уже есть ожидающий/одобренный запрос, пересекающийся по датам
+  const dup=rrList.find(r=>r.workerId===myW.id&&(r.status==='pending'||r.status==='approved')&&r.dateFrom<=t&&r.dateTo>=f);
+  if(dup){err.textContent=`На эти даты уже есть запрос (${_rrRange(dup)} · ${RR_STATUS[dup.status]})`;return;}
+  _rqBusy=true;const btn=document.getElementById('rqOk');btn.disabled=true;
+  const now=new Date().toISOString();
+  const doc={workerId:myW.id,workerName:myW.name||'',equipmentId:e.id,objectId:e.objectId||'',dateFrom:f,dateTo:t,reason,
+    status:'pending',createdAt:now,createdByUid:currentUser.uid,reviewedAt:'',reviewedBy:'',reviewedByUid:'',reviewComment:'',
+    replacementWorkerId:'',history:[{at:now,by:myW.name||'',action:'created'}]};
+  const id=uuid();
+  try{
+    await db.collection('replacementRequests').doc(id).set(doc);
+    if(!rrList.some(r=>r.id===id))rrList.push({id,...doc}); // слушатель мог уже добавить (без дубля)
+    closeMo('moReplace');scheduleRender();
+  }catch(ex){err.textContent='Ошибка: '+ex.message;btn.disabled=false;}
+  finally{_rqBusy=false;}
+}
+const _rrReviewBusy=new Set();
+async function reviewReplaceRequest(id,status){
+  if(_rrReviewBusy.has(id))return;
+  const r=rrList.find(x=>x.id===id);if(!r||r.status!=='pending')return;
+  if(!(currentUser?.role==='admin'||currentUser?.role==='owner'||(currentUser?.role==='dispatcher'&&canSeeEquip(r.equipmentId)))){alert('Нет прав');return;}
+  let comment='';
+  if(status==='rejected'){
+    comment=prompt('Причина отклонения (обязательно):','');if(comment===null)return;
+    comment=comment.trim();if(!comment){alert('Причина отклонения обязательна');return;}
+  }else{
+    if(!confirm(`Одобрить замену: ${r.workerName||''} · ${_rrRange(r)}?`))return;
+    comment=(prompt('Комментарий (необязательно):','')||'').trim();
+  }
+  _rrReviewBusy.add(id);
+  const now=new Date().toISOString(),who=currentUser.name||currentUser.email;
+  try{
+    await db.collection('replacementRequests').doc(id).update({status,reviewedAt:now,reviewedBy:who,reviewedByUid:currentUser.uid,reviewComment:comment,
+      history:[...(r.history||[]),{at:now,by:who,action:status,comment}]});
+  }catch(ex){alert('Ошибка: '+ex.message);}
+  finally{_rrReviewBusy.delete(id);scheduleRender();}
+}
+// Admin/Owner/Dispatcher: блок «Требуется замена» (отдельно от заявок на смены)
+function _mobileReplaceHTML(role){
+  if(!(role==='admin'||role==='owner'||role==='dispatcher'))return'';
+  const list=rrPendingVisible().sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom));
+  if(!list.length)return'';
+  let h=`<div class="mh-head2"><div class="mh-sec">Требуется замена · ${list.length}</div></div><div class="mh-box rr-box">`;
+  for(const r of list){
+    const e=cfg.equipment.find(x=>x.id===r.equipmentId),o=cfg.objects.find(x=>x.id===r.objectId);
+    const busy=_rrReviewBusy.has(r.id);
+    h+=`<div class="rr-card">${_mhIc('swap','#7c3aed','#f3e8ff')}
+      <div class="rr-l"><div class="mh-pend-t">${_tsEsc(r.workerName||'—')} · ${_tsEsc(e?e.name:'—')}</div>
+        ${o?`<div class="mh-pend-s">${_tsEsc(o.name)}</div>`:''}
+        <div class="rr-dates">${_rrRange(r)}</div>
+        ${r.reason?`<div class="mh-pend-n">«${_tsEsc(r.reason)}»</div>`:''}</div>
+      <div class="mh-pend-a rr-a">
+        <button class="mh-pend-rej" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','rejected')">Отклонить</button>
+        <button class="rr-ok" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','approved')">Одобрить</button></div></div>`;
+  }
+  return h+'</div>';
+}
+// Worker: статус своих замен (ожидающие + актуальные решения)
+function _wkReplaceHTML(myW){
+  const today=todayISO();
+  const list=rrList.filter(r=>r.workerId===myW.id&&(r.status==='pending'||r.dateTo>=today)).sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom)).slice(0,3);
+  if(!list.length)return'';
+  let h=`<div class="mh-sec wk-sec">Мои замены</div><div class="wk-card wk-rr mh-fade">`;
+  for(const r of list){
+    h+=`<div class="wk-rr-r"><span class="wk-rr-i"><svg viewBox="0 0 24 24">${MH_ICONS.swap}</svg></span>
+      <div class="wk-row-l"><div class="wk-row-t">Замена · ${_rrRange(r)}</div>
+        <div class="wk-st rr-${r.status}">${RR_STATUS[r.status]||r.status}</div>
+        ${r.reviewComment?`<div class="wk-cl-n">💬 ${_tsEsc(r.reviewComment)}</div>`:''}</div></div>`;
+  }
+  return h+'</div>';
+}
+// «Найти работу» — биржа крановщиков: пока только информационный экран (без фиктивных вакансий)
+function openJobsSheet(){openMo('moJobs');}
 function _workerHome(){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   let h=`<div class="mh-hero wk-hero"><div class="mh-hero-in">
@@ -4621,16 +4848,13 @@ function _workerHome(){
   const todayCells=all.filter(x=>x.date===today).sort((a,b)=>_wkOrd(a.cell)-_wkOrd(b.cell));
   // СЕГОДНЯ: одно место действий (существующие механизмы записи)
   if(myEquip){
-    const crane=isWorkedTimeAssign(myW.id,myEquip.id);
+    // ЕДИНЫЕ действия для любой техники (SANY, QTZ, Liebherr…): способ оплаты влияет только на расчёт
+    const rrPend=rrList.some(r=>r.workerId===myW.id&&r.status==='pending');
     h+=`<div class="mh-sec wk-sec">Сегодня</div><div class="wk-acts mh-fade">`;
-    if(crane){
-      h+=_wkActBtn('day','wk-main','sun','ДЕНЬ',"openCraneDayModal()",todayCells);
-      h+=_wkActBtn('night','','moon','НОЧЬ',"openCraneNightModal()",todayCells);
-    }else{
-      h+=_wkActBtn('night','','moon','НОЧЬ',"_quickShift(2)",todayCells);
-      h+=_wkActBtn('over','','over','ПЕРЕРАБОТКА',"_quickShift(4)",todayCells);
-    }
-    h+=`<button class="wk-act${crane?'':' wk-wide'}" onclick="openAdvanceRequestModal()"><span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS.coin}</svg></span><span class="wk-act-t">АВАНС</span></button></div>`;
+    h+=_wkActBtn('day','wk-main','sun','НАЧАТЬ СМЕНУ',"_wkStartDay()",todayCells);
+    h+=_wkActBtn('night','','moon','НОЧЬ',"_wkStartNight()",todayCells);
+    h+=`<button class="wk-act${rrPend?' is-pend':''}" onclick="openReplaceSheet()"><span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS.swap}</svg></span><span class="wk-act-t">ЗАМЕНА</span>${rrPend?'<span class="wk-act-s">Запрос отправлен</span>':''}</button>`;
+    h+=`<button class="wk-act wk-wide" onclick="openAdvanceRequestModal()"><span class="wk-act-i"><svg viewBox="0 0 24 24">${MH_ICONS.coin}</svg></span><span class="wk-act-t">АВАНС</span></button></div>`;
     // статус сегодняшних записей (только существующие)
     h+=`<div class="wk-card wk-today mh-fade"><div class="wk-cap">Сегодня · ${_wkDate(today)}</div>`;
     if(!todayCells.length)h+='<div class="wk-none">Сегодня смен пока нет</div>';
@@ -4644,6 +4868,7 @@ function _workerHome(){
     }
     h+='</div>';
   }
+  h+=_wkReplaceHTML(myW);
   // ТЕКУЩИЙ ПЕРИОД: факт (workerFactStats) и деньги (calcWorkerEarnings) — как во вкладке «Выплаты»
   const fs=workerFactStats(myW),earn=calcWorkerEarnings(myW);
   const pays=pd.payments[myW.id]||[];
@@ -4672,6 +4897,11 @@ function _workerHome(){
     }
     h+='</div>';
   }
+  // ВОЗМОЖНОСТИ: биржа крановщиков (в разработке — без фиктивных вакансий)
+  h+=`<div class="mh-sec wk-sec">Возможности</div>
+    <button class="wk-card wk-jobs mh-fade" onclick="openJobsSheet()">${_mhIc('search','#2f6bff','#eaf1ff')}
+      <span class="wk-jobs-l"><b>Найти работу</b><span>Биржа крановщиков JUMIX</span><small>Подмены · смены · постоянная работа</small></span>
+      <span class="wk-jobs-soon">Скоро →</span></button>`;
   return h;
 }
 // ── МОБИЛЬНАЯ ГЛАВНАЯ: центр управления. Только UI — все цифры из существующих функций v48
@@ -4748,6 +4978,8 @@ const MH_ICONS={
   coin:'<circle cx="12" cy="12" r="8.5"/><path d="M14.6 9.2c-.5-.8-1.5-1.3-2.6-1.3-1.5 0-2.6.8-2.6 2s1.1 1.7 2.6 2 2.7.8 2.7 2.1-1.2 2.1-2.7 2.1c-1.2 0-2.2-.5-2.7-1.4M12 6.3v1.6M12 16.1v1.6"/>',
   over:'<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 2.5h5"/>',
   pin:'<path d="M12 21s-6.5-6.2-6.5-11a6.5 6.5 0 0 1 13 0c0 4.8-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
+  swap:'<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+  search:'<circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/>',
   wind:'<path d="M3 9h11a3 3 0 1 0-3-3"/><path d="M3 13h15a3 3 0 1 1-3 3"/><path d="M3 17h7"/>'
 };
 // Персональное приветствие по локальному времени: 05–11 утро, 12–17 день, 18–04 вечер.
@@ -4756,8 +4988,12 @@ function _mhGreeting(){
   const h=new Date().getHours();
   const g=h>=5&&h<12?'Доброе утро':h>=12&&h<18?'Добрый день':'Добрый вечер';
   const u=currentUser||{};
+  // не выводить роль вместо имени (Admin / Owner / Worker / Диспетчер …): слова-роли пропускаем
+  const ROLEWORDS=['admin','owner','worker','dispatcher','accountant','partner','pending','админ','администратор','владелец','крановщик','работник','диспетчер','бухгалтер','партнёр','партнер'];
+  const isRole=x=>ROLEWORDS.includes(String(x).toLowerCase());
   let n=(u.firstName||'').trim();
-  if(!n){const full=(u.name||'').trim();n=full&&!full.includes('@')?full.split(/\s+/)[0]:'';}
+  if(n&&isRole(n))n='';
+  if(!n){const full=(u.name||'').trim();n=full&&!full.includes('@')?(full.split(/\s+/).find(x=>!isRole(x))||''):'';}
   return n?`${g}, ${_tsEsc(n)}!`:`${g}!`;
 }
 // ═══════════════════════════════════════════════
@@ -4918,7 +5154,7 @@ function openWeatherSheet(){
 function _mhBellCount(role){
   let n=0;
   if((ROLE_TABS[role]||[]).includes('smeny'))n+=_pendingShiftsCount();
-  if(role==='admin'||role==='owner'||role==='dispatcher')n+=tsPendingCount();
+  if(role==='admin'||role==='owner'||role==='dispatcher')n+=tsPendingCount()+rrPendingVisible().length;
   return n;
 }
 function _mhBell(){
@@ -4970,6 +5206,7 @@ function _mobileHome(role){
   h+=`<div class="mh-svc"><div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div></div>`;
   // погода (Open-Meteo): любой сбой погоды скрывает только её карточку, Главная работает
   try{h+=_mhWeatherHTML();}catch(e){}
+  h+=_mobileReplaceHTML(role);   // запросы замены — отдельный блок, не смешивается со сменами
   h+=_mobilePendingHTML(role);
   // «Работа за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
   if(F){
