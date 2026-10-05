@@ -1,7 +1,7 @@
 'use strict';
 
 // Increment this version to force cache refresh on all clients
-const CACHE_VERSION = 'v51';
+const CACHE_VERSION = 'v53';
 const CACHE_NAME = `jumix-tech-${CACHE_VERSION}`;
 
 // Core assets — always cache these on install
@@ -17,6 +17,8 @@ const OPTIONAL_ASSETS = [
   './icon-512.png',
   './icon-maskable.png',
   './apple-touch-icon.png',
+  './jumix-mark.png',
+  './hero-crane.svg',   // hero мобильной Главной (v53)
 ];
 
 // ─── Install ──────────────────────────────────────────────────────────────────

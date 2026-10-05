@@ -583,55 +583,81 @@ body{padding-left:var(--sidebar-w)}
   .dash-dt{display:none}
   .dash-mb{display:block;max-width:560px;margin:0 auto}
 }
-.mh-head{display:flex;align-items:center;gap:10px;margin:2px 0 14px}
-.mh-head img{height:30px;width:auto}
-.mh-brand{font-size:17px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
-.mh-period{font-size:12px;color:var(--muted);margin-top:2px}
-.mh-sec{font-size:15px;font-weight:800;margin:4px 0 10px;letter-spacing:-.2px}
-.mh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:10px}
-.mh-tile{position:relative;background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);
-  padding:14px 6px 12px;min-height:108px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+/* ── Мобильная Главная v53 (Вариант 2): hero + белые карточки ── */
+.mhead.mhead-hide{display:none!important}
+.mh-hero{position:relative;border-radius:20px;overflow:hidden;min-height:158px;color:#fff;
+  background:#16205a url('hero-crane.svg') center/cover no-repeat}
+.mh-hero::before{content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,rgba(9,15,48,.82) 0%,rgba(9,15,48,.55) 52%,rgba(9,15,48,.05) 100%),
+             linear-gradient(180deg,rgba(9,15,48,.25) 0%,rgba(9,15,48,0) 40%,rgba(9,15,48,.35) 100%)}
+.mh-hero-in{position:relative;padding:14px 16px 34px}
+.mh-hero-brand{display:flex;align-items:center;gap:8px;font-size:18px;font-weight:800;letter-spacing:-.3px}
+.mh-hero-brand img{height:24px;width:auto}
+.mh-hero-per{display:inline-flex;align-items:center;gap:2px;margin-top:8px;background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:2px;backdrop-filter:blur(6px)}
+.mh-hero-per button{width:30px;height:28px;border:0;border-radius:999px;background:rgba(255,255,255,.12);color:#fff;
+  font-size:18px;line-height:1;cursor:pointer;touch-action:manipulation;font-family:inherit}
+.mh-hero-per button:active{background:rgba(255,255,255,.3)}
+.mh-hero-per span{font-size:12.5px;font-weight:600;padding:0 8px;white-space:nowrap}
+.mh-hero-t{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.15;margin-top:12px;text-shadow:0 1px 8px rgba(0,0,0,.25)}
+.mh-hero-s{font-size:11.5px;opacity:.85;margin-top:4px}
+.mh-svc{position:relative;margin-top:-22px;background:var(--card);border-radius:22px;
+  box-shadow:0 8px 28px rgba(20,30,80,.10),0 1px 3px rgba(20,30,80,.06);padding:14px 12px 12px;margin-bottom:16px}
+.mh-sec{font-size:16px;font-weight:800;margin:0 0 10px;letter-spacing:-.3px}
+.mh-svc .mh-sec{margin-left:4px}
+.mh-head2{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin:4px 2px 8px}
+.mh-head2 .mh-sec{margin:0;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.mh-link{flex:none;background:none;border:0;color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit;
+  white-space:nowrap;padding:4px 0;touch-action:manipulation}
+.mh-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.mh-tile{position:relative;background:var(--card);border:1px solid #eef0f5;border-radius:16px;box-shadow:0 2px 8px rgba(20,30,80,.05);
+  padding:12px 4px 10px;min-height:104px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
   text-align:center;cursor:pointer;font-family:inherit;color:var(--text);touch-action:manipulation;-webkit-tap-highlight-color:transparent;min-width:0}
 .mh-tile:active{transform:scale(.97);background:var(--card2)}
-.mh-ic{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:23px;
-  background:rgba(91,91,246,.09);margin-bottom:7px}
+.mh-ic{width:42px;height:42px;border-radius:13px;display:flex;align-items:center;justify-content:center;flex:none;
+  background:var(--b,#eef);margin-bottom:7px}
+.mh-ic svg{width:24px;height:24px;fill:none;stroke:var(--c,#5b5bf6);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .mh-t{font-size:13px;font-weight:700;line-height:1.15}
-.mh-s{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.25;overflow-wrap:anywhere;
+.mh-s{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.25;overflow-wrap:break-word;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .mh-s.warn{color:#d97706;font-weight:700}
-.mh-badge{position:absolute;top:7px;right:7px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#f59e0b;
-  color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center}
-.mh-wide{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--border);border-radius:16px;
-  box-shadow:var(--shadow-sm);padding:12px 14px;cursor:pointer;font-family:inherit;color:var(--text);text-align:left;margin-bottom:18px;
-  touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.mh-wide:active{background:var(--card2)}
-.mh-wide .mh-ic{margin:0;flex:none}
-.mh-wide .mh-arrow{margin-left:auto;color:var(--muted);font-size:20px}
-.mh-pend{background:var(--card);border:1px solid var(--border);border-left:3px solid #f59e0b;border-radius:16px;box-shadow:var(--shadow-sm);
-  padding:11px 14px;margin-bottom:8px}
-.mh-pend-t{font-weight:800;font-size:14px;overflow-wrap:anywhere}
-.mh-pend-s{font-size:12.5px;color:var(--muted);margin-top:2px}
-.mh-pend-n{font-size:12px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
-.mh-pend-a{display:flex;gap:8px;margin-top:10px}
-.mh-pend-a button{flex:1;min-height:42px;border-radius:12px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;touch-action:manipulation}
-.mh-pend-rej{background:var(--card);color:var(--red);border:1px solid rgba(240,92,110,.35)}
-.mh-pend-ok{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+.mh-badge{position:absolute;top:6px;right:6px;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#ef4444;
+  color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(239,68,68,.35)}
+.mh-box{background:var(--card);border-radius:18px;box-shadow:0 4px 18px rgba(20,30,80,.07),0 1px 2px rgba(20,30,80,.05);
+  margin-bottom:16px;overflow:hidden}
+.mh-pend{display:flex;align-items:center;flex-wrap:wrap;gap:8px 10px;padding:12px 12px;border-bottom:1px solid #eef0f5}
+.mh-pend:last-child{border-bottom:0}
+.mh-av{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:800;font-size:13px;letter-spacing:.3px}
+.mh-pend-l{flex:1 1 140px;min-width:0}
+.mh-pend-t{font-weight:800;font-size:13.5px;overflow-wrap:anywhere}
+.mh-pend-s{font-size:12px;color:var(--muted);margin-top:2px}
+.mh-pend-n{font-size:11.5px;color:var(--muted);margin-top:3px;overflow-wrap:anywhere}
+.mh-pend-a{display:flex;gap:6px;flex:0 0 auto;margin-left:auto}
+.mh-pend-a button{min-height:34px;padding:0 12px;border-radius:999px;font-weight:700;font-size:12.5px;cursor:pointer;font-family:inherit;touch-action:manipulation}
+.mh-pend-rej{background:var(--card);color:var(--red);border:1px solid rgba(240,92,110,.45)}
+.mh-pend-ok{background:#2f6bff;color:#fff;border:1px solid #2f6bff;box-shadow:0 2px 8px rgba(47,107,255,.3)}
 .mh-pend-a button:disabled{opacity:.5}
-.mh-eq{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm);padding:11px 14px;margin-bottom:8px;
-  display:flex;align-items:center;gap:10px}
+.mh-eq{display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #eef0f5;cursor:pointer}
+.mh-eq:last-child{border-bottom:0}
+.mh-eq:active{background:var(--card2)}
+.mh-eq .mh-ic{width:46px;height:46px;margin:0;border-radius:14px}
 .mh-eq-l{flex:1;min-width:0}
-.mh-eq-sum{font-weight:800;font-size:14px;color:var(--blue);white-space:nowrap;text-align:right}
-.mh-eq-sum small{display:block;font-size:10px;color:var(--muted);font-weight:600}
-.mh-eq-n{font-weight:800;text-transform:uppercase;font-size:13px;color:var(--accent);overflow-wrap:anywhere}
-.mh-eq-o{font-size:12px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
-.mh-eq-dn{font-weight:700;font-size:14px;margin:4px 0 6px}
-.mh-row{display:flex;justify-content:space-between;gap:10px;font-size:12px;padding:2px 0}
-.mh-row span:first-child{color:var(--muted)}
-.mh-row.tot{border-top:1px solid var(--border);margin-top:5px;padding-top:7px;font-weight:800;font-size:13px}
-.mh-row.tot span:first-child{color:var(--text)}
-.mh-row.tot span:last-child{color:var(--blue)}
-.mh-all{display:block;width:100%;text-align:center;padding:12px;border-radius:14px;border:1px dashed var(--border);background:none;
-  color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:12px}
+.mh-eq-n{font-weight:800;text-transform:uppercase;font-size:13.5px;color:#2f6bff;overflow-wrap:anywhere}
+.mh-eq-o{font-size:12px;color:var(--muted);margin-top:1px;overflow-wrap:anywhere}
+.mh-eq-dn{font-weight:700;font-size:13.5px;margin-top:3px}
+.mh-eq-sum{font-weight:800;font-size:14px;color:#2f6bff;white-space:nowrap;text-align:right;align-self:flex-start}
+.mh-eq-sum small{display:block;font-size:10.5px;color:var(--muted);font-weight:600}
+/* телефон ≤600: hero на всю ширину (компенсируем отступ вкладки 10px) */
+@media(max-width:600px){
+  .mh-hero{margin:-10px -10px 0;border-radius:0 0 24px 24px;padding-top:env(safe-area-inset-top,0px)}
+}
+/* «Смены за период»: карточка-фильтр календаря */
+.sh-card.clk{cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sh-card.clk:active{transform:scale(.98)}
+.sh-card.sel{border:2px solid var(--accent);background:rgba(91,91,246,.06);box-shadow:0 0 0 3px rgba(91,91,246,.10)}
+/* на телефоне фильтр — карточки сверху; !important — у обёртки инлайн display:flex */
+@media(max-width:768px){#shiftFilterWrap{display:none!important}.sh-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 /* Финансы: таблица на desktop, карточки на телефоне */
 .fin-mb{display:none}
 @media(max-width:768px){.fin-dt{display:none}.fin-mb{display:block}}
@@ -791,7 +817,7 @@ body{padding-left:var(--sidebar-w)}
   <div id="shiftSummary" style="margin-bottom:18px"></div>
   <!-- 2. Табель смен (календарь) + легенда -->
   <div class="ph"><h2>Табель смен</h2>
-    <div style="display:flex;gap:8px;align-items:center">
+    <div id="shiftFilterWrap" style="display:flex;gap:8px;align-items:center">
       <span style="font-size:12px;color:var(--muted)">Кран:</span>
       <select class="fi" style="width:auto;padding:5px 10px" id="shiftEquipSel" onchange="renderShifts()">
         <option value="all">Вся техника</option>
@@ -1892,6 +1918,7 @@ async function doRegister() {
 }
 
 async function doLogout() {
+  _startTabApplied=false; // следующий вход снова начнётся с Главной
   unsubAll(); await auth.signOut();
   document.getElementById('authScreen').style.display = 'flex';
   switchAuthTab('login');
@@ -2484,6 +2511,9 @@ function visibleWorkers(){
   return cfg.workers;
 }
 
+// Стартовая вкладка выбирается ОДИН раз за сессию входа: при открытии/перезагрузке/обновлении версии
+// приложение всегда начинает с Главной (последняя вкладка не восстанавливается). Сбрасывается при выходе.
+let _startTabApplied=false;
 function applyRoleVisibility() {
   const role = currentUser?.role || 'pending';
   const allowed = ROLE_TABS[role] || [];
@@ -2491,7 +2521,10 @@ function applyRoleVisibility() {
     const m = btn.getAttribute('onclick')?.match(/'(\w+)'/);
     if (m) btn.style.display = allowed.includes(m[1]) ? '' : 'none';
   });
-  if (!allowed.includes(activeTab)) {
+  if (!_startTabApplied && allowed.includes('dashboard')) {
+    _startTabApplied = true;
+    showTab('dashboard', document.querySelector(`.tab-btn[onclick*="'dashboard'"]`));
+  } else if (!allowed.includes(activeTab)) {
     const first = allowed[0];
     if (first) showTab(first, document.querySelector(`.tab-btn[onclick*="'${first}'"]`));
   }
@@ -2547,6 +2580,8 @@ function periodLabel(year,em){
 }
 
 function chPeriod(d){
+  // смена периода — фильтр техники в «Сменах» сбрасывается на «Вся техника»
+  const _ses=document.getElementById('shiftEquipSel');if(_ses)_ses.value='all';
   curEM+=d;
   if(curEM>12){curEM=1;curYear++;}
   if(curEM<1){curEM=12;curYear--;}
@@ -2891,6 +2926,8 @@ function _renderMobileHead(){
   // «Перенести постоянные статьи» — только в финансовых разделах (на Главной не занимает первый экран)
   const rec=(rb&&rb.style.display!=='none'&&['income','expenses','summary'].includes(activeTab))?`<div class="mhead-rec"><button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button></div>`:'';
   el.innerHTML=`<div class="mhead-row">${title}</div>${per}${rec}`;
+  // на Главной Admin/Owner/Dispatcher шапку заменяет hero (_mobileHome)
+  el.classList.toggle('mhead-hide',home&&(document.body.classList.contains('nav-admin')||document.body.classList.contains('nav-disp')));
 }
 
 // ═══════════════════════════════════════════════
@@ -2911,7 +2948,9 @@ function renderShifts(){
   }
   const mode=sel.value||'all';
   _drawShiftCalendar(mode,eqList);
-  if(mode==='all')_drawShiftSummaryAll();
+  // Телефон: карточки всей техники — основной фильтр (выбранная подсвечена). Desktop: как раньше
+  // (одна техника из списка — её карточка + KPI; нажатие на неё возвращает «Вся техника»).
+  if(mode==='all'||window.innerWidth<=768)_drawShiftSummaryAll(mode==='all'?null:mode);
   else{const equip=eqList.find(e=>e.id===mode);if(equip)_drawShiftSummary(equip);}
 }
 
@@ -3031,9 +3070,11 @@ function _plural(n,f){
 }
 function _daysNightsLabel(d,n){return `${fmtQty(d)} ${_plural(d,['день','дня','дней'])} · ${fmtQty(n)} ${_plural(n,['ночь','ночи','ночей'])}`;}
 // Компактная карточка техники в сводке «Смены за период»
-function _shiftFactCardHTML(title,st,cls,sub){
+// equipId — карточка кликабельна (фильтр календаря), sel — карточка выбрана
+function _shiftFactCardHTML(title,st,cls,sub,equipId,sel){
   const pend=(st.pendDays||st.pendNights)?`<div style="color:var(--yellow);font-size:11px;margin-top:3px">ожидают: ${st.pendDays?fmtQty(st.pendDays)+' дн.':''}${st.pendDays&&st.pendNights?' · ':''}${st.pendNights?fmtQty(st.pendNights)+' ноч.':''}</div>`:'';
-  return `<div class="c-card" style="padding:10px 12px">
+  const act=equipId?` onclick="shiftCardFilter('${equipId}')" role="button" aria-pressed="${sel?'true':'false'}" title="${sel?'Показать всю технику':'Показать в календаре только эту технику'}"`:'';
+  return `<div class="c-card sh-card${equipId?' clk':''}${sel?' sel':''}" style="padding:10px 12px"${act}>
     <div style="font-weight:800;text-transform:uppercase;font-size:13px;color:var(--accent);overflow-wrap:anywhere">${_tsEsc(title)}</div>
     <div style="font-weight:700;font-size:15px;margin-top:4px">${_daysNightsLabel(st.days,st.nights)}</div>
     ${sub?`<div style="color:var(--muted);font-size:11px;margin-top:3px">${sub}</div>`:''}${pend}
@@ -3041,8 +3082,17 @@ function _shiftFactCardHTML(title,st,cls,sub){
 }
 // Сводка «Смены за период»: только техника, относящаяся к периоду по общей логике активности v46
 // (equipActiveInPeriod) И имеющая фактические дни/ночи или ожидающие смены. Карточек «0 / 0» и «ИТОГО» нет.
-function _drawShiftSummaryAll(){
-  let html='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,220px));gap:10px">';
+// Нажатие на карточку: выбрать технику для календаря; повторное нажатие на выбранную — «Вся техника».
+// Меняется только выбор (существующий #shiftEquipSel) и отрисовка; данные смен не затрагиваются.
+function shiftCardFilter(equipId){
+  const sel=document.getElementById('shiftEquipSel');if(!sel)return;
+  sel.value=(sel.value===equipId)?'all':equipId;
+  if(sel.value!==equipId&&sel.value!=='all')sel.value='all'; // техники нет в списке — вся техника
+  renderShifts();
+}
+// Карточки всегда показывают ПОЛНЫЙ факт периода по каждой технике; selId — подсветка выбранной
+function _drawShiftSummaryAll(selId){
+  let html='<div class="sh-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,220px));gap:10px">';
   let n=0;
   for(const e of visibleEquipment()){
     const st=equipFactStats(e);
@@ -3050,7 +3100,7 @@ function _drawShiftSummaryAll(){
     if(!st.days&&!st.nights&&!st.pendDays&&!st.pendNights)continue;
     const _od=equipObjDays(e).filter(x=>x.objectId);
     const _sub=_od.length>1?_od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)}`).join(' · '):(_od.length?_tsEsc(oName(_od[0].objectId)):'');
-    html+=_shiftFactCardHTML(e.name,st,'gn',_sub);n++;
+    html+=_shiftFactCardHTML(e.name,st,'gn',_sub,e.id,e.id===selId);n++;
   }
   html+='</div>';
   document.getElementById('shiftSummary').innerHTML=n?html:'<div class="empty" style="padding:10px 0">Нет техники со сменами за период</div>';
@@ -3067,7 +3117,7 @@ function _drawShiftSummary(equip){
     <div class="kpi bl" style="flex:1;min-width:160px"><div class="kl">Базовый доход (день)</div><div class="kv bl">${fmt(monthRate)} ₸</div><div class="ks">договор/месяц</div></div>`;
   }
   const html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,220px));gap:10px">
-    ${_shiftFactCardHTML(equip.name,st,'gn',(st.shiftBased?'по подтверждённым сменам':'дни техники за период')+` · ${n} дн. периода`)}${money}
+    ${_shiftFactCardHTML(equip.name,st,'gn',(st.shiftBased?'по подтверждённым сменам':'дни техники за период')+` · ${n} дн. периода`,equip.id,true)}${money}
   </div>`;
   document.getElementById('shiftSummary').innerHTML=html;
 }
@@ -4347,26 +4397,33 @@ function _mobilePendingHTML(role){
   const list=pendingShiftList();
   if(!list.length)return'';
   list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||b.date.localeCompare(a.date));
-  let h=`<div class="mh-sec" style="margin-top:6px">Ожидают подтверждения · ${list.length}</div>`;
+  const today=todayISO(),yest=_isoAddDays(today,-1);
+  const AVC=['#2f6bff','#0f9f6e','#f26a1b','#9b51e0','#e08a00','#5b5bf6'];
+  let h=`<div class="mh-head2"><div class="mh-sec">Ожидают подтверждения · ${list.length}</div><button class="mh-link" onclick="_mhAllPending()">Все заявки →</button></div><div class="mh-box">`;
   for(const s of list.slice(0,3)){
     const eqN=s.equip?s.equip.name:s.eqId;
     const who=s.worker?s.worker.name:(s.equip?_shiftOperatorName(s,s.equip):'—');
-    const[y,m,d]=s.date.split('-').map(Number);
-    // тип — существующие названия (_craneShiftLabel); «Полная смена» не дублируем, половина/переработка — как есть
-    let typ=_craneShiftLabel(s).replace(' · Полная смена','');
+    const[,m,d]=s.date.split('-').map(Number);
+    const when=s.date===today?'Сегодня':s.date===yest?'Вчера':`${d} ${MGEN[m].toLowerCase()}`;
+    // тип — существующие названия: Дневная/Ночная смена, половина смены, переработка, подмена
+    const T={1:'Дневная смена',2:'Ночная смена',3:'День + Ночь'};
+    let typ=s.type===4?_craneShiftLabel(s):(T[s.type]||_shiftTypeLabel(s));
+    if(s.type!==4&&s.shiftFraction===0.5)typ+=' · Половина смены';
     if(s.workerId&&s.equip&&!String(s.workerId).startsWith('p_')&&s.workerId!==primaryWorkerAt(s.equip,s.date))typ+=' · Подмена';
+    const ini=(who||'—').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'—';
+    const col=AVC[[...(who||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%AVC.length];
     const busy=_shiftReviewBusy.has(s.docId);
     h+=`<div class="mh-pend">
-      <div class="mh-pend-t">${_tsEsc(who)} · ${_tsEsc(eqN)}</div>
-      <div class="mh-pend-s">${d} ${MGEN[m].toLowerCase()} · ${_tsEsc(typ)}</div>
-      ${(s.note||'').trim()?`<div class="mh-pend-n">💬 ${_tsEsc(s.note.trim())}</div>`:''}
+      <span class="mh-av" style="background:${col}">${_tsEsc(ini)}</span>
+      <div class="mh-pend-l"><div class="mh-pend-t">${_tsEsc(who)} · ${_tsEsc(eqN)}</div>
+        <div class="mh-pend-s">${when} · ${_tsEsc(typ)}</div>
+        ${(s.note||'').trim()?`<div class="mh-pend-n">💬 ${_tsEsc(s.note.trim())}</div>`:''}</div>
       <div class="mh-pend-a">
         <button class="mh-pend-rej" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','rejected',this)">Отклонить</button>
         <button class="mh-pend-ok" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','approved',this)">Подтвердить</button>
       </div></div>`;
   }
-  if(list.length>3)h+=`<button class="mh-all" onclick="_mhAllPending()">Все заявки (${list.length}) →</button>`;
-  return h;
+  return h+'</div>';
 }
 // Кнопки карточки: блокируем обе на время операции, само действие — существующий approveShift()
 async function _mhReview(docId,status,btn){
@@ -4385,50 +4442,70 @@ function _mhAllPending(){
 // Короткая сумма для плитки: 11,6 млн / 850 тыс. (только отображение)
 function fmtMln(n){
   n=Math.round(n||0);const a=Math.abs(n);
-  if(a>=1e6)return (Math.round(n/1e5)/10).toLocaleString('ru-RU',{maximumFractionDigits:1})+' млн';
-  if(a>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс.';
+  if(a>=1e6)return (Math.round(n/1e5)/10).toLocaleString('ru-RU',{maximumFractionDigits:1})+' млн';
+  if(a>=1e3)return Math.round(n/1e3).toLocaleString('ru-RU')+' тыс.';
   return fmt(n);
 }
+// Единый набор линейных SVG-иконок мобильной Главной (без внешних библиотек)
+const MH_ICONS={
+  cal:'<rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 9.5h17M8 3v4M16 3v4"/><path d="M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2"/>',
+  clip:'<rect x="5" y="4.5" width="14" height="16.5" rx="2.2"/><path d="M9 4.5V3.6c0-.6.5-1.1 1.1-1.1h3.8c.6 0 1.1.5 1.1 1.1v.9"/><path d="M8.5 10h7M8.5 13.5h7M8.5 17h4.5"/>',
+  worker:'<path d="M6.5 11a5.5 5.5 0 0 1 11 0"/><path d="M5 11h14"/><path d="M12 5.5V8"/><circle cx="12" cy="14.3" r="2.7"/><path d="M6.5 21c.7-2.6 2.9-4 5.5-4s4.8 1.4 5.5 4"/>',
+  crane:'<path d="M7 21V5M9.5 21V5M7 8l2.5 3M9.5 8 7 11M7 14l2.5 3M9.5 14 7 17"/><path d="M3 5h19M5 3l3.2 2M8.3 3 22 5"/><path d="M17 5v5"/><rect x="15.5" y="10" width="3" height="2.4" rx=".4"/><path d="M5 21h7"/>',
+  bld:'<rect x="4.5" y="3.5" width="10" height="17" rx="1.2"/><path d="M14.5 9h4.3c.4 0 .7.3.7.7v10.8"/><path d="M7.5 7h1M11 7h1M7.5 10.5h1M11 10.5h1M7.5 14h1M11 14h1"/><path d="M8.5 20.5V17h2v3.5M3 20.5h18"/>',
+  wallet:'<path d="M4 7.5h14.5a1.5 1.5 0 0 1 1.5 1.5v10a1.5 1.5 0 0 1-1.5 1.5H5.5A1.5 1.5 0 0 1 4 19V7.5Z"/><path d="M4 7.5 15.5 4c.8-.2 1.5.4 1.5 1.2V7.5"/><path d="M15 13.5h5v3h-5a1.5 1.5 0 0 1 0-3Z"/>'
+};
+// иконка в цветном контейнере (цвет — CSS-переменная --c / --b)
+function _mhIc(k,c,b){return `<span class="mh-ic" style="--c:${c};--b:${b}"><svg viewBox="0 0 24 24">${MH_ICONS[k]}</svg></span>`;}
 function _mobileHome(role){
   const tabs=ROLE_TABS[role]||[];
-  const pl=periodLabel(curYear,curEM);
   const dts=getPeriodDates(curYear,curEM);const last=dts[dts.length-1];
   const disp=role==='dispatcher';
   // Для диспетчера — только его техника/объекты/работники (существующие visible*-фильтры)
   const K=homeFleetKpi(disp?visibleEquipment():null,disp?visibleObjects():null,disp?visibleWorkers():null);
   const tile=(ic,t,sub,act,badge,warn)=>`<button class="mh-tile" onclick="${act}">${badge?`<span class="mh-badge">${badge>99?'99+':badge}</span>`:''}
-    <span class="mh-ic">${ic}</span><span class="mh-t">${t}</span><span class="mh-s${warn?' warn':''}">${sub}</span></button>`;
+    ${ic}<span class="mh-t">${t}</span><span class="mh-s${warn?' warn':''}">${sub}</span></button>`;
   let tiles='';
   if(tabs.includes('smeny')){
     const n=_pendingShiftsCount();
-    tiles+=tile('📅','Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n);
+    tiles+=tile(_mhIc('cal','#2f6bff','#eaf1ff'),'Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n);
   }
   if(tabs.includes('smeny')&&(role==='admin'||role==='owner'||disp)){
     const n=tsPendingCount();
-    tiles+=tile('📋','Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n);
+    tiles+=tile(_mhIc('clip','#e08a00','#fff4df'),'Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n);
   }
-  if(tabs.includes('workers'))tiles+=tile('👷','Работники',`${K.workers} активных`,"showTab('workers')");
-  if(tabs.includes('equip'))tiles+=tile('🏗️','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')");
-  if(tabs.includes('objects'))tiles+=tile('🏢','Объекты',`${K.objects} активных`,"showTab('objects')");
+  if(tabs.includes('workers'))tiles+=tile(_mhIc('worker','#0f9f6e','#e6f7f0'),'Работники',`${K.workers} активных`,"showTab('workers')");
+  if(tabs.includes('equip'))tiles+=tile(_mhIc('crane','#f26a1b','#fff0e6'),'Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')");
+  if(tabs.includes('objects'))tiles+=tile(_mhIc('bld','#5b5bf6','#efeefe'),'Объекты',`${K.objects} активных`,"showTab('objects')");
   // Финансы: доход С НДС за выбранный период из periodFinance() — только при праве view_income
   const F=can('view_income')?periodFinance():null;
-  if(can('view_income')||can('view_expenses'))tiles+=tile('💰','Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)} ₸`:'Доходы · расходы',"openFinanceSheet()");
-  // Шапка (JUMIX Tech + период) — общая мобильная #mHead; плитки «Дашборд» на Главной нет (Итоги — через «Финансы»/«Ещё»)
-  let h=`<div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div>`;
+  if(can('view_income')||can('view_expenses'))tiles+=tile(_mhIc('wallet','#9b51e0','#f5ecfd'),'Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)} ₸`:'Доходы · расходы',can('view_income')?"showTab('income')":"openFinanceSheet()");
+  // HERO — только на мобильной Главной (общая мобильная шапка #mHead на Главной скрыта)
+  let h=`<div class="mh-hero"><div class="mh-hero-in">
+    <div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div>
+    <div class="mh-hero-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button></div>
+    <div class="mh-hero-t">Техника под контролем</div>
+    <div class="mh-hero-s">${disp?'Смены · Техника · Объекты':'Смены · Техника · Объекты · Финансы'}</div>
+  </div></div>`;
+  // «Сервисы» — белая карточка, слегка заходит на hero
+  h+=`<div class="mh-svc"><div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div></div>`;
   h+=_mobilePendingHTML(role);
-  // «Техника за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
+  // «Работа за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
   if(F){
-    h+=`<div class="mh-sec" style="margin-top:6px">Техника за период</div>`;
-    if(!F.equipList.length)h+='<div class="empty" style="padding:10px 0">Нет техники в работе за период</div>';
-    for(const r of F.equipList.slice(0,3)){
-      const m=money3(r.net,r.gross);
-      const od=(r.objDays||[]).filter(x=>x.objectId);
-      const obj=od.length>1?od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)} дн`).join(' · '):(od.length?_tsEsc(oName(od[0].objectId)):'Без объекта');
-      h+=`<div class="mh-eq" onclick="showTab('income')"><div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div>
-        <div class="mh-eq-o">${obj}</div><div class="mh-eq-dn" style="margin:3px 0 0">${_daysNightsLabel(r.days||0,r.nights||0)}</div></div>
-        <div class="mh-eq-sum">${fmt(m.gross)} ₸<small>с НДС</small></div></div>`;
+    h+=`<div class="mh-head2"><div class="mh-sec">Работа за период</div>${F.equipList.length?`<button class="mh-link" onclick="showTab('income')">Вся техника (${F.equipList.length}) →</button>`:''}</div>`;
+    if(!F.equipList.length)h+='<div class="mh-box"><div class="empty" style="padding:14px">Нет техники в работе за период</div></div>';
+    else{
+      h+='<div class="mh-box">';
+      for(const r of F.equipList.slice(0,3)){
+        const m=money3(r.net,r.gross);
+        const od=(r.objDays||[]).filter(x=>x.objectId);
+        const obj=od.length>1?od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)} дн`).join(' · '):(od.length?_tsEsc(oName(od[0].objectId)):'Без объекта');
+        h+=`<div class="mh-eq" onclick="showTab('income')">${_mhIc('crane','#f26a1b','#fff0e6')}<div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div>
+          <div class="mh-eq-o">${obj}</div><div class="mh-eq-dn">${_daysNightsLabel(r.days||0,r.nights||0)}</div></div>
+          <div class="mh-eq-sum">${fmt(m.gross)} ₸<small>с НДС</small></div></div>`;
+      }
+      h+='</div>';
     }
-    if(F.equipList.length>3)h+=`<button class="mh-all" onclick="showTab('income')">Вся техника (${F.equipList.length}) →</button>`;
   }
   return h;
 }
@@ -9109,6 +9186,7 @@ function init(){
       }
     }else{
       currentUser=null;
+      _startTabApplied=false; // следующий вход начнётся с Главной
       unsubAll();
       document.getElementById('authScreen').style.display='flex';
       switchAuthTab('login');
