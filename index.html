@@ -599,6 +599,30 @@ body{padding-left:var(--sidebar-w)}
   font-size:18px;line-height:1;cursor:pointer;touch-action:manipulation;font-family:inherit}
 .mh-hero-per button:active{background:rgba(255,255,255,.3)}
 .mh-hero-per span{font-size:12.5px;font-weight:600;padding:0 8px;white-space:nowrap}
+/* v61: компактный hero Admin/Owner/Dispatcher с погодой */
+.mh-hero-c{min-height:0}
+.mh-hero-c .mh-hero-in{padding:12px 14px 34px}
+.mh-hero-c .mh-hero-t{font-size:21px;margin-top:10px}
+.mh-hwx{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;width:100%;margin-top:12px;padding:9px 12px;border-radius:14px;
+  background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;font-family:inherit;text-align:left;cursor:pointer;touch-action:manipulation}
+.mh-hwx:active{background:rgba(255,255,255,.2)}
+.mh-hwx.na{cursor:default;font-size:12.5px;opacity:.85}
+.mh-hwx>span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;min-width:0}
+.mh-hwx b{font-size:16px;font-weight:800;letter-spacing:-.2px}
+.mh-hwx small{font-size:11px;font-weight:600;opacity:.75}
+.mh-hwx em{font-style:normal;font-size:11px;opacity:.75}
+.hw-t{flex-direction:column;align-items:flex-start!important;gap:0!important;line-height:1.1}
+.hw-t b{font-size:19px}
+.hw-t small{max-width:118px;overflow:hidden;text-overflow:ellipsis}
+.hw-i{width:15px;height:15px;flex:none;fill:none;stroke:#a5b8ff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mh-hwx .mh-wx-arr{width:13px;height:13px}
+.mh-hwx .lv-warn b{color:#fcd34d}.mh-hwx .lv-warn .hw-i{stroke:#fcd34d}
+.mh-hwx .lv-crit b{color:#fca5a5}.mh-hwx .lv-crit .hw-i{stroke:#fca5a5}
+.hw-loc{font-style:normal}
+@media(max-width:380px){.hw-loc{display:none}.mh-hwx{gap:6px 11px}}
+.hw-st{flex-basis:100%;font-size:12px;font-weight:700;padding-top:6px;border-top:1px solid rgba(255,255,255,.12)}
+.hw-st.lv-warn{color:#fcd34d}.hw-st.lv-crit{color:#fca5a5}
 .mh-hero-d{font-size:13px;font-weight:600;opacity:.82;margin-top:4px;text-shadow:0 1px 6px rgba(0,0,0,.25)}
 .mh-per-cap{font-size:12px;color:var(--muted);font-weight:500;margin-top:-4px;margin-bottom:6px}
 .mh-head2 .mh-per-cap{margin:2px 0 0}
@@ -838,7 +862,7 @@ body{padding-left:var(--sidebar-w)}
 .es-h{background:linear-gradient(135deg,#17224f,#2f3f86);color:#fff;border-radius:16px;padding:14px}
 .es-n{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:-.2px}
 .es-o{font-size:13px;opacity:.85;margin-top:2px}.es-p{font-size:12px;opacity:.7;margin-top:6px}
-.es-dn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.es-dn{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .es-dn div{background:var(--card2);border-radius:12px;padding:10px 12px}
 .es-dn b{display:block;font-size:24px;font-weight:800}.es-dn span{font-size:12px;color:var(--muted);font-weight:600}
 .es-objs{margin-top:8px;background:var(--card2);border-radius:12px;padding:4px 12px}
@@ -3009,6 +3033,7 @@ const MNAV_SVG={
   doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
   crane:'<path d="M4 21h16M6 21V6h9M6 6 3 9M15 6l4 3M12 6V3M12 3h6"/><path d="M9 9v4M9 13h3"/>',
   coins:'<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3"/><ellipse cx="15" cy="14" rx="6" ry="3"/><path d="M9 17v.5c0 1.7 2.7 3 6 3s6-1.3 6-3V14"/>',
+  worker:'<path d="M6.5 11a5.5 5.5 0 0 1 11 0"/><path d="M5 11h14"/><path d="M12 5.5V8"/><circle cx="12" cy="14.3" r="2.7"/><path d="M6.5 21c.7-2.6 2.9-4 5.5-4s4.8 1.4 5.5 4"/>',
   more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
   building:'<rect x="4.5" y="3.5" width="10" height="17" rx="1.2"/><path d="M14.5 9h4.3c.4 0 .7.3.7.7v10.8"/><path d="M7.5 7h1M11 7h1M7.5 10.5h1M11 10.5h1M7.5 14h1M11 14h1"/><path d="M8.5 20.5V17h2v3.5M3 20.5h18"/>'
 };
@@ -3021,19 +3046,21 @@ function _mnavItems(role){
     {icon:'wallet',label:'Выплаты',tab:'mypay',match:['mypay']},
     {icon:'user',label:'Профиль',tab:'profile',match:['profile']},
   ];
+  // Admin/Owner: Главная | Смены | Работники | Финансы | Ещё («Техника» — плитка на Главной и «Ещё»)
   if(role==='admin'||role==='owner')return [
     {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
     {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny'],badge:'shifts'},
-    {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
+    {icon:'worker',label:'Работники',tab:'workers',match:['workers']},
     {icon:'coins',label:'Финансы',sheet:'finance',match:['income','expenses','summary']},
-    {icon:'more',label:'Ещё',sheet:'more',match:['workers','objects','partners','settings','profile']},
+    {icon:'more',label:'Ещё',sheet:'more',match:['equip','objects','partners','settings','profile']},
   ];
+  // Dispatcher: та же схема, но без финансов (прав нет) — на месте «Финансы» доступная ему «Техника»
   if(role==='dispatcher')return [
     {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
     {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny'],badge:'shifts'},
+    {icon:'worker',label:'Работники',tab:'workers',match:['workers']},
     {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
-    {icon:'building',label:'Объекты',tab:'objects',match:['objects']},
-    {icon:'more',label:'Ещё',sheet:'more',match:['workers','profile'],badge:'timesheets'},
+    {icon:'more',label:'Ещё',sheet:'more',match:['objects','profile'],badge:'timesheets'},
   ];
   return null; // прочие роли — без нижней навигации (остаётся drawer)
 }
@@ -3134,7 +3161,10 @@ function openFinanceSheet(){
 function openMoreSheet(){
   const role=currentUser?.role;const tabs=ROLE_TABS[role]||[];
   let h='';
-  if(tabs.includes('workers'))h+=_sheetBtn('👥','Работники',"closeMo('moMore');showTab('workers')");
+  // «Работники» — в нижней навигации Admin/Owner/Dispatcher; «Техника» Admin/Owner — здесь (в навигации её нет)
+  const inNav=role==='admin'||role==='owner'||role==='dispatcher';
+  if(tabs.includes('workers')&&!inNav)h+=_sheetBtn('👥','Работники',"closeMo('moMore');showTab('workers')");
+  if(tabs.includes('equip')&&(role==='admin'||role==='owner'))h+=_sheetBtn('🏗','Техника',"closeMo('moMore');showTab('equip')");
   if(tabs.includes('objects'))h+=_sheetBtn('🏢','Объекты',"closeMo('moMore');showTab('objects')");
   if(tabs.includes('partners'))h+=_sheetBtn('🤝','Партнёры',"closeMo('moMore');showTab('partners')");
   // Диспетчер: табели на согласование (вместо отдельной кнопки навигации)
@@ -4935,26 +4965,6 @@ async function reviewReplaceRequest(id,status){
   }catch(ex){alert('Ошибка: '+ex.message);}
   finally{_rrReviewBusy.delete(id);scheduleRender();}
 }
-// Admin/Owner/Dispatcher: блок «Требуется замена» (отдельно от заявок на смены)
-function _mobileReplaceHTML(role){
-  if(!(role==='admin'||role==='owner'||role==='dispatcher'))return'';
-  const list=rrPendingVisible().sort((a,b)=>a.dateFrom.localeCompare(b.dateFrom));
-  if(!list.length)return'';
-  let h=`<div class="mh-head2"><div class="mh-sec">Требуется замена · ${list.length}</div></div><div class="mh-box rr-box">`;
-  for(const r of list){
-    const e=cfg.equipment.find(x=>x.id===r.equipmentId),o=cfg.objects.find(x=>x.id===r.objectId);
-    const busy=_rrReviewBusy.has(r.id);
-    h+=`<div class="rr-card">${_mhIc('swap','#7c3aed','#f3e8ff')}
-      <div class="rr-l"><div class="mh-pend-t">${_tsEsc(r.workerName||'—')} · ${_tsEsc(e?e.name:'—')}</div>
-        ${o?`<div class="mh-pend-s">${_tsEsc(o.name)}</div>`:''}
-        <div class="rr-dates">${_rrRange(r)}</div>
-        ${r.reason?`<div class="mh-pend-n">«${_tsEsc(r.reason)}»</div>`:''}</div>
-      <div class="mh-pend-a rr-a">
-        <button class="mh-pend-rej" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','rejected')">Отклонить</button>
-        <button class="rr-ok" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','approved')">Одобрить</button></div></div>`;
-  }
-  return h+'</div>';
-}
 // Worker: статус своих замен (ожидающие + актуальные решения)
 function _wkReplaceHTML(myW){
   const today=todayISO();
@@ -5096,19 +5106,10 @@ function _mhRRRow(r){
         <button class="mh-pend-ok" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','approved')">Подтвердить</button>
       </div></div>`;
 }
-function _mobilePendingHTML(role){
-  if(!(role==='admin'||role==='owner'||role==='dispatcher')||!can('approve_shifts'))return'';
-  const list=pendingShiftList();
-  if(!list.length)return'';
-  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||b.date.localeCompare(a.date));
-  const today=todayISO(),yest=_isoAddDays(today,-1);
-  let h=`<div class="mh-head2"><div class="mh-sec">Ожидают подтверждения · ${list.length}</div><button class="mh-link" onclick="_mhAllPending()">Все заявки →</button></div><div class="mh-box">`;
-  for(const s of list.slice(0,3))h+=_mhShiftRow(s,today,yest);
-  return h+'</div>';
-}
-// ── DISPATCHER: «Требуют внимания» — смены на подтверждение + запросы замены (по его технике), новые сверху.
-// Механизмы — существующие approveShift() / reviewReplaceRequest(). Нет заявок — блока нет.
-function _dspAttentionHTML(){
+// ── «Требуют внимания» (Admin/Owner/Dispatcher) — смены на подтверждение + запросы замены, новые сверху, максимум 3.
+// Dispatcher — только по своей технике (pendingShiftList / rrPendingVisible). Механизмы — существующие
+// approveShift() / reviewReplaceRequest(). Нет заявок — блока нет.
+function _mhAttentionHTML(){
   if(!can('approve_shifts'))return'';
   const items=[
     ...pendingShiftList().map(x=>({k:'shift',at:x.createdAt||x.date,x})),
@@ -5155,12 +5156,14 @@ function openEquipPeriodSheet(eid){
   const fs=equipFactStats(e);
   const od=equipObjDays(e).filter(x=>x.objectId);
   // ночи по объектам (подтверждённые; объект — на дату смены)
+  // подмены: подтверждённые смены не основного оператора (партнёры не считаются) — как в карточке техники
+  let subs=0;for(const[d,c] of cellEntries(pd.shifts[e.id]))if(c.type&&shiftApproved(c)&&c.workerId&&!String(c.workerId).startsWith('p_')&&c.workerId!==primaryWorkerAt(e,d))subs++;
   const nByObj={};for(const[d,c] of cellEntries(pd.shifts[e.id])){if(c.type&&shiftApproved(c)&&shiftKinds(c.type).includes('night')){const o=equipObjectIdAt(e,d);nByObj[o]=(nByObj[o]||0)+shiftFrac(c);}}
   const curObj=od.length?od[0].objectId:e.objectId;
   let h=`<div class="es-h"><div class="es-n">${_tsEsc(e.name)}</div><div class="es-o">${od.length===1||!od.length?_tsEsc(oName(curObj)||'Без объекта'):'Несколько объектов'}</div>
     <div class="es-p">${_mobPeriodText()}</div></div>
     <div class="ws-sec">Работа</div>
-    <div class="es-dn"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div><div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div></div>`;
+    <div class="es-dn"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div><div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div><div><b>${subs}</b><span>${_plural(subs,['подмена','подмены','подмен'])}</span></div></div>`;
   if(od.length>1){
     h+='<div class="es-objs">';
     for(const x of od){const n=nByObj[x.objectId]||0;h+=`<div><b>${_tsEsc(oName(x.objectId))}</b><span>${fmtQty(x.days)} ${_plural(x.days,['день','дня','дней'])}${n?` · ${fmtQty(n)} ${_plural(n,['ночь','ночи','ночей'])}`:''}</span></div>`;}
@@ -5398,6 +5401,27 @@ function _mhWeatherHTML(){
     <div class="mh-wx-foot"><span>${alertLine}</span><span>${stale?'Обновлено ':''}${_wxUpdated(d.fetchedAt)} ›</span></div>
   </div>`;
 }
+// Компактная погода внутри hero (Admin/Owner/Dispatcher): те же данные _wx и пороги windThresholds()/windStatus().
+// Выделяется только показатель выше порога и предупреждение; нажатие — существующий лист openWeatherSheet().
+function _mhHeroWeatherHTML(){
+  _wxEnsure();
+  const d=_wx.data;
+  if(!d||!d.current)return _wx.error?`<div class="mh-hwx na"><svg class="hw-i" viewBox="0 0 24 24">${MH_ICONS.wind}</svg><span>Погода временно недоступна</span></div>`:'';
+  const c=d.current,T=windThresholds(),st=windStatus(c.wind,c.gust);
+  const wl=_wxLevel(c.wind,T.windWarn,T.windCrit),gl=_wxLevel(c.gust,T.gustWarn,T.gustCrit);
+  const t=c.temp!=null?`${_wxR(c.temp)>0?'+':''}${_wxR(c.temp)}°`:'—';
+  const alerts=typeof officialWeatherAlerts==='function'?officialWeatherAlerts(d.loc):null;
+  const off=Array.isArray(alerts)&&alerts.length?(alerts[0].title||'Официальное предупреждение'):'';
+  const warn=off||(st.k!=='ok'?st.t:'');
+  // нет связи / данные устарели — честно показываем время последнего обновления
+  const stale=_wx.error||Date.now()-d.fetchedAt>WEATHER_TTL_MS*2;
+  return `<button class="mh-hwx st-${st.k}" onclick="openWeatherSheet()" aria-label="Погода · ${_tsEsc(d.loc.name)}">
+    <span class="hw-t"><b>${t}</b><small>${_tsEsc(weatherCodeText(c.code))}${stale?' · обновлено '+_wxUpdated(d.fetchedAt):`<i class="hw-loc"> · ${_tsEsc(d.loc.name)}</i>`}</small></span>
+    <span class="hw-w lv-${wl}"><svg class="hw-i" viewBox="0 0 24 24">${MH_ICONS.wind}</svg><b>${_wxR(c.wind)}</b><small>м/с</small>${_wxArrow(c.dir)}<em>${windDirName(c.dir)}</em></span>
+    <span class="hw-g lv-${gl}"><svg class="hw-i" viewBox="0 0 24 24"><path d="M4 17 10 11l4 4 6-8"/><path d="M15 7h5v5"/></svg><small>Порывы</small><b>${_wxR(c.gust)}</b><small>м/с</small></span>
+    ${warn?`<span class="hw-st lv-${off?'crit':st.k}">⚠ ${_tsEsc(warn)}</span>`:''}
+  </button>`;
+}
 // Нижний лист: ветер сейчас и на ближайшие часы (без лишних погодных данных)
 function openWeatherSheet(){
   const d=_wx.data;if(!d||!d.current)return;
@@ -5411,7 +5435,7 @@ function openWeatherSheet(){
   if(!d.hours.length)h+='<div class="empty" style="padding:10px">Почасовой прогноз недоступен</div>';
   document.getElementById('wxTitle').textContent='Погода · '+d.loc.name;
   document.getElementById('wxBody').innerHTML=h+
-    `<div class="wx-note">Пороги JUMIX (пользовательские, не нормативные ограничения): ветер ${T.windWarn} / ${T.windCrit} м/с, порывы ${T.gustWarn} / ${T.gustCrit} м/с. Допустимый ветер — по паспорту крана.</div>
+    `<div class="wx-note">Пороги JUMIX (пользовательские, не нормативные ограничения): ветер ${T.windWarn} / ${T.windCrit} м/с, порывы ${T.gustWarn} / ${T.gustCrit} м/с. Допустимый ветер — по паспорту крана. ${(()=>{const a=typeof officialWeatherAlerts==='function'?officialWeatherAlerts(d.loc):null;return Array.isArray(a)&&a.length?'⚠ '+_tsEsc(a[0].title||'Официальное предупреждение'):'Официальные предупреждения не подключены.';})()}</div>
      <div class="wx-src">Источник: Open-Meteo · обновлено ${_wxUpdated(d.fetchedAt)}${_wx.error?' · нет связи, показаны последние данные':''}</div>`;
   openMo('moWeather');
 }
@@ -5461,24 +5485,22 @@ function _mobileHome(role){
   const tiles=mk(pri,'pri')+mk(sec,'sec');
   // HERO — только на мобильной Главной: бренд + колокольчик, период, персональное приветствие
   const bell=_mhBellCount(role);
-  let h=`<div class="mh-hero"><div class="mh-hero-in">
+  // погода — часть hero (любой сбой погоды скрывает только её, Главная работает)
+  let wx='';try{wx=_mhHeroWeatherHTML();}catch(e){}
+  let h=`<div class="mh-hero mh-hero-c"><div class="mh-hero-in">
     <div class="mh-hero-top"><div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div>
       <button class="mh-bell" onclick="_mhBell()" aria-label="Уведомления"><svg viewBox="0 0 24 24">${MH_ICONS.bell}</svg>${bell?`<span class="mh-bell-n">${bell>99?'99+':bell}</span>`:''}</button></div>
-    <div class="mh-hero-t">${_mhGreeting()}</div>${_mhTodayLine()}
+    <div class="mh-hero-t">${_mhGreeting()}</div>${_mhTodayLine()}${wx}
   </div></div>`;
   // «Сервисы» — белая карточка, слегка заходит на hero
   h+=`<div class="mh-svc"><div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div></div>`;
-  // DISPATCHER: Сервисы → Требуют внимания → Погода → Текущий период (без финансов)
+  // Hero (с погодой) → Сервисы → Требуют внимания (только если есть) → Текущий период
+  h+=_mhAttentionHTML();
+  // DISPATCHER: «Текущий период» без финансов
   if(disp){
-    h+=_dspAttentionHTML();
-    try{h+=_mhWeatherHTML();}catch(e){}
     h+=_dspEquipTodayHTML();
     return h;
   }
-  // погода (Open-Meteo): любой сбой погоды скрывает только её карточку, Главная работает
-  try{h+=_mhWeatherHTML();}catch(e){}
-  h+=_mobileReplaceHTML(role);   // запросы замены — отдельный блок, не смешивается со сменами
-  h+=_mobilePendingHTML(role);
   // «Текущий период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
   if(F){
     h+=`<div class="mh-head2"><div><div class="mh-sec">Текущий период</div>${_mhPerCap()}</div>${F.equipList.length?`<button class="mh-link" onclick="_homeGo('income')">Вся техника (${F.equipList.length}) →</button>`:''}</div>`;
