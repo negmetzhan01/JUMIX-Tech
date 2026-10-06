@@ -599,6 +599,10 @@ body{padding-left:var(--sidebar-w)}
   font-size:18px;line-height:1;cursor:pointer;touch-action:manipulation;font-family:inherit}
 .mh-hero-per button:active{background:rgba(255,255,255,.3)}
 .mh-hero-per span{font-size:12.5px;font-weight:600;padding:0 8px;white-space:nowrap}
+.mh-hero-d{font-size:13px;font-weight:600;opacity:.82;margin-top:4px;text-shadow:0 1px 6px rgba(0,0,0,.25)}
+.mh-per-cap{font-size:12px;color:var(--muted);font-weight:500;margin-top:-4px;margin-bottom:6px}
+.mh-head2 .mh-per-cap{margin:2px 0 0}
+.mhead-cur span{font-size:12px;color:var(--muted);font-weight:600;padding:0}
 .mh-hero-t{font-size:22px;font-weight:800;letter-spacing:-.4px;line-height:1.15;margin-top:12px;text-shadow:0 1px 8px rgba(0,0,0,.25);
   overflow-wrap:anywhere}
 .mh-svc{position:relative;margin-top:-22px;background:var(--card);border-radius:22px;
@@ -797,6 +801,57 @@ body{padding-left:var(--sidebar-w)}
 .wk-cl-eq{font-size:11px;color:var(--muted);font-weight:600}
 .wk-cl-n{font-size:11.5px;color:var(--muted);margin-top:2px;overflow-wrap:anywhere}
 .wk-cl-a{flex:none;display:flex;gap:4px}
+/* v59: карточка работника, листы «Работник» и «Техника за период» */
+.wk2{padding:14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wk2:active{transform:scale(.99)}
+.wk2-h{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.wk2-hl{min-width:0}
+.wk2-n{font-size:16px;font-weight:800;overflow-wrap:anywhere}
+.wk2-t{font-size:12px;color:var(--muted)}
+.wk2-st{flex:none;font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.wk2-st.s-ok{background:#ecfdf5;color:#047857}.wk2-st.s-debt{background:#fff1f2;color:#be123c}
+.wk2-st.s-over{background:#fff8eb;color:#b45309}.wk2-st.s-arch{background:#f1f3f7;color:#475569}
+.wk2-eq{display:flex;flex-direction:column;font-size:12.5px;color:var(--muted);margin-top:6px}
+.wk2-eq b{color:#2f6bff;font-size:13.5px;text-transform:uppercase}
+.wk2-kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:10px}
+.wk2-kpi div{background:var(--card2);border-radius:12px;padding:8px 6px;text-align:center}
+.wk2-kpi b{display:block;font-size:20px;font-weight:800;line-height:1.1}
+.wk2-kpi span{font-size:11px;color:var(--muted);font-weight:600}
+.wk2-f{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #eef0f5}
+.wk2-f span{display:block;font-size:11px;color:var(--muted);font-weight:600}
+.wk2-f b{font-size:16px;font-weight:800}.wk2-f b.neg,.ws-calc b.neg{color:#b45309}
+.wk2-more{background:rgba(91,91,246,.08);color:var(--accent);border:0;border-radius:10px;padding:8px 12px;font-weight:700;font-size:12.5px;
+  cursor:pointer;font-family:inherit;white-space:nowrap}
+.ws-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ws-n{font-size:20px;font-weight:800;letter-spacing:-.3px}.ws-t{font-size:12.5px;color:var(--muted)}
+.ws-eq{font-size:13px;color:var(--muted);margin-top:6px}.ws-eq b{color:#2f6bff}
+.ws-sec{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.ws-calc{background:var(--card2);border-radius:14px;padding:4px 12px}
+.ws-calc>div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid #e6e9f2;font-size:13.5px}
+.ws-calc>div:first-child{border-top:0}
+.ws-calc span{color:var(--muted)}.ws-calc b{white-space:nowrap}
+.ws-calc .muted span,.ws-calc .muted b{color:var(--muted);font-weight:500}
+.ws-calc .sub b{color:var(--text)}
+.ws-calc .tot{border-top:2px solid #d7dbe6}.ws-calc .tot span{color:var(--text);font-weight:800}.ws-calc .tot b{font-size:16px;color:#2f6bff}
+.ws-shifts .wk-rd-r{padding:5px 0}
+.ws-acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.ws-acts .btn{flex:1 1 30%;min-height:42px}
+.es-h{background:linear-gradient(135deg,#17224f,#2f3f86);color:#fff;border-radius:16px;padding:14px}
+.es-n{font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:-.2px}
+.es-o{font-size:13px;opacity:.85;margin-top:2px}.es-p{font-size:12px;opacity:.7;margin-top:6px}
+.es-dn{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.es-dn div{background:var(--card2);border-radius:12px;padding:10px 12px}
+.es-dn b{display:block;font-size:24px;font-weight:800}.es-dn span{font-size:12px;color:var(--muted);font-weight:600}
+.es-objs{margin-top:8px;background:var(--card2);border-radius:12px;padding:4px 12px}
+.es-objs div{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid #e6e9f2;font-size:13px}
+.es-objs div:first-child{border-top:0}.es-objs span{color:var(--muted);white-space:nowrap}
+.es-ops div{font-size:13.5px;font-weight:600;padding:3px 0}
+.es-tot{margin-top:10px}
+/* v58: Dispatcher — «Требуют внимания», «Техника сегодня» */
+.mh-rr-tag{color:#7c3aed;font-weight:700}
+.dsp-dn{font-weight:600;font-size:13px;color:var(--muted)}
+.dsp-dn i{font-style:normal;font-weight:800;margin-left:2px}
+.dt-ok{color:#059669}.dt-p{color:#d97706}.dt-r{color:#dc2626}.dt-n{color:#9aa3b5}
+.dsp-go{flex:none;color:var(--muted);font-size:22px;align-self:center}
 /* v57: замена, возможности */
 .rr-box{border-left:3px solid #7c3aed}
 .rr-card{display:flex;align-items:flex-start;flex-wrap:wrap;gap:8px 10px;padding:12px;border-bottom:1px solid #eef0f5}
@@ -921,6 +976,16 @@ body{padding-left:var(--sidebar-w)}
     <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moFinance')">Закрыть</button></div>
   </div>
 </div>
+<!-- Подробная карточка работника (мобильный лист) -->
+<div class="mo hidden" id="moWkSheet" onclick="closeMoCheck('moWkSheet',event)">
+  <div class="mo-box"><div id="wkSheetBody"></div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moWkSheet')">Закрыть</button></div></div>
+</div>
+<!-- Детализация техники за период (мобильный лист) -->
+<div class="mo hidden" id="moEqSheet" onclick="closeMoCheck('moEqSheet',event)">
+  <div class="mo-box"><div id="eqSheetBody"></div>
+    <div class="mo-acts"><button class="btn btn-secondary" onclick="closeMo('moEqSheet')">Закрыть</button></div></div>
+</div>
 <!-- Запрос замены (Worker) -->
 <div class="mo hidden" id="moReplace" onclick="closeMoCheck('moReplace',event)">
   <div class="mo-box">
@@ -1037,7 +1102,6 @@ body{padding-left:var(--sidebar-w)}
   <div class="cal-legend">
     <span><span class="cb cb-day">Д</span> День</span>
     <span><span class="cb cb-night">Н</span> Ночь</span>
-    <span><span class="cb cb-over">П</span> Переработка</span>
     <span><span class="cb cb-sub">⇄</span> Подмена</span>
     <span><span class="cb cb-pending">?</span> Ожидает</span>
     <span><span class="cb cb-rejected">Н</span> Отклонено</span>
@@ -1314,7 +1378,7 @@ body{padding-left:var(--sidebar-w)}
       <div class="frow frow-3">
         <div class="fg"><label class="fl">День ₸ / смена</label><input class="fi" type="number" id="eqCraneDay" placeholder="30000"></div>
         <div class="fg"><label class="fl">Ночь ₸ / смена</label><input class="fi" type="number" id="eqCraneNight" placeholder="30000"></div>
-        <div class="fg"><label class="fl">Переработка ₸ / час</label><input class="fi" type="number" id="eqCraneHour" placeholder="4000"></div>
+        <div class="fg" style="display:none"><!-- «Переработка» не используется; значение старой ставки сохраняется --><label class="fl">Переработка ₸ / час</label><input class="fi" type="number" id="eqCraneHour" placeholder="4000"></div>
       </div>
       <div style="color:var(--muted);font-size:11px;margin-bottom:10px">Условия конкретного назначения (этот работник ↔ эта техника). Тип техники лишь предлагает режим по умолчанию — его можно изменить. Хранятся в закрытой коллекции (диспетчер не видит). Изменение применяется к будущим сменам — прошлые подтверждённые суммы не пересчитываются.</div>
     </div>
@@ -1714,7 +1778,7 @@ body{padding-left:var(--sidebar-w)}
       <button class="sopt" id="sopt1" onclick="selSOpt(1)">Д<br>День</button>
       <button class="sopt" id="sopt2" onclick="selSOpt(2)">Н<br>Ночь</button>
       <button class="sopt" id="sopt3" onclick="selSOpt(3)">Д+Н<br>Оба</button>
-      <button class="sopt" id="sopt4" onclick="selSOpt(4)">П<br>Перераб.</button>
+      <button class="sopt" id="sopt4" onclick="selSOpt(4)" style="display:none" title="Старая запись «Переработка» (только просмотр/сохранение существующей)">П<br>Перераб.</button>
     </div>
     <div class="fg"><label class="fl">Кто вышел на смену</label>
       <select class="fi" id="shWorker"></select></div>
@@ -1849,7 +1913,6 @@ body{padding-left:var(--sidebar-w)}
     <div class="fg"><label class="fl">Тип смены</label>
       <select class="fi" id="wsType">
         <option value="2">🌙 Ночная смена</option>
-        <option value="4">⚡ Переработка</option>
       </select>
     </div>
     <div class="fg"><label class="fl">Комментарий</label>
@@ -2743,6 +2806,7 @@ function applyRoleVisibility() {
   });
   if (!_startTabApplied && allowed.includes('dashboard')) {
     _startTabApplied = true;
+    _viewPeriod = null; // новый вход: период просмотра разделов не переносится от прошлого пользователя
     showTab('dashboard', document.querySelector(`.tab-btn[onclick*="'dashboard'"]`));
   } else if (!allowed.includes(activeTab)) {
     const first = allowed[0];
@@ -2806,9 +2870,44 @@ function chPeriod(d){
   if(curEM>12){curEM=1;curYear++;}
   if(curEM<1){curEM=12;curYear--;}
   listenPeriod(curYear,curEM);
+  _rememberViewPeriod();
   // checkRecurringBar runs after data loads (async)
   setTimeout(checkRecurringBar, 800);
   renderPeriodBar();
+}
+// ── ТЕКУЩИЙ РАСЧЁТНЫЙ ПЕРИОД vs ПЕРИОД ПРОСМОТРА (мобильный интерфейс) ──
+// Главная, «Техника», «Объекты» на мобильном ВСЕГДА показывают текущий расчётный период (по сегодняшней дате).
+// Период, выбранный стрелками в разделах анализа (Смены, Доходы, Расходы, Итоги, Работники…), запоминается
+// в _viewPeriod и восстанавливается при возврате в эти разделы. Данные по-прежнему грузит один listenPeriod()
+// (curYear/curEM) — модель Firestore и расчёты не меняются. Desktop — как раньше (общий период).
+const CUR_STATE_TABS=['dashboard','equip','objects'];
+const PERIOD_VIEW_TABS=['smeny','myshifts','mypay','workers','partners','income','expenses','summary'];
+let _viewPeriod=null,_keepPeriodOnce=false;
+function currentBillingPeriod(){return periodOfDate(todayISO());}
+function isCurrentBillingPeriod(){const c=currentBillingPeriod();return c.y===curYear&&c.em===curEM;}
+function _isMobileUI(){return (window.innerWidth||1024)<=768;}
+function _rememberViewPeriod(){_viewPeriod=isCurrentBillingPeriod()?null:{y:curYear,em:curEM};}
+// Переключить загруженный период без сброса фильтров раздела
+function _setPeriod(y,em){
+  if(y===curYear&&em===curEM)return;
+  curYear=y;curEM=em;listenPeriod(curYear,curEM);
+  setTimeout(checkRecurringBar,800);
+  renderPeriodBar();
+}
+// Перед показом вкладки (только мобильный): текущий период для «текущего состояния», запомненный — для разделов
+function _periodForTab(name){
+  if(!_isMobileUI())return;
+  if(CUR_STATE_TABS.includes(name)){
+    if(_keepPeriodOnce){_keepPeriodOnce=false;return;}   // переход из архива в нужный период
+    if(!isCurrentBillingPeriod()){const c=currentBillingPeriod();_setPeriod(c.y,c.em);}
+  }else if(PERIOD_VIEW_TABS.includes(name)&&_viewPeriod){
+    _setPeriod(_viewPeriod.y,_viewPeriod.em);
+  }
+}
+// Переход с Главной / из «текущего состояния» в раздел — открывается ТЕКУЩИЙ период (те же цифры, что на Главной)
+function _homeGo(name){
+  _viewPeriod=null;
+  showTab(name,document.querySelector(`.tab-btn[onclick*="'${name}'"]`));
 }
 
 async function checkRecurringBar(){
@@ -2876,6 +2975,7 @@ function pName(id){const p=cfg.partners.find(x=>x.id===id);return p?p.name:id||'
 // ═══════════════════════════════════════════════
 let activeTab='smeny';
 function showTab(name,btn){
+  _periodForTab(name);
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('pane-'+name).classList.add('active');
@@ -2909,7 +3009,8 @@ const MNAV_SVG={
   doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>',
   crane:'<path d="M4 21h16M6 21V6h9M6 6 3 9M15 6l4 3M12 6V3M12 3h6"/><path d="M9 9v4M9 13h3"/>',
   coins:'<ellipse cx="9" cy="7" rx="6" ry="3"/><path d="M3 7v5c0 1.7 2.7 3 6 3s6-1.3 6-3"/><ellipse cx="15" cy="14" rx="6" ry="3"/><path d="M9 17v.5c0 1.7 2.7 3 6 3s6-1.3 6-3V14"/>',
-  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+  more:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  building:'<rect x="4.5" y="3.5" width="10" height="17" rx="1.2"/><path d="M14.5 9h4.3c.4 0 .7.3.7.7v10.8"/><path d="M7.5 7h1M11 7h1M7.5 10.5h1M11 10.5h1M7.5 14h1M11 14h1"/><path d="M8.5 20.5V17h2v3.5M3 20.5h18"/>'
 };
 // Пункты нижней навигации по роли. tab — вкладка showTab; sheet — открыть лист; для подсветки
 // дочерних экранов используется match (список вкладок, при которых пункт активен).
@@ -2930,9 +3031,9 @@ function _mnavItems(role){
   if(role==='dispatcher')return [
     {icon:'home',label:'Главная',tab:'dashboard',match:['dashboard']},
     {icon:'calendar',label:'Смены',tab:'smeny',match:['smeny'],badge:'shifts'},
-    {icon:'doc',label:'Табели',sheet:'tsheets',match:[],badge:'timesheets'},
     {icon:'crane',label:'Техника',tab:'equip',match:['equip']},
-    {icon:'user',label:'Профиль',tab:'profile',match:['profile']},
+    {icon:'building',label:'Объекты',tab:'objects',match:['objects']},
+    {icon:'more',label:'Ещё',sheet:'more',match:['workers','profile'],badge:'timesheets'},
   ];
   return null; // прочие роли — без нижней навигации (остаётся drawer)
 }
@@ -3036,6 +3137,8 @@ function openMoreSheet(){
   if(tabs.includes('workers'))h+=_sheetBtn('👥','Работники',"closeMo('moMore');showTab('workers')");
   if(tabs.includes('objects'))h+=_sheetBtn('🏢','Объекты',"closeMo('moMore');showTab('objects')");
   if(tabs.includes('partners'))h+=_sheetBtn('🤝','Партнёры',"closeMo('moMore');showTab('partners')");
+  // Диспетчер: табели на согласование (вместо отдельной кнопки навигации)
+  if(role==='dispatcher'){const n=tsPendingCount();h+=_sheetBtn('📋','Табели на согласование'+(n?` (${n})`:''),"closeMo('moMore');openTsInbox('pending')");}
   // Архивы (Admin/Owner)
   if(role==='admin'||role==='owner'){
     h+=_sheetBtn('🗄','Архив работников',"closeMo('moMore');openWorkerArchive()");
@@ -3131,6 +3234,7 @@ function renderPeriodBar(){
 const MHEAD_TITLES={smeny:'Смены',myshifts:'Мои смены',mypay:'Мои выплаты',profile:'Профиль',workers:'Работники',equip:'Техника',
   objects:'Объекты',partners:'Партнёры',income:'Доходы',expenses:'Расходы',summary:'Итоги',settings:'Настройки'};
 const MHEAD_NO_PERIOD=['profile','settings']; // разделы, где расчётный период не нужен
+// «Текущее состояние» (Главная, Техника, Объекты): без стрелок; у Главной и Техники — серая подпись периода
 function _mobPeriodText(){
   const d=getPeriodDates(curYear,curEM);if(!d.length)return'';
   const a=d[0],b=d[d.length-1],mg=m=>MGEN[m].toLowerCase();
@@ -3142,7 +3246,8 @@ function _renderMobileHead(){
   const title=home?`<img src="jumix-mark.png" alt=""><div class="mhead-title">JUMIX Tech</div>`:`<div class="mhead-title">${MHEAD_TITLES[activeTab]||''}</div>`;
   const ed=cfg.settings.periodEndDay||20;
   const diff=Math.ceil((new Date(curYear,curEM-1,ed)-new Date())/86400000);
-  const per=MHEAD_NO_PERIOD.includes(activeTab)?'':`<div class="mhead-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button>${diff>=0&&diff<=5?`<span class="mhead-warn">закрытие через ${diff} дн.</span>`:''}</div>`;
+  const curTab=CUR_STATE_TABS.includes(activeTab)&&isCurrentBillingPeriod();
+  const per=MHEAD_NO_PERIOD.includes(activeTab)?'':curTab?(activeTab==='objects'?'':`<div class="mhead-per mhead-cur"><span>Текущий период · ${_mobPeriodText()}</span></div>`):`<div class="mhead-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button>${diff>=0&&diff<=5?`<span class="mhead-warn">закрытие через ${diff} дн.</span>`:''}</div>`;
   const rb=document.getElementById('recurringBar');
   // «Перенести постоянные статьи» — только в финансовых разделах (на Главной не занимает первый экран)
   const rec=(rb&&rb.style.display!=='none'&&['income','expenses','summary'].includes(activeTab))?`<div class="mhead-rec"><button class="icon-btn" onclick="copyRecurringFromPrev()" style="color:var(--green);border-color:rgba(34,211,160,.4)">📋 Перенести постоянные статьи</button></div>`:'';
@@ -3366,6 +3471,8 @@ function openShiftModal(equipId,dateKey){
     if(isWorkedTimeAssign(rw,equip.id,dateKey)){fracRow.style.display='';document.getElementById('shFrac').value=String(cell.shiftFraction===0.5?0.5:1);}
     else fracRow.style.display='none';
   }
+  // «Переработка» больше не создаётся; кнопка видна ТОЛЬКО для уже существующей старой записи type 4
+  document.getElementById('sopt4').style.display=(cell.type===4)?'':'none';
   selSOpt(cell.type||0);
   openMo('moShift');
 }
@@ -3766,41 +3873,80 @@ function _wFactTds(w){
   const f=workerFactStats(w);
   return `<td class="num tr" style="color:var(--green);font-weight:600">${fmtQty(f.days)}</td><td class="num tr" style="color:var(--blue);font-weight:600">${fmtQty(f.nights)}</td>`;
 }
-// Карточка работника (мобильный вид списка работников)
+// Подмены работника за период: подтверждённые смены, где он вышел НЕ основным оператором (по истории назначений).
+// «Начать смену» на своей технике (source:'worker_day') — не подмена. Только отображение.
+function workerSubCount(w){
+  let n=0;
+  for(const e of cfg.equipment)for(const[d,c] of cellEntries(pd.shifts[e.id])){
+    if(!c.type||!shiftApproved(c)||c.workerId!==w.id)continue;
+    if(c.source==='worker_day'&&w.equipmentId===e.id)continue;
+    if(primaryWorkerAt(e,d)!==w.id)n++;
+  }
+  return n;
+}
+// Статус работника: Архив / Долг (компания должна) / Переплата / OK
+function _wkStatusTag(w,earn){
+  if(w.archived){const le=_lastEnd(workerEmployment(w));return{k:'arch',t:`Архив${le?' · до '+_fmtD(le):''}`};}
+  const b=Math.round(earn.balance);
+  return b>0?{k:'debt',t:'Долг'}:b<0?{k:'over',t:'Переплата'}:{k:'ok',t:'OK'};
+}
+// Карточка работника (мобильный список): компактно — дни / ночи / подмены и «К выплате»
 function _workerCardHTML(w,eq,earn){
   const obj=eq?cfg.objects.find(o=>o.id===eq.objectId):null;
-  const balColor=earn.balance>0?'var(--red)':earn.balance<0?'var(--green)':'var(--muted)';
-  const subN=earn.subNightCount+earn.subDayCount;
-  const advN=(pd.payments[w.id]||[]).filter(p=>p.status==='pending'||p.status==='approved').length;
-  const debt=earn.balance>0;
-  const _wf=workerFactStats(w);
-  return`<div class="c-card">
-    <div class="c-card-head">
-      <div><div class="c-card-title">${w.name}</div><div class="c-card-sub"><span class="badge-type t-${w.type}">${WORKER_TYPES[w.type]||w.type}</span>${_wArchBadge(w)}</div></div>
-      <span class="tag ${debt?'st-idle':'st-active'}" style="${debt?'background:var(--red-soft);color:var(--red)':''}">${debt?'Долг':'ОК'}</span>
-    </div>
-    <div class="c-card-body">
-      <div class="eqc-meta">
-        <div><span>Техника</span><b>${eq?eq.name:'—'}</b></div>
-        <div><span>Объект</span><b>${obj?obj.name:'—'}</b></div>
-      </div>
-      <div class="wkc-stats">
-        <div class="wkc-stat"><div class="wkc-stat-v" style="color:var(--green)">${fmtQty(_wf.days)}</div><div class="wkc-stat-l">Дней</div></div>
-        <div class="wkc-stat"><div class="wkc-stat-v" style="color:var(--blue)">${fmtQty(_wf.nights)}</div><div class="wkc-stat-l">Ночей</div></div>
-        <div class="wkc-stat"><div class="wkc-stat-v" style="color:var(--violet)">${earn.overCount}</div><div class="wkc-stat-l">Перераб</div></div>
-        <div class="wkc-stat"><div class="wkc-stat-v" style="color:#b8860b">${subN}</div><div class="wkc-stat-l">Подмен</div></div>
-        <div class="wkc-stat"><div class="wkc-stat-v" style="color:var(--accent)">${advN}</div><div class="wkc-stat-l">Авансы</div></div>
-      </div>
-      <div class="wkc-fin"><span>Начислено</span><b>${fmt(earn.totalAccrued)} ₸</b></div>
-      <div class="wkc-fin"><span>Выплачено</span><b style="color:var(--green)">${fmt(earn.pays)} ₸</b></div>
-      <div class="wkc-fin"><span>Остаток</span><b style="color:${balColor}">${earn.balance>0?'+':''}${fmt(earn.balance)} ₸</b></div>
-    </div>
-    <div class="c-card-foot">
-      <button class="btn btn-secondary btn-sm" onclick="openWorkerDetail('${w.id}')">Детали</button>
-      <button class="btn btn-secondary btn-sm" onclick="openPayModal('${w.id}')">+ Выплата</button>
-      ${_settleBtnHTML(w,earn)}
-    </div>
+  const money=can('view_salaries')&&currentUser?.role!=='dispatcher';
+  const fs=workerFactStats(w),subs=workerSubCount(w),st0=_wkStatusTag(w,earn);
+  const st=money||st0.k==='arch'?st0:{k:'ok',t:'Работает'};
+  const b=Math.round(earn.balance);
+  return`<div class="c-card wk2" onclick="openWorkerSheet('${w.id}')">
+    <div class="wk2-h"><div class="wk2-hl"><div class="wk2-n">${_tsEsc(w.name)}</div><div class="wk2-t">${_tsEsc(WORKER_TYPES[w.type]||w.type||'')}</div></div>
+      <span class="wk2-st s-${st.k}">${st.t}</span></div>
+    <div class="wk2-eq">${eq?`<b>${_tsEsc(eq.name)}</b>`:'<span>Техника не назначена</span>'}${obj?`<span>${_tsEsc(obj.name)}</span>`:''}</div>
+    <div class="wk2-kpi"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div>
+      <div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div>
+      <div><b>${subs}</b><span>${_plural(subs,['подмена','подмены','подмен'])}</span></div></div>
+    <div class="wk2-f">${money?`<div><span>${b<0?'Переплата':'К выплате'}</span><b class="${b<0?'neg':''}">${fmt(Math.abs(b))} ₸</b></div>`:'<div></div>'}
+      <button class="wk2-more" onclick="event.stopPropagation();openWorkerSheet('${w.id}')">Подробнее →</button></div>
   </div>`;
+}
+// Подробная карточка работника (лист): работа, расчёт (существующий calcWorkerEarnings), последние смены,
+// действия — существующие «+ Выплата» (openPayModal), «Рассчитать» (openSettleModal), «История» (openWorkerDetail).
+function openWorkerSheet(wid){
+  const w=cfg.workers.find(x=>x.id===wid);if(!w)return;
+  const money=can('view_salaries')&&currentUser?.role!=='dispatcher';
+  const earn=calcWorkerEarnings(w),fs=workerFactStats(w),subs=workerSubCount(w),st0=_wkStatusTag(w,earn);
+  const st=money||st0.k==='arch'?st0:{k:'ok',t:'Работает'};
+  const eq=cfg.equipment.find(e=>e.id===w.equipmentId),obj=eq?cfg.objects.find(o=>o.id===eq.objectId):null;
+  const pays=(pd.payments[w.id]||[]).filter(p=>!p.status||p.status==='paid');
+  const adv=pays.filter(p=>p.kind!=='final_settlement').reduce((a,p)=>a+(+p.amount||0),0);
+  const fin=pays.filter(p=>p.kind==='final_settlement').reduce((a,p)=>a+(+p.amount||0),0);
+  const b=Math.round(earn.balance);
+  let h=`<div class="ws-h"><div><div class="ws-n">${_tsEsc(w.name)}</div><div class="ws-t">${_tsEsc(WORKER_TYPES[w.type]||w.type||'')}</div></div><span class="wk2-st s-${st.k}">${st.t}</span></div>
+    <div class="ws-eq">${eq?`<b>${_tsEsc(eq.name)}</b>`:'Техника не назначена'}${obj?` · ${_tsEsc(obj.name)}`:''}</div>
+    <div class="ws-sec">Работа за период · ${_mobPeriodText()}</div>
+    <div class="wk2-kpi"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div>
+      <div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div>
+      <div><b>${subs}</b><span>${_plural(subs,['подмена','подмены','подмен'])}</span></div></div>`;
+  if(money){
+    h+=`<div class="ws-sec">Расчёт</div><div class="ws-calc">
+      <div><span>Начислено</span><b>${fmt(earn.totalAccrued)} ₸</b></div>
+      <div><span>Авансы (выдано)</span><b>${fmt(adv)} ₸</b></div>
+      ${fin?`<div><span>Окончательный расчёт</span><b>${fmt(fin)} ₸</b></div>`:''}
+      <div><span>Выплачено всего</span><b>${fmt(earn.pays)} ₸</b></div>
+      ${earn.pendingAdvances?`<div class="muted"><span>Авансы к выдаче (не выданы)</span><b>${fmt(earn.pendingAdvances)} ₸</b></div>`:''}
+      <div class="tot"><span>${b<0?'Переплата':'К выплате'}</span><b class="${b<0?'neg':''}">${fmt(Math.abs(b))} ₸</b></div></div>`;
+  }
+  // последние смены (единый источник смен работника)
+  const ent=workerShiftEntries(w).filter(x=>x.cell.workerId===w.id||(!x.cell.workerId&&primaryWorkerAt(x.equip,x.date)===w.id)).sort((a,c)=>c.date.localeCompare(a.date)||_wkOrd(a.cell)-_wkOrd(c.cell)).slice(0,5);
+  h+=`<div class="ws-sec">Последние смены</div>`;
+  if(!ent.length)h+='<div class="wk-none">Смен за период нет</div>';
+  else{h+='<div class="ws-shifts">';for(const x of ent){const s2=_wkStatus(x.cell);h+=`<div class="wk-rd-r">${_wkDot(x.cell)}<span class="wk-rd-l">${_wkDate(x.date)} · ${_tsEsc(_wkLabel(x))}</span><em class="st-${s2}">${s2==='approved'?'✓':s2==='pending'?'?':'✕'}</em></div>`;}h+='</div>';}
+  if(can('manage_payments')){
+    h+=`<div class="ws-acts"><button class="btn btn-secondary" onclick="closeMo('moWkSheet');openPayModal('${w.id}')">+ Выплата</button>
+      ${_settleBtnHTML(w,earn).replace('btn-sm','')||''}
+      <button class="btn btn-secondary" onclick="closeMo('moWkSheet');openWorkerDetail('${w.id}')">История</button></div>`;
+  }
+  document.getElementById('wkSheetBody').innerHTML=h;
+  openMo('moWkSheet');
 }
 // ── ОПЛАТА АВТО-ДОХОДА ТЕХНИКИ (equipment.incomePayments[pk]) ──
 // Это факт оплаты уже начисленного авто-дохода (смены/аренда) за период, НЕ новый доход.
@@ -3856,7 +4002,7 @@ async function delAutoPay(eid,id){
 function _settleBtnHTML(w,earn){
   if(!can('manage_payments'))return'';
   const bal=Math.round(earn.balance);
-  if(bal>0)return `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();openSettleModal('${w.id}')" title="Выплатить остаток ${fmt(bal)} ₸ за период">Рассчитать</button>`;
+  if(bal>0)return `<button class="btn btn-sm btn-primary" onclick="event.stopPropagation();closeMo('moWkSheet');openSettleModal('${w.id}')" title="Выплатить остаток ${fmt(bal)} ₸ за период">Рассчитать</button>`;
   if(bal<0)return `<button class="btn btn-sm btn-secondary" disabled title="Выплачено больше, чем начислено">Переплата ${fmt(-bal)} ₸</button>`;
   if(earn.totalAccrued||earn.pays)return `<button class="btn btn-sm btn-secondary" disabled>Рассчитан ✓</button>`;
   return'';
@@ -4576,7 +4722,7 @@ function _renderWorkerSummaryCard(myW,earn,eq){
       <div class="kv" style="color:${balColor};font-size:22px">${earn.balance>0?'+':''}${fmt(earn.balance)}</div>
       <div class="ks">₸</div>
     </div>
-    ${earn.nightCount?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">Ночных: <span style="color:var(--blue);font-weight:700">${earn.nightCount}</span> · Переработок: <span style="color:var(--accent);font-weight:700">${earn.overCount}</span></div>`:''}
+    ${earn.nightCount?`<div style="margin-top:10px;font-size:12px;color:var(--muted)">Ночных: <span style="color:var(--blue);font-weight:700">${earn.nightCount}</span>${earn.overCount?` · Переработок (старые записи): <span style="color:var(--accent);font-weight:700">${earn.overCount}</span>`:''}</div>`:''}
   </div>
   <div class="worker-summary-card-foot">
     <button class="btn btn-primary" style="flex:1" onclick="openWorkerDetail('${myW.id}')">👁 Подробный расчёт</button>
@@ -4829,8 +4975,7 @@ function _workerHome(){
   const myW=cfg.workers.find(w=>w.id===currentUser?.workerId);
   let h=`<div class="mh-hero wk-hero"><div class="mh-hero-in">
     <div class="mh-hero-top"><div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div></div>
-    <div class="mh-hero-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button></div>
-    <div class="mh-hero-t">${_mhGreeting()}</div></div></div>`;
+    <div class="mh-hero-t">${_mhGreeting()}</div>${_mhTodayLine()}</div></div>`;
   if(!myW)return h+`<div class="wk-card wk-empty mh-fade">Вы не привязаны к работнику.<br>Обратитесь к администратору.</div>`;
   const myEquip=cfg.equipment.find(e=>e.id===myW.equipmentId);
   const myObj=myEquip?cfg.objects.find(o=>o.id===myEquip.objectId):null;
@@ -4874,19 +5019,19 @@ function _workerHome(){
   const pays=pd.payments[myW.id]||[];
   const paidAmt=pays.filter(p=>!p.status||p.status==='paid').reduce((a,p)=>a+p.amount,0);
   const pend=all.filter(x=>x.cell.status==='pending').length;
-  h+=`<div class="mh-sec wk-sec">Текущий период</div><div class="wk-card wk-period mh-fade">
+  h+=`<div class="mh-sec wk-sec">Текущий период</div>${_mhPerCap()}<div class="wk-card wk-period mh-fade">
     <div class="wk-dn"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div>
       <div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div>
       ${pend?`<div class="wk-dn-p"><b>${pend}</b><span>ожидают</span></div>`:''}</div>
     <div class="wk-money"><div><span>Заработано</span><b>${fmt(earn.totalAccrued)} ₸</b></div>
       <div><span>Авансы</span><b>${fmt(paidAmt)} ₸</b></div>
       <div><span>К выплате</span><b class="${earn.balance<0?'neg':''}">${fmt(earn.balance)} ₸</b></div></div>
-    <button class="wk-link" onclick="showTab('mypay')">Мои выплаты →</button></div>`;
+    <button class="wk-link" onclick="_homeGo('mypay')">Мои выплаты →</button></div>`;
   // ПОСЛЕДНИЕ СМЕНЫ (3 последние даты)
   const past=all.filter(x=>x.date<=today);
   const dates=[...new Set(past.map(x=>x.date))].sort().reverse().slice(0,3);
   if(dates.length){
-    h+=`<div class="mh-head2"><div class="mh-sec">Последние смены</div><button class="mh-link" onclick="showTab('myshifts')">Все смены →</button></div><div class="wk-card wk-recent mh-fade">`;
+    h+=`<div class="mh-head2"><div class="mh-sec">Последние смены</div><button class="mh-link" onclick="_homeGo('myshifts')">Все смены →</button></div><div class="wk-card wk-recent mh-fade">`;
     for(const d of dates){
       h+=`<div class="wk-rd"><div class="wk-rd-d">${_wkDate(d)}</div>`;
       for(const x of past.filter(y=>y.date===d).sort((a,b)=>_wkOrd(a.cell)-_wkOrd(b.cell))){
@@ -4909,29 +5054,26 @@ function _workerHome(){
 // Блок «Ожидают подтверждения» мобильной Главной (Admin/Owner/Dispatcher). Список — pendingShiftList()
 // (тот же, что раздел «Смены»), действия — существующий approveShift(). Без финансовых данных.
 // Нет заявок — блок не выводится. Максимум 3 (новые сверху), дальше «Все заявки (N) →».
-function _mobilePendingHTML(role){
-  if(!(role==='admin'||role==='owner'||role==='dispatcher')||!can('approve_shifts'))return'';
-  const list=pendingShiftList();
-  if(!list.length)return'';
-  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||b.date.localeCompare(a.date));
-  const today=todayISO(),yest=_isoAddDays(today,-1);
-  const AVC=['#2f6bff','#0f9f6e','#f26a1b','#9b51e0','#e08a00','#5b5bf6'];
-  let h=`<div class="mh-head2"><div class="mh-sec">Ожидают подтверждения · ${list.length}</div><button class="mh-link" onclick="_mhAllPending()">Все заявки →</button></div><div class="mh-box">`;
-  for(const s of list.slice(0,3)){
-    const eqN=s.equip?s.equip.name:s.eqId;
-    const who=s.worker?s.worker.name:(s.equip?_shiftOperatorName(s,s.equip):'—');
-    const[,m,d]=s.date.split('-').map(Number);
-    const when=s.date===today?'Сегодня':s.date===yest?'Вчера':`${d} ${MGEN[m].toLowerCase()}`;
-    // тип — существующие названия: Дневная/Ночная смена, половина смены, переработка, подмена
-    const T={1:'Дневная смена',2:'Ночная смена',3:'День + Ночь'};
-    let typ=s.type===4?_craneShiftLabel(s):(T[s.type]||_shiftTypeLabel(s));
-    if(s.type!==4&&s.shiftFraction===0.5)typ+=' · Половина смены';
-    if(s.workerId&&s.equip&&!String(s.workerId).startsWith('p_')&&s.workerId!==primaryWorkerAt(s.equip,s.date))typ+=' · Подмена';
-    const ini=(who||'—').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'—';
-    const col=AVC[[...(who||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%AVC.length];
-    const busy=_shiftReviewBusy.has(s.docId);
-    h+=`<div class="mh-pend">
-      <span class="mh-av" style="background:${col}">${_tsEsc(ini)}</span>
+// Одна строка заявки на смену (общая для блока Admin/Owner и «Требуют внимания» Dispatcher). Без денег.
+const _MH_AVC=['#2f6bff','#0f9f6e','#f26a1b','#9b51e0','#e08a00','#5b5bf6'];
+function _mhAvatar(who){
+  const ini=(who||'—').split(/\s+/).filter(Boolean).slice(0,2).map(x=>x[0]).join('').toUpperCase()||'—';
+  const col=_MH_AVC[[...(who||'')].reduce((a,c)=>a+c.charCodeAt(0),0)%_MH_AVC.length];
+  return `<span class="mh-av" style="background:${col}">${_tsEsc(ini)}</span>`;
+}
+function _mhShiftRow(s,today,yest){
+  const eqN=s.equip?s.equip.name:s.eqId;
+  const who=s.worker?s.worker.name:(s.equip?_shiftOperatorName(s,s.equip):'—');
+  const[,m,d]=s.date.split('-').map(Number);
+  const when=s.date===today?'Сегодня':s.date===yest?'Вчера':`${d} ${MGEN[m].toLowerCase()}`;
+  // тип — существующие названия: Дневная/Ночная смена, половина смены, переработка, подмена
+  const T={1:'Дневная смена',2:'Ночная смена',3:'День + Ночь'};
+  let typ=s.type===4?_craneShiftLabel(s):(T[s.type]||_shiftTypeLabel(s));
+  if(s.type!==4&&s.shiftFraction===0.5)typ+=' · Половина смены';
+  if(s.workerId&&s.equip&&!String(s.workerId).startsWith('p_')&&s.workerId!==primaryWorkerAt(s.equip,s.date))typ+=' · Подмена';
+  const busy=_shiftReviewBusy.has(s.docId);
+  return `<div class="mh-pend">
+      ${_mhAvatar(who)}
       <div class="mh-pend-l"><div class="mh-pend-t">${_tsEsc(who)} · ${_tsEsc(eqN)}</div>
         <div class="mh-pend-s">${when} · ${_tsEsc(typ)}</div>
         ${(s.note||'').trim()?`<div class="mh-pend-n">💬 ${_tsEsc(s.note.trim())}</div>`:''}</div>
@@ -4939,8 +5081,126 @@ function _mobilePendingHTML(role){
         <button class="mh-pend-rej" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','rejected',this)">Отклонить</button>
         <button class="mh-pend-ok" ${busy?'disabled':''} onclick="_mhReview('${s.docId}','approved',this)">Подтвердить</button>
       </div></div>`;
+}
+// Строка запроса замены в «Требуют внимания» (существующий reviewReplaceRequest)
+function _mhRRRow(r){
+  const e=cfg.equipment.find(x=>x.id===r.equipmentId);
+  const busy=_rrReviewBusy.has(r.id);
+  return `<div class="mh-pend mh-pend-rr">
+      ${_mhAvatar(r.workerName||'—')}
+      <div class="mh-pend-l"><div class="mh-pend-t">${_tsEsc(r.workerName||'—')} · ${_tsEsc(e?e.name:'—')}</div>
+        <div class="mh-pend-s"><span class="mh-rr-tag">Замена крановщика</span> · ${_rrRange(r)}</div>
+        ${r.reason?`<div class="mh-pend-n">«${_tsEsc(r.reason)}»</div>`:''}</div>
+      <div class="mh-pend-a">
+        <button class="mh-pend-rej" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','rejected')">Отклонить</button>
+        <button class="mh-pend-ok" ${busy?'disabled':''} onclick="reviewReplaceRequest('${r.id}','approved')">Подтвердить</button>
+      </div></div>`;
+}
+function _mobilePendingHTML(role){
+  if(!(role==='admin'||role==='owner'||role==='dispatcher')||!can('approve_shifts'))return'';
+  const list=pendingShiftList();
+  if(!list.length)return'';
+  list.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||'')||b.date.localeCompare(a.date));
+  const today=todayISO(),yest=_isoAddDays(today,-1);
+  let h=`<div class="mh-head2"><div class="mh-sec">Ожидают подтверждения · ${list.length}</div><button class="mh-link" onclick="_mhAllPending()">Все заявки →</button></div><div class="mh-box">`;
+  for(const s of list.slice(0,3))h+=_mhShiftRow(s,today,yest);
+  return h+'</div>';
+}
+// ── DISPATCHER: «Требуют внимания» — смены на подтверждение + запросы замены (по его технике), новые сверху.
+// Механизмы — существующие approveShift() / reviewReplaceRequest(). Нет заявок — блока нет.
+function _dspAttentionHTML(){
+  if(!can('approve_shifts'))return'';
+  const items=[
+    ...pendingShiftList().map(x=>({k:'shift',at:x.createdAt||x.date,x})),
+    ...rrPendingVisible().map(x=>({k:'rr',at:x.createdAt||x.dateFrom,x}))];
+  if(!items.length)return'';
+  items.sort((a,b)=>String(b.at).localeCompare(String(a.at)));
+  const today=todayISO(),yest=_isoAddDays(today,-1);
+  let h=`<div class="mh-head2"><div class="mh-sec">Требуют внимания · ${items.length}</div>${items.length>3?`<button class="mh-link" onclick="_mhAllPending()">Все заявки (${items.length}) →</button>`:''}</div><div class="mh-box">`;
+  for(const it of items.slice(0,3))h+=it.k==='shift'?_mhShiftRow(it.x,today,yest):_mhRRRow(it.x);
+  return h+'</div>';
+}
+// ── DISPATCHER: «Техника сегодня» — только назначенная техника, День/Ночь сегодня (✓ подтверждено,
+// ? ожидает, ✕ отклонено, — нет записи). Без денег и тарифов. Нажатие → «Смены» с фильтром этой техники.
+function _dspTodayMark(cells,kind){
+  const c=cells.find(x=>shiftKinds(x.type||0).includes(kind));
+  if(!c)return'<i class="dt-n">—</i>';
+  if(c.status==='pending')return'<i class="dt-p">?</i>';
+  if(c.status==='rejected')return'<i class="dt-r">✕</i>';
+  return'<i class="dt-ok">✓</i>';
+}
+function _dspEquipTodayHTML(){
+  const list=visibleEquipment().filter(e=>!e.archived);
+  if(!list.length)return'';
+  const today=todayISO();
+  let h=`<div class="mh-head2"><div><div class="mh-sec">Текущий период</div>${_mhPerCap()}</div>${list.length>3?`<button class="mh-link" onclick="_homeGo('smeny')">Вся техника (${list.length}) →</button>`:''}</div><div class="mh-box">`;
+  for(const e of list.slice(0,3)){
+    const cells=cellsAt(pd.shifts[e.id],today).filter(c=>c.type);
+    const oid=equipObjectIdAt(e,today);
+    h+=`<div class="mh-eq" onclick="openEquipPeriodSheet('${e.id}')">${_mhIc('crane','#f26a1b','#fff0e6')}<div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(e.name)}</div>
+      <div class="mh-eq-o">${oid?_tsEsc(oName(oid)):'Без объекта'}</div>
+      <div class="mh-eq-dn">${(()=>{const fs=equipFactStats(e);return _daysNightsLabel(fs.days||0,fs.nights||0);})()}</div>
+      <div class="mh-eq-dn dsp-dn">Сегодня: День ${_dspTodayMark(cells,'day')} · Ночь ${_dspTodayMark(cells,'night')}</div></div>
+      <span class="dsp-go">›</span></div>`;
   }
   return h+'</div>';
+}
+// Детализация техники за ВЫБРАННЫЙ период (лист). Суммы — те же positions из periodFinance(), что карточка
+// Главной и «Доходы» (ничего не пересчитывается). Без права на доходы (Dispatcher) — только работа и операторы.
+function openEquipPeriodSheet(eid){
+  const e=cfg.equipment.find(x=>x.id===eid);if(!e)return;
+  if(currentUser?.role==='dispatcher'&&!canSeeEquip(eid))return;
+  const money=can('view_income');
+  const pb=periodBounds();
+  const fs=equipFactStats(e);
+  const od=equipObjDays(e).filter(x=>x.objectId);
+  // ночи по объектам (подтверждённые; объект — на дату смены)
+  const nByObj={};for(const[d,c] of cellEntries(pd.shifts[e.id])){if(c.type&&shiftApproved(c)&&shiftKinds(c.type).includes('night')){const o=equipObjectIdAt(e,d);nByObj[o]=(nByObj[o]||0)+shiftFrac(c);}}
+  const curObj=od.length?od[0].objectId:e.objectId;
+  let h=`<div class="es-h"><div class="es-n">${_tsEsc(e.name)}</div><div class="es-o">${od.length===1||!od.length?_tsEsc(oName(curObj)||'Без объекта'):'Несколько объектов'}</div>
+    <div class="es-p">${_mobPeriodText()}</div></div>
+    <div class="ws-sec">Работа</div>
+    <div class="es-dn"><div><b>${fmtQty(fs.days)}</b><span>${_plural(fs.days,['день','дня','дней'])}</span></div><div><b>${fmtQty(fs.nights)}</b><span>${_plural(fs.nights,['ночь','ночи','ночей'])}</span></div></div>`;
+  if(od.length>1){
+    h+='<div class="es-objs">';
+    for(const x of od){const n=nByObj[x.objectId]||0;h+=`<div><b>${_tsEsc(oName(x.objectId))}</b><span>${fmtQty(x.days)} ${_plural(x.days,['день','дня','дней'])}${n?` · ${fmtQty(n)} ${_plural(n,['ночь','ночи','ночей'])}`:''}</span></div>`;}
+    h+='</div>';
+  }
+  // операторы за период (история назначений; без истории — текущий основной)
+  const hist=(e.workerHistory||[]).filter(x=>x.workerId&&_ovl(x,pb.from,pb.to));
+  const ops=hist.length?hist.map(x=>{const fr=x.from&&x.from>pb.from?`с ${_wkDate(x.from)}`:'',to=x.to&&x.to<pb.to?`до ${_wkDate(x.to)}`:'';return `${_tsEsc(wName(x.workerId))}${fr||to?' → '+[fr,to].filter(Boolean).join(' '):''}`;})
+    :(e.primaryWorkerId?[_tsEsc(wName(e.primaryWorkerId))]:[]);
+  if(ops.length)h+=`<div class="ws-sec">Оператор</div><div class="es-ops">${ops.map(x=>`<div>${x}</div>`).join('')}</div>`;
+  if(money){
+    const F=periodFinance();const r=F.byEquip[eid]||{net:0,gross:0,mainNet:0,svcNet:0};
+    const{ir}=equipIncomeSplit(e);
+    const mine=F.positions.filter(p=>p.src==='manual'&&p.equipmentId===eid);
+    const grp=(arr)=>{const g={};for(const p of arr){const k=INC_TYPES[p.item.type]||p.item.type||'Прочее';g[k]=(g[k]||0)+p.net;}return Object.entries(g).filter(([,v])=>Math.round(v)!==0);};
+    const mainManual=grp(mine.filter(p=>p.kind==='main')),svc=grp(mine.filter(p=>p.kind==='service'));
+    const LBL={month:'Основная аренда',day:'Дневные смены',night:'Ночные смены'};
+    h+=`<div class="ws-sec">Доход</div><div class="ws-calc">`;
+    for(const row of ir.rows)if(Math.round(row.sum))h+=`<div><span>${LBL[row.kind]||_tsEsc(row.service)}</span><b>${fmt(Math.round(row.sum))} ₸</b></div>`;
+    for(const[k,v] of mainManual)h+=`<div><span>${_tsEsc(k)}</span><b>${fmt(Math.round(v))} ₸</b></div>`;
+    if(!ir.rows.some(x=>Math.round(x.sum))&&!mainManual.length)h+='<div class="muted"><span>Основного дохода за период нет</span><b></b></div>';
+    h+=`</div><div class="ws-sec">Дополнительные услуги</div><div class="ws-calc">`;
+    if(!svc.length)h+='<div class="muted"><span>Дополнительных услуг за период нет</span><b></b></div>';
+    else{for(const[k,v] of svc)h+=`<div><span>${_tsEsc(k)}</span><b>${fmt(Math.round(v))} ₸</b></div>`;
+      h+=`<div class="sub"><span>Доп. услуги</span><b>${fmt(Math.round(r.svcNet))} ₸</b></div>`;}
+    const m=money3(r.net,r.gross);
+    h+=`</div><div class="ws-calc es-tot"><div><span>Итого без НДС</span><b>${fmt(m.net)} ₸</b></div>
+      <div><span>НДС ${F.rate}%</span><b>${fmt(m.vat)} ₸</b></div>
+      <div class="tot"><span>Итого с НДС</span><b>${fmt(m.gross)} ₸</b></div></div>`;
+  }
+  h+=`<div class="ws-acts"><button class="btn btn-secondary" onclick="closeMo('moEqSheet');openEquipShifts('${e.id}')">Смены / история →</button></div>`;
+  document.getElementById('eqSheetBody').innerHTML=h;
+  openMo('moEqSheet');
+}
+// Открыть «Смены» с календарём выбранной техники (существующий фильтр shiftEquipSel / shiftCardFilter)
+function openEquipShifts(eid){
+  _viewPeriod=null; // из текущего состояния — «Смены» за текущий период
+  showTab('smeny',document.querySelector('.tab-btn[onclick*=smeny]'));
+  const sel=document.getElementById('shiftEquipSel');
+  if(sel&&sel.value!==eid)shiftCardFilter(eid);
 }
 // Кнопки карточки: блокируем обе на время операции, само действие — существующий approveShift()
 async function _mhReview(docId,status,btn){
@@ -4952,6 +5212,7 @@ async function _mhReview(docId,status,btn){
 }
 // «Все заявки» → раздел «Смены», прокрутка к блоку заявок
 function _mhAllPending(){
+  _viewPeriod=null; // из текущего состояния — «Смены» за текущий период
   showTab('smeny',document.querySelector('.tab-btn[onclick*=smeny]'));
   const el=document.getElementById('pendingShiftsPanel');
   if(el&&el.scrollIntoView)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),60);
@@ -4984,6 +5245,10 @@ const MH_ICONS={
 };
 // Персональное приветствие по локальному времени: 05–11 утро, 12–17 день, 18–04 вечер.
 // Имя — из профиля текущего пользователя: отдельное поле firstName, иначе первое слово name (не ФИО целиком).
+// «Сегодня, 6 октября» — дата сегодняшнего дня (не период)
+function _mhTodayLine(){const[,m,d]=todayISO().split('-').map(Number);return `<div class="mh-hero-d">Сегодня, ${d} ${MGEN[m].toLowerCase()}</div>`;}
+// Подпись текущего периода под заголовком блока Главной (без переключения)
+function _mhPerCap(){return `<div class="mh-per-cap">${_mobPeriodText()}</div>`;}
 function _mhGreeting(){
   const h=new Date().getHours();
   const g=h>=5&&h<12?'Доброе утро':h>=12&&h<18?'Добрый день':'Добрый вечер';
@@ -5177,19 +5442,19 @@ function _mobileHome(role){
   const pri=[],sec=[];
   if(tabs.includes('smeny')){
     const n=_pendingShiftsCount();
-    pri.push(['cal','#2f6bff','#eaf1ff','Смены',n?`${n} на подтверждение`:'Нет новых',"showTab('smeny')",n,!!n]);
+    pri.push(['cal','#2f6bff','#eaf1ff','Смены',n?`${n} на подтверждение`:'Нет новых',"_homeGo('smeny')",n,!!n]);
   }
-  if(tabs.includes('equip'))pri.push(['crane','#f26a1b','#fff0e6','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"showTab('equip')"]);
-  if(tabs.includes('workers'))pri.push(['worker','#0f9f6e','#e6f7f0','Работники',`${K.workers} активных`,"showTab('workers')"]);
+  if(tabs.includes('equip'))pri.push(['crane','#f26a1b','#fff0e6','Техника',`${K.equipWork} в работе · ${K.equipIdle} в простое`,"_homeGo('equip')"]);
+  if(tabs.includes('workers'))pri.push(['worker','#0f9f6e','#e6f7f0','Работники',`${K.workers} активных`,"_homeGo('workers')"]);
   // Финансы: доход С НДС за выбранный период из periodFinance() — только при праве view_income; плитка → «Доходы»
   const F=can('view_income')?periodFinance():null;
-  if(can('view_income')||can('view_expenses'))pri.push(['wallet','#9b51e0','#f5ecfd','Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)}\u00a0₸`:'Доходы · расходы',can('view_income')?"showTab('income')":"openFinanceSheet()"]);
+  if(can('view_income')||can('view_expenses'))pri.push(['wallet','#9b51e0','#f5ecfd','Финансы',F?`Доход ${fmtMln(money3(F.tot.net,F.tot.gross).gross)}\u00a0₸`:'Доходы · расходы',can('view_income')?"_homeGo('income')":"openFinanceSheet()"]);
   // Дополнительные (нижний ряд): Табель, Объекты, Ещё
   if(tabs.includes('smeny')&&(role==='admin'||role==='owner'||disp)){
     const n=tsPendingCount();
     sec.push(['clip','#e08a00','#fff4df','Табель',n?`${n} на согласование`:`до ${last.d} ${MGEN[last.m].toLowerCase()}`,"openTsInbox('"+(n?'pending':'all')+"')",n,!!n]);
   }
-  if(tabs.includes('objects'))sec.push(['bld','#5b5bf6','#efeefe','Объекты',`${K.objects} активных`,"showTab('objects')"]);
+  if(tabs.includes('objects'))sec.push(['bld','#5b5bf6','#efeefe','Объекты',`${K.objects} активных`,"_homeGo('objects')"]);
   if(role==='admin'||role==='owner'||disp)sec.push(['more','#64748b','#f1f3f7','Ещё','Все разделы',"openMoreSheet()"]);
   // ширина плитки = 12 колонок / число плиток в ряду (без «дыр» при любом наборе прав)
   const mk=(arr,row)=>arr.map(x=>tile(`${row} sp${Math.max(3,Math.floor(12/arr.length))}`,_mhIc(x[0],x[1],x[2]),x[3],x[4],x[5],x[6],x[7])).join('');
@@ -5199,18 +5464,24 @@ function _mobileHome(role){
   let h=`<div class="mh-hero"><div class="mh-hero-in">
     <div class="mh-hero-top"><div class="mh-hero-brand"><img src="jumix-mark.png" alt="">JUMIX Tech</div>
       <button class="mh-bell" onclick="_mhBell()" aria-label="Уведомления"><svg viewBox="0 0 24 24">${MH_ICONS.bell}</svg>${bell?`<span class="mh-bell-n">${bell>99?'99+':bell}</span>`:''}</button></div>
-    <div class="mh-hero-per"><button onclick="chPeriod(-1)" aria-label="Предыдущий период">‹</button><span>${_mobPeriodText()}</span><button onclick="chPeriod(1)" aria-label="Следующий период">›</button></div>
-    <div class="mh-hero-t">${_mhGreeting()}</div>
+    <div class="mh-hero-t">${_mhGreeting()}</div>${_mhTodayLine()}
   </div></div>`;
   // «Сервисы» — белая карточка, слегка заходит на hero
   h+=`<div class="mh-svc"><div class="mh-sec">Сервисы</div><div class="mh-grid">${tiles}</div></div>`;
+  // DISPATCHER: Сервисы → Требуют внимания → Погода → Текущий период (без финансов)
+  if(disp){
+    h+=_dspAttentionHTML();
+    try{h+=_mhWeatherHTML();}catch(e){}
+    h+=_dspEquipTodayHTML();
+    return h;
+  }
   // погода (Open-Meteo): любой сбой погоды скрывает только её карточку, Главная работает
   try{h+=_mhWeatherHTML();}catch(e){}
   h+=_mobileReplaceHTML(role);   // запросы замены — отдельный блок, не смешивается со сменами
   h+=_mobilePendingHTML(role);
-  // «Работа за период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
+  // «Текущий период» — только ролям с доступом к доходам (диспетчер денег не видит). Источник — periodFinance().
   if(F){
-    h+=`<div class="mh-head2"><div class="mh-sec">Работа за период</div>${F.equipList.length?`<button class="mh-link" onclick="showTab('income')">Вся техника (${F.equipList.length}) →</button>`:''}</div>`;
+    h+=`<div class="mh-head2"><div><div class="mh-sec">Текущий период</div>${_mhPerCap()}</div>${F.equipList.length?`<button class="mh-link" onclick="_homeGo('income')">Вся техника (${F.equipList.length}) →</button>`:''}</div>`;
     if(!F.equipList.length)h+='<div class="mh-box"><div class="empty" style="padding:14px">Нет техники в работе за период</div></div>';
     else{
       h+='<div class="mh-box">';
@@ -5218,7 +5489,7 @@ function _mobileHome(role){
         const m=money3(r.net,r.gross);
         const od=(r.objDays||[]).filter(x=>x.objectId);
         const obj=od.length>1?od.map(x=>`${_tsEsc(oName(x.objectId))} — ${fmtQty(x.days)} дн`).join(' · '):(od.length?_tsEsc(oName(od[0].objectId)):'Без объекта');
-        h+=`<div class="mh-eq" onclick="showTab('income')">${_mhIc('crane','#f26a1b','#fff0e6')}<div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div>
+        h+=`<div class="mh-eq" onclick="openEquipPeriodSheet('${r.equip.id}')">${_mhIc('crane','#f26a1b','#fff0e6')}<div class="mh-eq-l"><div class="mh-eq-n">${_tsEsc(r.equip.name)}</div>
           <div class="mh-eq-o">${obj}</div><div class="mh-eq-dn">${_daysNightsLabel(r.days||0,r.nights||0)}</div></div>
           <div class="mh-eq-sum">${fmt(m.gross)} ₸<small>с НДС</small></div></div>`;
       }
@@ -5465,7 +5736,6 @@ function _workerDash(){
   <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px">
     <button class="btn btn-secondary" onclick="openWorkerShiftModal()">📅 Добавить смену</button>
     <button class="btn btn-secondary" onclick="_quickShift(2)">🌙 Ночная смена</button>
-    <button class="btn btn-secondary" onclick="_quickShift(4)">⚡ Переработка</button>
     <button class="btn btn-primary" onclick="openAdvanceRequestModal()">💰 Запросить аванс</button>
   </div>`;
   if(myEquip){
@@ -5475,10 +5745,9 @@ function _workerDash(){
     </div></div>`;
   }
   h+=`<div class="dash-section-title">Смены за период</div>`;
-  h+=`<div class="kpi-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
+  h+=`<div class="kpi-row" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
     <div class="kpi gn"><div class="kl">Дней</div><div class="kv gn">${dayN}</div></div>
     <div class="kpi bl"><div class="kl">Ночей</div><div class="kv bl">${nightN}</div></div>
-    <div class="kpi yw"><div class="kl">Переработок</div><div class="kv yw">${overN}</div></div>
     <div class="kpi rd"><div class="kl">Подмен</div><div class="kv rd">${subN}</div></div>
   </div>`;
   h+=`<div class="dash-section-title">Финансы</div>`;
@@ -5778,12 +6047,11 @@ function renderMyShifts(){
   h+=`<div class="cal-legend wk-legend">
     <span><span class="cb cb-day">Д</span> День</span>
     <span><span class="cb cb-night">Н</span> Ночь</span>
-    <span><span class="cb cb-over">П</span> Переработка</span>
     <span><span class="cb cb-sub">⇄</span> Подмена</span>
     <span><span class="cb cb-pending">?</span> Ожидает</span>
     <span><span class="cb cb-rejected">Н</span> Отклонено</span>
   </div>`;
-  // «Мои заявки»: ВСЕ виды (День, Полдня, Ночь, Переработка, Подмена); День и Ночь одной даты — две записи
+  // «Мои заявки»: ВСЕ виды (День, Полдня, Ночь, Подмена; старые переработки — как есть); День и Ночь одной даты — две записи
   const list=[...all].sort((a,b)=>b.date.localeCompare(a.date)||_wkOrd(a.cell)-_wkOrd(b.cell));
   if(list.length){
     h+='<div class="mh-sec wk-sec" style="margin-top:18px">Мои заявки</div><div class="wk-card wk-claims">';
@@ -5852,10 +6120,10 @@ function _quickShift(presetType){
   openWorkerShiftModal(null,presetType);
 }
 
-// Виды работы из модалки работника (Ночь / Переработка), ещё не занятые на технике в эту дату
+// Виды работы из модалки работника (Ночь), ещё не занятые на технике в эту дату
 function _wsFreeKinds(equipId,date){
   const cl=cellsAt(pd.shifts[equipId],date).filter(c=>c.type);
-  return ['night','over'].filter(k=>!cl.some(c=>shiftKinds(c.type).includes(k)));
+  return ['night'].filter(k=>!cl.some(c=>shiftKinds(c.type).includes(k))); // «Переработка» больше не создаётся
 }
 let _wsEditDocId='';
 function openWorkerShiftModal(editDateKey,presetType,presetDate,editDocId){
@@ -6125,11 +6393,12 @@ function renderEquip(){
     const pt=cfg.partners.find(p=>p.id===e.rentalPartnerId);
     // Статистика по технике за период
     const cs=pd.shifts[e.id]||{};
-    let nights=0,days=0,over=0,pend=0;
-    for(const[,cell] of cellEntries(cs)){
+    let nights=0,days=0,over=0,pend=0,subs=0;
+    for(const[sd,cell] of cellEntries(cs)){
       const t=cell.type||0;
       if(cell.status==='pending'){pend++;continue;}
       if(cell.status==='rejected')continue;
+      if(t&&cell.workerId&&!String(cell.workerId).startsWith('p_')&&cell.workerId!==primaryWorkerAt(e,sd))subs++;
       if(t===1||t===3)days++;
       if(t===2||t===3)nights++;
       if(t===4)over++;
@@ -6154,12 +6423,12 @@ function renderEquip(){
           <div><span>Оператор</span><b>${op?op.name:'—'}</b></div>
           <div><span>Объект</span><b>${obj?obj.name:'—'}</b></div>
           ${pt?`<div><span>Аренда у</span><b>${pt.name}</b></div>`:''}
-          <div><span>Договор/мес</span><b>${fmt((e.rates||{}).monthly||0)} ₸</b></div>
+          ${can('view_income')?`<div><span>Договор/мес</span><b>${fmt((e.rates||{}).monthly||0)} ₸</b></div>`:''}<!-- ставка договора — только ролям с доступом к доходам (не диспетчеру) -->
         </div>
         <div class="eqc-stats">
           <div class="eqc-stat"><div class="eqc-stat-v">${daysCell}</div><div class="eqc-stat-l">Дней аренды</div></div>
           <div class="eqc-stat"><div class="eqc-stat-v" style="color:var(--blue)">${nights}</div><div class="eqc-stat-l">Ночей</div></div>
-          <div class="eqc-stat"><div class="eqc-stat-v" style="color:var(--violet)">${over}</div><div class="eqc-stat-l">Перераб.</div></div>
+          <div class="eqc-stat"><div class="eqc-stat-v" style="color:var(--violet)">${subs}</div><div class="eqc-stat-l">Подмены</div></div>
         </div>
         ${warnings.length?`<div class="eqc-warn">⚠ ${warnings.join(' · ')}</div>`:''}
       </div>
@@ -6174,6 +6443,7 @@ function renderEquip(){
 }
 // Быстрый переход в календарь смен с выбором конкретной техники
 function gotoEquipCalendar(id){
+  _viewPeriod=null; // из текущего состояния — «Смены» за текущий период
   showTab('smeny',document.querySelector('.tab-btn[onclick*=smeny]'));
   const sel=document.getElementById('shiftEquipSel');
   if(sel){sel.value=id;renderShifts();}
@@ -7843,6 +8113,7 @@ async function restoreWorker(id,startDate,comment){
 function gotoPeriodOf(date,after){
   if(!date)return;const p=periodOfDate(date);
   if(p.y!==curYear||p.em!==curEM){curYear=p.y;curEM=p.em;listenPeriod(curYear,curEM);renderPeriodBar();}
+  _rememberViewPeriod();_keepPeriodOnce=!isCurrentBillingPeriod();
   closeMo('moArchList');
   if(after)setTimeout(after,700);
 }
@@ -9000,7 +9271,7 @@ function openIncomeModal(id){
   osel.innerHTML='<option value="">— —</option>'+cfg.objects.filter(o=>it?.objectId===o.id||objectInPeriod(o)).map(o=>`<option value="${o.id}"${it?.objectId===o.id?' selected':''}>${o.name}</option>`).join('');
 
   const tsel=document.getElementById('inType');
-  tsel.innerHTML=Object.entries(INC_TYPES).map(([k,v])=>`<option value="${k}"${it?.type===k?' selected':''}>${v}</option>`).join('');
+  tsel.innerHTML=Object.entries(INC_TYPES).filter(([k])=>k!=='over'||it?.type==='over').map(([k,v])=>`<option value="${k}"${it?.type===k?' selected':''}>${v}</option>`).join('');
 
   document.getElementById('inPartner').innerHTML='<option value="">— —</option>'+cfg.partners.map(p=>`<option value="${p.id}"${it?.partnerId===p.id?' selected':''}>${p.name}</option>`).join('');
   document.getElementById('inStatus').innerHTML=Object.entries(FIN_STATUS).map(([k,v])=>`<option value="${k}"${(it?.status||'pending')===k?' selected':''}>${v}</option>`).join('');
